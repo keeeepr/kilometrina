@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kilometrina — beleženje setov</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#0B1F33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kilometrina">
+<meta name="mobile-web-app-capable" content="yes">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B1F33;
+    --panel: #122A44;
+    --panel-2: #16324F;
+    --line: #1E3A56;
+    --text: #EDEAE0;
+    --text-dim: #9FB2C4;
+    --teal: #2DD4BF;
+    --coral: #FF6B4A;
+    --amber: #F2B84B;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { min-height: 100vh; padding: 28px 18px 60px; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .lanes {
+    height: 10px;
+    border-radius: 5px;
+    margin-bottom: 22px;
+    background: repeating-linear-gradient(90deg, var(--teal) 0px, var(--teal) 26px, transparent 26px, transparent 40px);
+    opacity: 0.55;
+  }
+  header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
+  h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+  header .sub { color: var(--text-dim); font-size: 13px; font-family: 'IBM Plex Mono', monospace; }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+  .panel h2 { font-size: 15px; font-weight: 600; margin: 0 0 14px; color: var(--text-dim); }
+
+  .meta-row { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 11px; color: var(--text-dim); }
+  input, textarea {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+    color: var(--text); padding: 10px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 14px;
+  }
+  input:focus, textarea:focus, button:focus-visible {
+    outline: 2px solid var(--teal); outline-offset: 1px;
+  }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 0;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 999px; font-size: 12.5px;
+    font-family: 'IBM Plex Mono', monospace; overflow: hidden;
+  }
+  .chip-label {
+    background: none; border: none; color: inherit; cursor: pointer;
+    padding: 6px 4px 6px 12px; font: inherit;
+  }
+  .chip-label:hover { color: var(--teal); }
+  .chip-del {
+    background: none; border: none; color: var(--text-dim); cursor: pointer;
+    padding: 6px 10px 6px 4px; font-size: 11px; line-height: 1;
+  }
+  .chip-del:hover { color: var(--coral); }
+  button.chip.add-chip {
+    padding: 6px 12px; color: var(--text-dim); border-style: dashed; cursor: pointer;
+  }
+  button.chip.add-chip:hover { border-color: var(--teal); color: var(--teal); }
+  .add-word-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .add-word-row input {
+    flex: 1; max-width: 220px;
+  }
+  .add-word-row .export-btn { padding: 8px 14px; }
+
+  .compose-row {
+    display: grid;
+    grid-template-columns: 1fr 90px auto;
+    gap: 10px;
+    align-items: end;
+  }
+  .compose-row textarea { min-height: 40px; resize: vertical; font-family: 'Space Grotesk', sans-serif; }
+  .compose-row input[type="number"] { text-align: right; }
+  button.add-btn {
+    background: var(--teal); color: #06231F; border: none; border-radius: 8px;
+    padding: 10px 16px; font-weight: 600; font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer; white-space: nowrap;
+  }
+  button.add-btn:hover { filter: brightness(1.05); }
+  .hint { font-size: 11.5px; color: var(--text-dim); margin-top: 8px; line-height: 1.5; }
+  .live-preview {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--amber);
+    margin-top: 10px; min-height: 18px;
+  }
+  .live-preview.empty-state { color: var(--text-dim); }
+
+  .lines-list { margin-top: 18px; }
+  .line-row {
+    display: grid;
+    grid-template-columns: 1fr 70px 60px 24px;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13.5px;
+  }
+  .line-row .txt { line-height: 1.4; }
+  .line-row .m { font-family: 'IBM Plex Mono', monospace; color: var(--amber); text-align: right; }
+  .line-row .m-edit {
+    font-family: 'IBM Plex Mono', monospace; color: var(--amber); text-align: right;
+    background: transparent; border: 1px solid transparent; border-radius: 6px;
+    padding: 4px 6px; font-size: 13.5px; width: 100%;
+  }
+  .line-row .m-edit:hover, .line-row .m-edit:focus { border-color: var(--line); background: var(--panel); }
+  .line-row .cum { font-family: 'IBM Plex Mono', monospace; color: var(--text-dim); text-align: right; }
+  .line-row .del { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 15px; }
+  .line-row .del:hover { color: var(--coral); }
+
+  .total-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
+  }
+  .total-bar .big { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; color: var(--teal); }
+  .total-bar .lbl { font-size: 12px; color: var(--text-dim); }
+
+  .save-row { display: flex; gap: 10px; margin-top: 18px; }
+  button.save-btn {
+    flex: 1; background: var(--coral); color: #2A0C04; border: none; border-radius: 8px;
+    padding: 12px; font-weight: 600; font-size: 15px; font-family: 'Space Grotesk', sans-serif; cursor: pointer;
+  }
+  button.save-btn:hover { filter: brightness(1.05); }
+  button.save-btn:disabled { opacity: 0.5; cursor: default; }
+  button.clear-btn {
+    background: transparent; border: 1px solid var(--line); color: var(--text-dim);
+    border-radius: 8px; padding: 12px 16px; font-family: 'Space Grotesk', sans-serif; cursor: pointer;
+  }
+  button.clear-btn:hover { border-color: var(--coral); color: var(--coral); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .stat .num { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: var(--teal); }
+  .stat .lbl { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+  .history-item {
+    border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;
+    background: var(--panel-2);
+  }
+  .history-head {
+    display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+  }
+  .history-head .title { font-weight: 600; font-size: 14px; }
+  .history-head .date { font-family: 'IBM Plex Mono', monospace; color: var(--text-dim); font-size: 12.5px; }
+  .history-head .km { font-family: 'IBM Plex Mono', monospace; color: var(--amber); font-weight: 600; }
+  .history-lines { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); display: none; }
+  .history-lines.open { display: block; }
+  .history-lines .hl { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; color: var(--text-dim); }
+  .history-lines .hl .m { font-family: 'IBM Plex Mono', monospace; color: var(--amber); }
+  .history-actions { margin-top: 10px; display: flex; gap: 8px; }
+  .history-actions button {
+    background: none; border: 1px solid var(--line); color: var(--text-dim); border-radius: 6px;
+    padding: 5px 10px; font-size: 12px; cursor: pointer; font-family: 'IBM Plex Mono', monospace;
+  }
+  .history-actions button:hover { border-color: var(--coral); color: var(--coral); }
+  .empty { color: var(--text-dim); font-size: 14px; padding: 10px 0; }
+  .err-banner {
+    display: none; background: rgba(255,107,74,0.12); border: 1px solid var(--coral);
+    color: var(--coral); border-radius: 10px; padding: 10px 14px; font-size: 12.5px;
+    font-family: 'IBM Plex Mono', monospace; margin-bottom: 16px; white-space: pre-wrap;
+  }
+
+  .drive-panel { padding: 16px 20px; }
+  .drive-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .drive-status {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--text-dim);
+  }
+  .drive-status.ok { color: var(--teal); }
+  .drive-status.syncing { color: var(--amber); }
+  .drive-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Oura Ring — same panel/status/button vocabulary as the Drive block above,
+     plus a compact day table and the per-workout badges in the history. */
+  .oura-table { margin-top: 16px; }
+  .oura-head, .oura-day {
+    display: grid;
+    grid-template-columns: 1.1fr repeat(5, 1fr);
+    gap: 8px;
+    align-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .oura-head {
+    font-size: 10.5px; color: var(--text-dim); letter-spacing: 0.04em; text-transform: uppercase;
+    padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .oura-day { font-size: 13px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .oura-day:last-child { border-bottom: none; }
+  .oura-day .d { color: var(--text-dim); }
+  .oura-head .v, .oura-day .v { text-align: right; }
+  .oura-day .v { font-weight: 500; color: var(--text); }
+  .oura-day .v.good { color: var(--teal); }
+  .oura-day .v.mid { color: var(--amber); }
+  .oura-day .v.low { color: var(--coral); }
+  .oura-day .v.none { color: var(--line); }
+
+  .oura-badges {
+    display: flex; flex-wrap: wrap; gap: 6px 14px;
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-dim);
+  }
+  .oura-badges strong { font-weight: 500; color: var(--text); }
+  .oura-badges strong.good { color: var(--teal); }
+  .oura-badges strong.mid { color: var(--amber); }
+  .oura-badges strong.low { color: var(--coral); }
+
+  .table-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .export-btn {
+    background: transparent; border: 1px solid var(--line); color: var(--text); border-radius: 8px;
+    padding: 8px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; cursor: pointer;
+  }
+  .export-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+  @media (max-width: 640px) {
+    .meta-row { grid-template-columns: 1fr; }
+    .compose-row { grid-template-columns: 1fr; }
+    .compose-row input[type="number"] { text-align: left; }
+    .line-row { grid-template-columns: 1fr 55px 50px 20px; font-size: 12.5px; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .oura-head, .oura-day { grid-template-columns: 1fr repeat(5, 36px); gap: 6px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="lanes"></div>
+  <div class="err-banner" id="errBanner"></div>
+  <header>
+    <h1>Kilometrina</h1>
+    <div class="sub" id="statusLine">nalagam …</div>
+  </header>
+
+  <section class="panel drive-panel">
+    <div class="drive-row">
+      <div>
+        <h2 style="margin:0 0 4px;">Google Drive varnostna kopija</h2>
+        <div class="drive-status" id="driveStatus">ni povezano</div>
+      </div>
+      <div class="drive-actions">
+        <button type="button" class="export-btn" id="driveSignInBtn">Prijava v Google</button>
+        <button type="button" class="export-btn" id="driveSyncBtn" style="display:none;">Sinhroniziraj zdaj</button>
+        <button type="button" class="export-btn" id="driveRestoreBtn" style="display:none;">Obnovi iz Drive</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel drive-panel">
+    <div class="drive-row">
+      <div>
+        <h2 style="margin:0 0 4px;">Oura Ring</h2>
+        <div class="drive-status" id="ouraStatus">ni povezano</div>
+      </div>
+      <div class="drive-actions">
+        <button type="button" class="export-btn" id="ouraSignInBtn">Prijava v Oura</button>
+        <button type="button" class="export-btn" id="ouraSyncBtn" style="display:none;">Osveži zdaj</button>
+        <button type="button" class="export-btn" id="ouraSignOutBtn" style="display:none;">Odjava</button>
+      </div>
+    </div>
+    <div class="oura-table" id="ouraTable"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Nov trening</h2>
+    <div class="meta-row">
+      <div class="field">
+        <label for="sessDate">Datum</label>
+        <input type="date" id="sessDate">
+      </div>
+      <div class="field">
+        <label for="sessTitle">Naslov (npr. Četrtek popoldan)</label>
+        <input type="text" id="sessTitle" placeholder="Četrtek popoldan">
+      </div>
+    </div>
+
+    <label style="display:block; margin-bottom:8px;">Hitro vstavi</label>
+    <div class="chips" id="chips"></div>
+    <div class="add-word-row">
+      <input type="text" id="newWordInput" placeholder="nova beseda …" maxlength="30">
+      <button type="button" class="export-btn" id="addWordBtn">Dodaj besedo</button>
+    </div>
+
+    <label for="lineText" style="display:block; margin-bottom:6px;">Napiši sete (vsaka vrstica = en set — Enter za novo vrstico)</label>
+    <div class="compose-row">
+      <textarea id="lineText" placeholder="400 ogr.&#10;2 x 300 (50h + 100k DIH3 + 50h + 100k DIH5)&#10;30 x 50 kravl" rows="4"></textarea>
+      <button class="add-btn" id="addLineBtn">Dodaj vse vrstice</button>
+    </div>
+    <div class="live-preview" id="livePreview"></div>
+    <div class="hint">Vsaka vrstica se doda kot svoj set. Metri se poskusijo prepoznati sami (npr. "30 x 50" → 1500, "400 ogr." → 400) — če kje ugane narobe, jih popraviš kar v seznamu spodaj, klikni na številko.</div>
+
+    <div class="lines-list" id="linesList"></div>
+
+    <div class="total-bar">
+      <div>
+        <div class="lbl">skupaj ta trening</div>
+        <div class="big" id="sessionTotal">0.0 km</div>
+      </div>
+    </div>
+
+    <div class="save-row">
+      <button class="save-btn" id="saveBtn">Shrani trening</button>
+      <button class="clear-btn" id="clearBtn">Počisti</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Pregled</h2>
+    <div class="stats">
+      <div class="stat"><div class="num" id="statSessions">—</div><div class="lbl">treningov</div></div>
+      <div class="stat"><div class="num" id="statWeekKm">—</div><div class="lbl">km ta teden</div></div>
+      <div class="stat"><div class="num" id="statTotalKm">—</div><div class="lbl">km skupaj</div></div>
+      <div class="stat"><div class="num" id="statAvgKm">—</div><div class="lbl">povp. km / trening</div></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="table-head">
+      <h2 style="margin:0;">Zgodovina treningov</h2>
+      <button class="export-btn" id="exportBtn">Izvozi / deli CSV</button>
+    </div>
+    <p class="hint" style="margin:0 0 14px;">Na iPhonu ta gumb odpre sistemsko okno "Deli" — od tam izberi Google Drive (ali Datoteke), da shraniš izvoz kot varnostno kopijo.</p>
+    <div id="historyList"><div class="empty">Nalagam …</div></div>
+  </section>
+</div>
+
+<script>
+function showError(msg) {
+  const el = document.getElementById('errBanner');
+  if (!el) return;
+  el.textContent = 'Napaka: ' + msg;
+  el.style.display = 'block';
+}
+window.addEventListener('error', (e) => showError(e.message || String(e.error)));
+window.addEventListener('unhandledrejection', (e) => showError((e.reason && e.reason.message) || String(e.reason)));
+
+const DEFAULT_WORDS = [
+  'ogr.', 'raz.', 'prsno', 'hrbtno', 'kravl', 'delfin', 'mešana', 'vaje',
+  'tehnika', 'noge', 'roke', 'šnorkel', 'tempo', 'max.', 'C.T.', 'DIH', 'na', '+'
+];
+const LS_WORKOUTS = 'kilometrina.workouts';
+const LS_WORDS = 'kilometrina.words';
+const LS_DRIVE_FILE_ID = 'kilometrina.driveFileId';
+
+function lsGet(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) { return fallback; }
+}
+function lsSet(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+  catch (e) { showError('shranjevanje v brskalnik ni uspelo (' + (e.message || e) + ')'); return false; }
+}
+
+// ============================================================
+// GOOGLE DRIVE SYNC
+// 1) Go to https://console.cloud.google.com/ → create a project (free)
+// 2) Enable the "Google Drive API" for that project
+// 3) OAuth consent screen → External → Testing → add yourself as a test user
+// 4) Credentials → Create Credentials → OAuth client ID → "Web application"
+//    Authorized JavaScript origin: the exact URL this page will be hosted at
+//    (e.g. https://yourusername.github.io)
+// 5) Paste the generated Client ID below, replacing YOUR_CLIENT_ID_HERE.
+// ============================================================
+const GOOGLE_CLIENT_ID = 'YOUR_CLIENT_ID_HERE.apps.googleusercontent.com';
+const DRIVE_FILE_NAME = 'kilometrina-podatki.json';
+
+let driveTokenClient = null;
+let driveAccessToken = null;
+let driveSyncTimer = null;
+let driveInitTries = 0;
+
+function driveConfigured() {
+  return GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.startsWith('YOUR_CLIENT_ID');
+}
+
+function setDriveStatus(text, cls) {
+  const el = document.getElementById('driveStatus');
+  el.textContent = text;
+  el.className = 'drive-status' + (cls ? ' ' + cls : '');
+}
+
+function initDrive() {
+  if (!driveConfigured()) {
+    setDriveStatus('Drive ni nastavljen (dodaj GOOGLE_CLIENT_ID v kodo)');
+    document.getElementById('driveSignInBtn').disabled = true;
+    return;
+  }
+  if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+    // GIS script not loaded yet. Slow network: retry for ~10 s. Offline: stop
+    // polling and try again once the device is back online.
+    if (++driveInitTries <= 20) {
+      setTimeout(initDrive, 500);
+    } else {
+      setDriveStatus('Google ni dosegljiv (brez interneta?)');
+      window.addEventListener('online', reloadGoogleScript, { once: true });
+    }
+    return;
+  }
+  driveTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/drive.file',
+    callback: (resp) => {
+      if (resp && resp.access_token) {
+        driveAccessToken = resp.access_token;
+        onDriveSignedIn();
+      } else {
+        showError('prijava v Google ni uspela');
+      }
+    }
+  });
+  setDriveStatus('ni povezano');
+}
+
+function reloadGoogleScript() {
+  driveInitTries = 0;
+  const tag = document.createElement('script');
+  tag.src = 'https://accounts.google.com/gsi/client';
+  tag.async = true;
+  document.head.appendChild(tag);
+  setDriveStatus('nalagam …');
+  initDrive();
+}
+
+function onDriveSignedIn() {
+  document.getElementById('driveSignInBtn').style.display = 'none';
+  document.getElementById('driveSyncBtn').style.display = '';
+  document.getElementById('driveRestoreBtn').style.display = '';
+  setDriveStatus('povezano', 'ok');
+  scheduleDriveSync();
+}
+
+document.getElementById('driveSignInBtn').addEventListener('click', () => {
+  if (!driveTokenClient) return;
+  driveTokenClient.requestAccessToken({ prompt: '' });
+});
+
+async function driveApiFetch(url, options) {
+  options = options || {};
+  options.headers = Object.assign({}, options.headers, { Authorization: 'Bearer ' + driveAccessToken });
+  const res = await fetch(url, options);
+  if (res.status === 401) {
+    // token expired — ask for a fresh one and let the user retry the action
+    driveAccessToken = null;
+    document.getElementById('driveSignInBtn').style.display = '';
+    document.getElementById('driveSyncBtn').style.display = 'none';
+    document.getElementById('driveRestoreBtn').style.display = 'none';
+    setDriveStatus('seja je potekla — prijavi se znova');
+    throw new Error('Drive prijava je potekla, prijavi se znova.');
+  }
+  if (!res.ok) throw new Error('Drive napaka (' + res.status + ')');
+  return res;
+}
+
+/**
+ * The backup file's id is remembered per device. On a device that never
+ * synced (new phone, cleared Safari data) look the file up by name instead —
+ * the drive.file scope lets this app see the files it created, on any device.
+ */
+async function driveLookupFileId() {
+  const q = "name = '" + DRIVE_FILE_NAME + "' and trashed = false";
+  const res = await driveApiFetch(
+    'https://www.googleapis.com/drive/v3/files?orderBy=modifiedTime desc&pageSize=1&fields=files(id)&q=' + encodeURIComponent(q)
+  );
+  const found = (await res.json()).files || [];
+  return found.length ? found[0].id : null;
+}
+
+async function driveSyncNow() {
+  if (!driveAccessToken) return;
+  setDriveStatus('sinhroniziram …', 'syncing');
+  try {
+    const payload = { workouts: sessions, words: quickWords, savedAt: Date.now() };
+    const fileId = localStorage.getItem(LS_DRIVE_FILE_ID);
+    if (!fileId && await driveLookupFileId()) {
+      // A backup from another device exists. Never overwrite it with this
+      // device's (possibly empty) data — restoring adopts it, then sync resumes.
+      setDriveStatus('v Drive je že kopija — tapni "Obnovi iz Drive"', 'syncing');
+      return;
+    }
+    if (fileId) {
+      await driveApiFetch(
+        'https://www.googleapis.com/upload/drive/v3/files/' + fileId + '?uploadType=media',
+        { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
+      );
+    } else {
+      const boundary = 'kmkm-' + Date.now();
+      const metadata = { name: DRIVE_FILE_NAME, mimeType: 'application/json' };
+      const body =
+        '--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' +
+        JSON.stringify(metadata) + '\r\n' +
+        '--' + boundary + '\r\nContent-Type: application/json\r\n\r\n' +
+        JSON.stringify(payload) + '\r\n' +
+        '--' + boundary + '--';
+      const res = await driveApiFetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+        { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary="' + boundary + '"' }, body }
+      );
+      const created = await res.json();
+      localStorage.setItem(LS_DRIVE_FILE_ID, created.id);
+    }
+    const now = new Date();
+    setDriveStatus('sinhronizirano ob ' + now.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }), 'ok');
+  } catch (e) {
+    setDriveStatus('sinhronizacija ni uspela');
+    showError('Drive sinhronizacija: ' + (e.message || e));
+  }
+}
+
+function scheduleDriveSync() {
+  if (!driveAccessToken) return;
+  clearTimeout(driveSyncTimer);
+  driveSyncTimer = setTimeout(driveSyncNow, 1500); // debounce rapid changes
+}
+
+document.getElementById('driveSyncBtn').addEventListener('click', driveSyncNow);
+
+document.getElementById('driveRestoreBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('driveRestoreBtn');
+  btn.disabled = true;
+  try {
+    const fileId = localStorage.getItem(LS_DRIVE_FILE_ID) || await driveLookupFileId();
+    if (!fileId) { showError('v Drive še ni shranjene varnostne kopije'); return; }
+    const res = await driveApiFetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media');
+    const data = await res.json();
+    if (Array.isArray(data.workouts)) { sessions = data.workouts; persistSessions(); renderHistory(); }
+    if (Array.isArray(data.words)) { quickWords = data.words; persistWords(); renderChips(); }
+    localStorage.setItem(LS_DRIVE_FILE_ID, fileId); // from now on this device syncs into that file
+    setDriveStatus('obnovljeno iz Drive', 'ok');
+  } catch (e) {
+    showError('obnovitev iz Drive ni uspela (' + (e.message || e) + ')');
+  } finally {
+    btn.disabled = false;
+  }
+});
+// ============================================================
+
+// ============================================================
+// OURA RING
+// Oura only offers OAuth2, and its token endpoint needs a client secret, so
+// the code → token step goes through oura-token-exchange.js (a Cloudflare
+// Worker that holds the secret). Setup steps: README.md, "Oura Ring nastavitev".
+// 1) Paste the Client ID of your Oura application below (it is public, not secret).
+// 2) Paste the URL of your deployed Worker (no trailing slash).
+// ============================================================
+const OURA_CLIENT_ID = 'YOUR_OURA_CLIENT_ID';
+const OURA_WORKER_URL = 'https://kilometrina-oura.YOUR-SUBDOMAIN.workers.dev';
+const OURA_AUTHORIZE_URL = 'https://cloud.ouraring.com/oauth/authorize';
+const OURA_API = 'https://api.ouraring.com/v2/usercollection/';
+const OURA_FETCH_DAYS = 14;  // how far back each refresh reaches
+const OURA_TABLE_DAYS = 7;   // rows shown in the Oura panel
+const LS_OURA_TOKENS = 'kilometrina.ouraTokens';
+const LS_OURA_DAYS = 'kilometrina.ouraDays';
+const LS_OURA_STATE = 'kilometrina.ouraState';
+
+let ouraTokens = lsGet(LS_OURA_TOKENS, null); // {access_token, refresh_token, expires_at}
+let ouraDays = lsGet(LS_OURA_DAYS, {});       // {'YYYY-MM-DD': {sleep, readiness, activity, hrv}}
+
+function ouraConfigured() {
+  return OURA_CLIENT_ID && !OURA_CLIENT_ID.startsWith('YOUR_') && !OURA_WORKER_URL.includes('YOUR-');
+}
+
+// Must match the Redirect URI registered with Oura exactly. The installed PWA
+// starts at .../index.html while the browser shows .../ — use the folder for both.
+function ouraRedirectUri() {
+  return location.origin + location.pathname.replace(/index\.html$/, '');
+}
+
+function setOuraStatus(text, cls) {
+  const el = document.getElementById('ouraStatus');
+  el.textContent = text;
+  el.className = 'drive-status' + (cls ? ' ' + cls : '');
+}
+
+function showOuraButtons(signedIn) {
+  document.getElementById('ouraSignInBtn').style.display = signedIn ? 'none' : '';
+  document.getElementById('ouraSyncBtn').style.display = signedIn ? '' : 'none';
+  document.getElementById('ouraSignOutBtn').style.display = signedIn ? '' : 'none';
+}
+
+function localDay(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function storeOuraTokens(t) {
+  ouraTokens = {
+    access_token: t.access_token,
+    refresh_token: t.refresh_token || (ouraTokens && ouraTokens.refresh_token),
+    expires_at: Date.now() + (Number(t.expires_in) || 86400) * 1000
+  };
+  lsSet(LS_OURA_TOKENS, ouraTokens);
+}
+
+function ouraSignOut(message) {
+  ouraTokens = null;
+  try { localStorage.removeItem(LS_OURA_TOKENS); } catch (e) {}
+  showOuraButtons(false);
+  setOuraStatus(message || 'ni povezano');
+}
+
+async function callOuraWorker(path, body) {
+  const res = await fetch(OURA_WORKER_URL + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.access_token) {
+    const err = new Error(data.error_description || data.error || ('Worker HTTP ' + res.status));
+    err.status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+async function refreshOuraTokens() {
+  if (!ouraTokens || !ouraTokens.refresh_token) throw new Error('ni refresh tokena');
+  // Oura refresh tokens are single-use: the response carries the next one.
+  storeOuraTokens(await callOuraWorker('/refresh', { refresh_token: ouraTokens.refresh_token }));
+}
+
+document.getElementById('ouraSignInBtn').addEventListener('click', () => {
+  if (!ouraConfigured()) return;
+  const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  // localStorage, not sessionStorage: on iPhone the Oura login may open in a
+  // separate browser view before returning to the installed app.
+  lsSet(LS_OURA_STATE, state);
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: OURA_CLIENT_ID,
+    redirect_uri: ouraRedirectUri(),
+    scope: 'daily heartrate',
+    state: state
+  });
+  location.href = OURA_AUTHORIZE_URL + '?' + params.toString();
+});
+
+document.getElementById('ouraSignOutBtn').addEventListener('click', () => ouraSignOut());
+document.getElementById('ouraSyncBtn').addEventListener('click', () => ouraSyncNow());
+
+/** Back from Oura's login page with ?code=…&state=… — trade the code for tokens. */
+async function handleOuraRedirect() {
+  const params = new URLSearchParams(location.search);
+  const code = params.get('code');
+  const error = params.get('error');
+  if (!code && !error) return false;
+
+  const expected = lsGet(LS_OURA_STATE, null);
+  const returnedState = params.get('state');
+  try { localStorage.removeItem(LS_OURA_STATE); } catch (e) {}
+  history.replaceState(null, '', ouraRedirectUri()); // drop the code from the address bar
+
+  if (error) {
+    setOuraStatus('prijava preklicana');
+    return true;
+  }
+  if (!expected || returnedState !== expected) {
+    showError('Oura prijava: neveljaven odgovor (state se ne ujema), poskusi znova');
+    return true;
+  }
+  setOuraStatus('povezujem …', 'syncing');
+  try {
+    storeOuraTokens(await callOuraWorker('/exchange', { code: code, redirect_uri: ouraRedirectUri() }));
+    showOuraButtons(true);
+    await ouraSyncNow();
+  } catch (e) {
+    ouraSignOut('prijava ni uspela');
+    showError('Oura prijava: ' + (e.message || e));
+  }
+  return true;
+}
+
+/** GET one Oura collection, following next_token until every page is in. */
+async function ouraApiGet(endpoint, query) {
+  const all = [];
+  let nextToken = null;
+  let retried = false;
+  do {
+    if (ouraTokens.expires_at - Date.now() < 60 * 1000) await refreshOuraTokens();
+    const params = new URLSearchParams(query);
+    if (nextToken) params.set('next_token', nextToken);
+    const res = await fetch(OURA_API + endpoint + '?' + params.toString(), {
+      headers: { Authorization: 'Bearer ' + ouraTokens.access_token }
+    });
+    if (res.status === 401 && !retried) {
+      retried = true;
+      await refreshOuraTokens();
+      continue;
+    }
+    if (!res.ok) {
+      const err = new Error('Oura API ' + endpoint + ' (' + res.status + ')');
+      err.status = res.status;
+      throw err;
+    }
+    const page = await res.json();
+    all.push(...(page.data || []));
+    nextToken = page.next_token || null;
+  } while (nextToken);
+  return all;
+}
+
+async function ouraSyncNow() {
+  if (!ouraTokens) return;
+  const btn = document.getElementById('ouraSyncBtn');
+  btn.disabled = true;
+  setOuraStatus('nalagam podatke …', 'syncing');
+  try {
+    const from = new Date();
+    from.setDate(from.getDate() - (OURA_FETCH_DAYS - 1));
+    const to = new Date();
+    to.setDate(to.getDate() + 1); // end_date is exclusive for some endpoints
+    const days = { start_date: localDay(from), end_date: localDay(to) };
+    from.setHours(0, 0, 0, 0);
+
+    const [sleep, readiness, activity, sleepPeriods, heartrate] = await Promise.all([
+      ouraApiGet('daily_sleep', days),
+      ouraApiGet('daily_readiness', days),
+      ouraApiGet('daily_activity', days),
+      ouraApiGet('sleep', days),
+      ouraApiGet('heartrate', { start_datetime: from.toISOString(), end_datetime: new Date().toISOString() })
+    ]);
+
+    const day = (d) => (ouraDays[d] = ouraDays[d] || {});
+    sleep.forEach((r) => { day(r.day).sleep = r.score; });
+    readiness.forEach((r) => { day(r.day).readiness = r.score; });
+    activity.forEach((r) => { day(r.day).activity = r.score; });
+    // Several sleep periods per day (naps); HRV comes from the longest one.
+    const longest = {};
+    sleepPeriods.forEach((p) => {
+      if (p.average_hrv == null) return;
+      if (!longest[p.day] || (p.total_sleep_duration || 0) > (longest[p.day].total_sleep_duration || 0)) longest[p.day] = p;
+    });
+    Object.keys(longest).forEach((d) => { day(d).hrv = longest[d].average_hrv; });
+    // Heart rate arrives as ~5-minute samples; keep a per-day min / average.
+    const hr = {};
+    heartrate.forEach((h) => {
+      if (!h.bpm) return;
+      const d = localDay(new Date(h.timestamp));
+      const acc = hr[d] = hr[d] || { min: Infinity, sum: 0, n: 0 };
+      acc.min = Math.min(acc.min, h.bpm);
+      acc.sum += h.bpm;
+      acc.n++;
+    });
+    Object.keys(hr).forEach((d) => { day(d).hr = { min: hr[d].min, avg: Math.round(hr[d].sum / hr[d].n) }; });
+
+    lsSet(LS_OURA_DAYS, ouraDays);
+    renderOuraTable();
+    renderHistory();
+    const now = new Date();
+    setOuraStatus('osveženo ob ' + now.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }), 'ok');
+  } catch (e) {
+    if (e.status === 401 || e.status === 400) {
+      // The refresh token itself was rejected — only a fresh sign-in helps.
+      ouraSignOut('seja je potekla — prijavi se znova');
+    } else {
+      setOuraStatus('osvežitev ni uspela');
+    }
+    showError('Oura: ' + (e.message || e));
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Oura's own bands: 85+ optimal, 70–84 good, below 70 pay attention.
+function ouraScoreClass(v) {
+  if (v == null) return 'none';
+  return v >= 85 ? 'good' : v >= 70 ? 'mid' : 'low';
+}
+
+function renderOuraTable() {
+  const wrap = document.getElementById('ouraTable');
+  const rows = [];
+  for (let i = 0; i < OURA_TABLE_DAYS; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = localDay(d);
+    if (ouraDays[key]) rows.push([key, d, ouraDays[key]]);
+  }
+  if (!rows.length) { wrap.innerHTML = ''; return; }
+  const cell = (v, cls) => `<div class="v ${cls}">${v == null ? '—' : v}</div>`;
+  wrap.innerHTML =
+    `<div class="oura-head"><div>dan</div><div class="v">spanec</div><div class="v">pripr.</div><div class="v">aktiv.</div><div class="v">hrv</div><div class="v">utrip</div></div>` +
+    rows.map(([key, d, o]) => `
+      <div class="oura-day">
+        <div class="d">${d.toLocaleDateString('sl-SI', { weekday: 'short', day: 'numeric', month: 'numeric' })}</div>
+        ${cell(o.sleep, ouraScoreClass(o.sleep))}
+        ${cell(o.readiness, ouraScoreClass(o.readiness))}
+        ${cell(o.activity, ouraScoreClass(o.activity))}
+        ${cell(o.hrv == null ? null : Math.round(o.hrv), o.hrv == null ? 'none' : '')}
+        ${cell(o.hr ? o.hr.min : null, o.hr ? '' : 'none')}
+      </div>`).join('');
+}
+
+/** Scores for a workout's date, shown inside its expanded history entry. */
+function ouraBadgesHtml(date) {
+  const o = ouraDays[date];
+  if (!o) return '';
+  const b = (label, v, cls) => v == null ? '' : `<span>${label} <strong class="${cls}">${v}</strong></span>`;
+  return `<div class="oura-badges">` +
+    b('spanec', o.sleep, ouraScoreClass(o.sleep)) +
+    b('pripravljenost', o.readiness, ouraScoreClass(o.readiness)) +
+    b('aktivnost', o.activity, ouraScoreClass(o.activity)) +
+    b('hrv', o.hrv == null ? null : Math.round(o.hrv) + ' ms', '') +
+    b('utrip min / povp.', o.hr ? o.hr.min + ' / ' + o.hr.avg + ' bpm' : null, '') +
+    `</div>`;
+}
+
+async function initOura() {
+  renderOuraTable();
+  if (!ouraConfigured()) {
+    setOuraStatus('Oura ni nastavljen (dodaj OURA_CLIENT_ID in OURA_WORKER_URL v kodo)');
+    document.getElementById('ouraSignInBtn').disabled = true;
+    return;
+  }
+  if (await handleOuraRedirect()) return;
+  if (ouraTokens) {
+    showOuraButtons(true);
+    ouraSyncNow();
+  } else {
+    showOuraButtons(false);
+  }
+}
+// ============================================================
+
+let quickWords = lsGet(LS_WORDS, [...DEFAULT_WORDS]);
+let currentLines = []; // {text, meters}
+let sessions = lsGet(LS_WORKOUTS, []);
+let activeInput = null;
+
+const sessDate = document.getElementById('sessDate');
+sessDate.value = localDay(new Date());
+const sessTitle = document.getElementById('sessTitle');
+const lineText = document.getElementById('lineText');
+
+document.querySelectorAll('input, textarea').forEach(el => {
+  el.addEventListener('focus', () => { activeInput = el; });
+});
+
+// ---------- distance auto-parse ----------
+function parseMeters(text) {
+  const t = text.trim();
+  const xMatch = t.match(/^(\d+)\s*[x×]\s*(\d+)/i);
+  if (xMatch) return Number(xMatch[1]) * Number(xMatch[2]);
+  const numMatch = t.match(/^(\d+)/);
+  if (numMatch) return Number(numMatch[1]);
+  return 0;
+}
+
+function updateLivePreview() {
+  const el = document.getElementById('livePreview');
+  const raw = lineText.value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!raw.length) {
+    el.textContent = '';
+    el.classList.remove('empty-state');
+    return;
+  }
+  const m = raw.reduce((s, t) => s + parseMeters(t), 0);
+  const word = raw.length === 1 ? 'vrstica' : (raw.length < 5 ? 'vrstice' : 'vrstic');
+  el.textContent = `zaznano: ${raw.length} ${word} · ${m} m (${(m/1000).toFixed(2)} km) — po dodajanju: skupaj ${(( currentLines.reduce((s,l)=>s+l.meters,0) + m)/1000).toFixed(1)} km`;
+  el.classList.remove('empty-state');
+}
+lineText.addEventListener('input', updateLivePreview);
+
+// ---------- quick words / chips ----------
+function renderChips() {
+  const wrap = document.getElementById('chips');
+  wrap.innerHTML = '';
+  quickWords.forEach((w, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    const label = document.createElement('button');
+    label.type = 'button';
+    label.className = 'chip-label';
+    label.textContent = w;
+    label.addEventListener('click', () => insertWord(w));
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'chip-del';
+    del.textContent = '✕';
+    del.setAttribute('aria-label', 'Odstrani besedo ' + w);
+    del.addEventListener('click', (e) => { e.stopPropagation(); removeWord(i); });
+    chip.appendChild(label);
+    chip.appendChild(del);
+    wrap.appendChild(chip);
+  });
+}
+
+function persistWords() {
+  lsSet(LS_WORDS, quickWords);
+  scheduleDriveSync();
+}
+
+function insertWord(word) {
+  const target = lineText;
+  const start = target.selectionStart ?? target.value.length;
+  const end = target.selectionEnd ?? target.value.length;
+  const before = target.value.slice(0, start);
+  const after = target.value.slice(end);
+  const needsSpaceBefore = before.length && !/\s$/.test(before);
+  const insert = (needsSpaceBefore ? ' ' : '') + word + ' ';
+  target.value = before + insert + after;
+  const pos = (before + insert).length;
+  target.focus();
+  target.setSelectionRange(pos, pos);
+}
+
+function addWord(word) {
+  try {
+    const w = (word ?? '').trim();
+    if (!w) return;
+    if (quickWords.includes(w)) return;
+    quickWords.push(w);
+    renderChips();
+    persistWords();
+  } catch (e) { showError('dodajanje besede ni uspelo (' + (e.message || e) + ')'); }
+}
+
+const newWordInput = document.getElementById('newWordInput');
+document.getElementById('addWordBtn').addEventListener('click', () => {
+  addWord(newWordInput.value);
+  newWordInput.value = '';
+  newWordInput.focus();
+});
+newWordInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.getElementById('addWordBtn').click();
+  }
+});
+
+function removeWord(index) {
+  try {
+    quickWords.splice(index, 1);
+    renderChips();
+    persistWords();
+  } catch (e) { showError('brisanje besede ni uspelo (' + (e.message || e) + ')'); }
+}
+
+// ---------- current session lines ----------
+function renderLines() {
+  const wrap = document.getElementById('linesList');
+  if (!currentLines.length) {
+    wrap.innerHTML = '';
+  } else {
+    let cum = 0;
+    wrap.innerHTML = currentLines.map((l, i) => {
+      cum += l.meters;
+      return `
+        <div class="line-row">
+          <div class="txt">${escapeHtml(l.text)}</div>
+          <input class="m-edit" type="number" min="0" step="25" data-i="${i}" value="${l.meters}">
+          <div class="cum">${(cum/1000).toFixed(1)}</div>
+          <button class="del" data-i="${i}" aria-label="Izbriši vrstico">✕</button>
+        </div>`;
+    }).join('');
+    wrap.querySelectorAll('.del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentLines.splice(Number(btn.dataset.i), 1);
+        renderLines();
+      });
+    });
+    wrap.querySelectorAll('.m-edit').forEach(inp => {
+      inp.addEventListener('change', () => {
+        currentLines[Number(inp.dataset.i)].meters = Number(inp.value) || 0;
+        renderLines();
+      });
+    });
+  }
+  const total = currentLines.reduce((s, l) => s + l.meters, 0);
+  document.getElementById('sessionTotal').textContent = (total/1000).toFixed(1) + ' km';
+  updateLivePreview();
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+document.getElementById('addLineBtn').addEventListener('click', () => {
+  const rawLines = lineText.value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!rawLines.length) return;
+  rawLines.forEach(t => currentLines.push({ text: t, meters: parseMeters(t) }));
+  lineText.value = '';
+  lineText.focus();
+  renderLines();
+});
+lineText.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    document.getElementById('addLineBtn').click();
+  }
+});
+
+const clearBtn = document.getElementById('clearBtn');
+let clearArmed = false;
+let clearArmedTimeout = null;
+clearBtn.addEventListener('click', () => {
+  if (!currentLines.length) return;
+  if (!clearArmed) {
+    clearArmed = true;
+    clearBtn.textContent = 'Res počisti?';
+    clearArmedTimeout = setTimeout(() => {
+      clearArmed = false;
+      clearBtn.textContent = 'Počisti';
+    }, 3000);
+    return;
+  }
+  clearTimeout(clearArmedTimeout);
+  clearArmed = false;
+  clearBtn.textContent = 'Počisti';
+  currentLines = [];
+  lineText.value = '';
+  renderLines();
+});
+
+function persistSessions() {
+  lsSet(LS_WORKOUTS, sessions);
+  scheduleDriveSync();
+}
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  if (!currentLines.length) return;
+  const total = currentLines.reduce((s, l) => s + l.meters, 0);
+  const data = {
+    id: 'w-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+    date: sessDate.value || localDay(new Date()),
+    title: sessTitle.value.trim() || 'Trening',
+    lines: currentLines,
+    totalMeters: total,
+    createdAt: Date.now()
+  };
+  const btn = document.getElementById('saveBtn');
+  try {
+    sessions.unshift(data);
+    sessions.sort((a,b) => b.date.localeCompare(a.date) || (b.createdAt||0)-(a.createdAt||0));
+    persistSessions();
+    renderHistory();
+    currentLines = [];
+    sessTitle.value = '';
+    lineText.value = '';
+    renderLines();
+  } catch (err) {
+    showError('shranjevanje treninga ni uspelo (' + (err.message || err) + ')');
+  }
+});
+
+// ---------- history ----------
+function renderHistory() {
+  const wrap = document.getElementById('historyList');
+  if (!sessions.length) {
+    wrap.innerHTML = '<div class="empty">Še ni shranjenih treningov.</div>';
+  } else {
+    wrap.innerHTML = sessions.map(s => `
+      <div class="history-item">
+        <div class="history-head" data-id="${s.id}">
+          <div>
+            <div class="title">${escapeHtml(s.title)}</div>
+            <div class="date">${s.date}</div>
+          </div>
+          <div class="km">${(s.totalMeters/1000).toFixed(1)} km</div>
+        </div>
+        <div class="history-lines" id="hl-${s.id}">
+          ${(s.lines||[]).map(l => `<div class="hl"><span>${escapeHtml(l.text)}</span><span class="m">${l.meters} m</span></div>`).join('')}
+          ${ouraBadgesHtml(s.date)}
+          <div class="history-actions">
+            <button class="del-sess" data-id="${s.id}">Izbriši trening</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    wrap.querySelectorAll('.history-head').forEach(h => {
+      h.addEventListener('click', () => {
+        document.getElementById('hl-' + h.dataset.id).classList.toggle('open');
+      });
+    });
+    wrap.querySelectorAll('.del-sess').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (btn.dataset.armed !== 'true') {
+          btn.dataset.armed = 'true';
+          const original = btn.textContent;
+          btn.textContent = 'Res izbriši?';
+          setTimeout(() => { btn.dataset.armed = 'false'; btn.textContent = original; }, 3000);
+          return;
+        }
+        sessions = sessions.filter(s => s.id !== btn.dataset.id);
+        persistSessions();
+        renderHistory();
+      });
+    });
+  }
+  renderStats();
+}
+
+function renderStats() {
+  document.getElementById('statSessions').textContent = sessions.length;
+  const totalM = sessions.reduce((s, x) => s + (x.totalMeters||0), 0);
+  document.getElementById('statTotalKm').textContent = (totalM/1000).toFixed(1);
+  document.getElementById('statAvgKm').textContent = sessions.length ? (totalM/1000/sessions.length).toFixed(1) : '—';
+
+  const now = new Date();
+  const day = (now.getDay() + 6) % 7;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - day);
+  monday.setHours(0,0,0,0);
+  const weekM = sessions.reduce((s, x) => {
+    const d = new Date(x.date + 'T00:00:00');
+    return d >= monday ? s + (x.totalMeters||0) : s;
+  }, 0);
+  document.getElementById('statWeekKm').textContent = (weekM/1000).toFixed(1);
+}
+
+document.getElementById('exportBtn').addEventListener('click', async () => {
+  const header = ['date','title','total_km','line_text','line_meters'];
+  const rows = [header.join(',')];
+  sessions.forEach(s => {
+    if (!s.lines || !s.lines.length) {
+      rows.push([s.date, csvEsc(s.title), (s.totalMeters/1000).toFixed(2), '', ''].join(','));
+    } else {
+      s.lines.forEach((l, i) => {
+        rows.push([
+          i === 0 ? s.date : '',
+          i === 0 ? csvEsc(s.title) : '',
+          i === 0 ? (s.totalMeters/1000).toFixed(2) : '',
+          csvEsc(l.text),
+          l.meters
+        ].join(','));
+      });
+    }
+  });
+  const csv = rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const fileName = 'kilometrina-' + new Date().toISOString().slice(0,10) + '.csv';
+
+  // On iPhone: try the native share sheet first, so the person can route
+  // the file straight to Google Drive (or Files/AirDrop/anywhere else).
+  try {
+    const file = new File([blob], fileName, { type: 'text/csv' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'Kilometrina — izvoz' });
+      return;
+    }
+  } catch (e) {
+    // user cancelled the share sheet, or it's unsupported here — fall through
+  }
+
+  // Fallback (desktop / VS Code local testing): plain browser download.
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fileName; a.click();
+  URL.revokeObjectURL(url);
+});
+
+function csvEsc(s) {
+  const str = String(s ?? '');
+  if (/[",\n]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
+  return str;
+}
+
+// ---------- init ----------
+function init() {
+  renderChips();
+  renderLines();
+  const statusLine = document.getElementById('statusLine');
+  if (typeof Storage !== 'undefined') {
+    statusLine.textContent = 'podatki se shranjujejo v ta brskalnik';
+  } else {
+    statusLine.textContent = 'shranjevanje ni na voljo v tem brskalniku';
+  }
+  renderHistory();
+  initDrive();
+  initOura();
+}
+
+init();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch((e) => console.error(e));
+  });
+}
+</script>
+</body>
+</html>
