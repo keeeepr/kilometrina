@@ -19,7 +19,7 @@ Datoteke:
    vidna komurkoli s povezavo, kar je za to aplikacijo v redu, ker ne vsebuje gesel).
 3. Naloži `index.html`, `manifest.json`, `service-worker.js` in tri ikone (6 datotek) v repozitorij (v spletnem vmesniku: **Add file → Upload files**).
 4. Pojdi v **Settings → Pages**. Pod "Branch" izberi `main` in mapo `/ (root)`, nato **Save**.
-5. Po približno minuti bo stran dostopna na `https://TVOJE-UPORABNIŠKO-IME.github.io/kilometrina/`.
+5. Po približno minuti bo stran dostopna na `https://keeeepr.github.io/kilometrina/`.
 
 ## 2. Ustvari Google OAuth Client ID (za Drive sinhronizacijo)
 
@@ -33,7 +33,7 @@ Datoteke:
 4. Pojdi na **APIs & Services → Credentials → Create Credentials → OAuth client ID**.
    - Application type: **Web application**
    - Pod "Authorized JavaScript origins" dodaj točen naslov iz koraka 1 **brez** končne poti,
-     npr. `https://TVOJE-UPORABNIŠKO-IME.github.io` (brez `/kilometrina/` na koncu).
+     npr. `https://keeeepr.github.io` (brez `/kilometrina/` na koncu).
    - Klikni **Create**. Prikaže se **Client ID** (izgleda kot `123456-abc.apps.googleusercontent.com`).
 
 ## 3. Vstavi Client ID v kodo
@@ -49,7 +49,7 @@ shrani datoteko in jo znova naloži v GitHub repozitorij (prepiše obstoječo `i
 
 ## 4. Dodaj na iPhone
 
-1. Na iPhonu v Safariju odpri `https://TVOJE-UPORABNIŠKO-IME.github.io/kilometrina/`.
+1. Na iPhonu v Safariju odpri `https://keeeepr.github.io/kilometrina/`.
 2. Tapni **Deli → Dodaj na začetni zaslon**.
 3. Odpri aplikacijo z nove ikone, tapni **"Prijava v Google"** in dovoli dostop.
    Od zdaj naprej se bo vsak vnos samodejno (z nekaj sekund zamika) sinhroniziral
@@ -73,12 +73,12 @@ majhen brezplačen Cloudflare Worker (`oura-token-exchange.js`), ki samo zamenja
    - **Display Name**: npr. `Kilometrina`
    - **Description**: npr. `Osebna aplikacija za beleženje plavalnih treningov.`
    - **Contact Email**: tvoj e-mail
-   - **Website**: naslov strani, npr. `https://TVOJE-UPORABNIŠKO-IME.github.io/kilometrina/`
+   - **Website**: naslov strani, npr. `https://keeeepr.github.io/kilometrina/`
    - **Privacy Policy URL** in **Terms of Service URL**: Oura ju zahteva, za osebno uporabo pa
      zadošča kar povezava na tvoj GitHub repozitorij, npr.
-     `https://github.com/TVOJE-UPORABNIŠKO-IME/kilometrina` (lahko pri obeh ista).
+     `https://github.com/keeeepr/kilometrina` (lahko pri obeh ista).
    - **Redirect URIs**: točen naslov strani **s** končno poševnico, npr.
-     `https://TVOJE-UPORABNIŠKO-IME.github.io/kilometrina/`
+     `https://keeeepr.github.io/kilometrina/`
      (za lokalno testiranje lahko dodaš še `http://localhost:8000/`).
      Brez `index.html` na koncu — aplikacija vedno uporabi naslov mape.
    - **Scopes**: obkljukaj vsaj **daily** in **heartrate**.
@@ -95,7 +95,7 @@ majhen brezplačen Cloudflare Worker (`oura-token-exchange.js`), ki samo zamenja
    npx wrangler deploy oura-token-exchange.js \
      --name kilometrina-oura \
      --compatibility-date 2025-01-01 \
-     --var ALLOWED_ORIGIN:https://TVOJE-UPORABNIŠKO-IME.github.io
+     --var ALLOWED_ORIGIN:https://keeeepr.github.io
    npx wrangler secret put OURA_CLIENT_ID     --name kilometrina-oura
    npx wrangler secret put OURA_CLIENT_SECRET --name kilometrina-oura
    ```
@@ -103,7 +103,7 @@ majhen brezplačen Cloudflare Worker (`oura-token-exchange.js`), ki samo zamenja
    Pri zadnjih dveh ukazih te vpraša za vrednost — prilepi Client ID oziroma Client Secret iz 5a.
    `ALLOWED_ORIGIN` je naslov strani **brez** poti (brez `/kilometrina/`). Za lokalno testiranje
    lahko navedeš več naslovov, ločenih z vejico, npr.
-   `https://TVOJE-UPORABNIŠKO-IME.github.io,http://localhost:8000`.
+   `https://keeeepr.github.io,http://localhost:8000`.
 3. `deploy` izpiše naslov Workerja, npr. `https://kilometrina-oura.TVOJ-RACUN.workers.dev`.
 
 ### 5c. Vstavi podatke v kodo

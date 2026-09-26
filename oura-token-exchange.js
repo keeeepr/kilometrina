@@ -15,7 +15,7 @@
  *   npx wrangler deploy oura-token-exchange.js \
  *     --name kilometrina-oura \
  *     --compatibility-date 2025-01-01 \
- *     --var ALLOWED_ORIGIN:https://YOUR-USERNAME.github.io
+ *     --var ALLOWED_ORIGIN:https://keeeepr.github.io
  *
  * ALLOWED_ORIGIN is the exact origin of the hosted page (scheme + host, no
  * path, no trailing slash). Several may be comma-separated, which is handy
