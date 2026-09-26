@@ -304,18 +304,19 @@
       </div>
     </div>
 
-    <label style="display:block; margin-bottom:8px;">Hitro vstavi</label>
-    <div class="chips" id="chips"></div>
-    <div class="add-word-row">
-      <input type="text" id="newWordInput" placeholder="nova beseda …" maxlength="30">
-      <button type="button" class="export-btn" id="addWordBtn">Dodaj besedo</button>
-    </div>
-
     <label for="lineText" style="display:block; margin-bottom:6px;">Napiši sete (vsaka vrstica = en set — Enter za novo vrstico)</label>
     <div class="compose-row">
       <textarea id="lineText" placeholder="400 ogr.&#10;2 x 300 (50h + 100k DIH3 + 50h + 100k DIH5)&#10;30 x 50 kravl" rows="4"></textarea>
       <button class="add-btn" id="addLineBtn">Dodaj vse vrstice</button>
     </div>
+
+    <label style="display:block; margin:14px 0 8px;">Hitro vstavi</label>
+    <div class="chips" id="chips"></div>
+    <div class="add-word-row" style="margin-bottom:0;">
+      <input type="text" id="newWordInput" placeholder="nova beseda …" maxlength="30">
+      <button type="button" class="export-btn" id="addWordBtn">Dodaj besedo</button>
+    </div>
+
     <div class="live-preview" id="livePreview"></div>
     <div class="hint">Vsaka vrstica se doda kot svoj set. Metri se poskusijo prepoznati sami (npr. "30 x 50" → 1500, "400 ogr." → 400) — če kje ugane narobe, jih popraviš kar v seznamu spodaj, klikni na številko.</div>
 
