@@ -53,7 +53,14 @@ shrani datoteko in jo znova naloži v GitHub repozitorij (prepiše obstoječo `i
 2. Tapni **Deli → Dodaj na začetni zaslon**.
 3. Odpri aplikacijo z nove ikone, tapni **"Prijava v Google"** in dovoli dostop.
    Od zdaj naprej se bo vsak vnos samodejno (z nekaj sekund zamika) sinhroniziral
-   v datoteko `kilometrina-podatki.json` v tvojem Google Drive.
+   v tvoj Google Drive (Moj disk) v dve datoteki:
+   - `kilometrina-podatki.json` — varnostna kopija, iz katere aplikacija obnavlja podatke;
+   - `kilometrina.xlsx` — Excel pregled istih podatkov z zavihki **Treningi** (en trening na
+     vrstico, z Oura podatki istega dne), **Seti** (vsak set posebej) in **Oura** (vsi Oura
+     podatki po dnevih). Odpreš ga v Google Sheets ali preneseš in odpreš v Excelu.
+     **Datoteka se ob vsaki sinhronizaciji na novo zapiše**, zato vanjo ne vpisuj ničesar —
+     spremembe bi se izgubile. Če jo želiš urejati, si naredi kopijo.
+   Obe datoteki lahko premakneš v poljubno mapo v Drive, ne preimenuj pa ju.
 
 ## 5. Oura Ring nastavitev (neobvezno)
 
