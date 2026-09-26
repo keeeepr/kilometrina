@@ -263,6 +263,20 @@ aplikacija vpraša ob prvi oceni in si ga zapomni.
 
 Ena ocena obroka stane približno 1–3 cente (slika je pred pošiljanjem pomanjšana).
 
+## 8. Telesna masa in pijača
+
+- **Telesna masa** (Treningi & Oura): vpiši maso za dan (vejica ali pika, npr. `72,4`). En vpis na
+  dan — ponovni vpis za isti dan ga zamenja. Prikazana je zadnja masa, sprememba od prejšnje
+  meritve in zadnjih 10 meritev.
+- **Pijača** (Prehrana): izberi, kaj si popil (Voda, Kava, Čaj, Mleko, Sok, Izotonik, Pivo, Vino
+  ali svojo — pri svoji lahko vpišeš kcal na 100 ml), izberi količino (100–750 ml ali poljubno) in
+  tapni *Zabeleži pijačo*. Privzeta količina je enaka kot zadnjič za to pijačo. Kalorije iz pijače
+  se prištejejo k dnevnim kcal (makrohranila ne), pod seštevkom je skupna tekočina.
+
+V Drive varnostni kopiji sta nova ključa `weights` (`{date, kg}`) in `drinks`
+(`{date, time, name, ml, kcal}`) ter seznam `drinkTypes`; v `kilometrina.xlsx` zavihka
+*Telesna masa* in *Pijača*, v *Dnevnem pregledu* pa stolpca Masa in Tekočina.
+
 ## Ko boš želel dodati novo funkcijo
 
 Vrni se v ta pogovor s Claude in povej, kaj bi rad spremenil ali dodal. Ko bom

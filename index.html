@@ -310,6 +310,20 @@
     width: 26px; height: 26px; cursor: pointer; font-size: 14px; line-height: 1;
   }
   .servings button:hover { border-color: var(--teal); color: var(--teal); }
+  .weight-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; }
+  .weight-latest { margin: 16px 0 8px; font-family: 'IBM Plex Mono', monospace; }
+  .weight-latest .big { font-size: 26px; font-weight: 600; color: var(--teal); }
+  .weight-latest .delta { font-size: 13px; color: var(--text-dim); margin-left: 10px; }
+  .weight-item {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 7px 0; border-bottom: 1px solid var(--line); font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+  }
+  .weight-item:last-child { border-bottom: none; }
+  .weight-item .d { color: var(--text-dim); }
+  .weight-item .kg { color: var(--text); margin-left: auto; }
+  .chip.chip-on { border-color: var(--teal); }
+  .chip.chip-on .chip-label { color: var(--teal); }
+  .drink-total { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--teal); }
   .supp-contents { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--amber); margin-top: 3px; line-height: 1.5; }
   .supp-total {
     margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
@@ -331,6 +345,8 @@
     .stats { grid-template-columns: repeat(2, 1fr); }
     .oura-head, .oura-day { grid-template-columns: 1fr repeat(5, 36px); gap: 6px; font-size: 12px; }
     .meal-fields { grid-template-columns: repeat(2, 1fr); }
+    .weight-row { grid-template-columns: 1fr 1fr; }
+    .weight-row .add-btn { grid-column: 1 / -1; }
   }
 </style>
 </head>
@@ -373,6 +389,7 @@
       <div class="stat"><div class="num" id="foodCarbs">0</div><div class="lbl">ogljikovi hidrati (g)</div></div>
       <div class="stat"><div class="num" id="foodFat">0</div><div class="lbl">maščobe (g)</div></div>
     </div>
+    <div class="hint" id="foodDrinkNote" style="margin-top:12px;"></div>
   </section>
 
   <section class="panel" data-mode="food" hidden>
@@ -425,6 +442,27 @@
   <section class="panel" data-mode="food" hidden>
     <h2>Obroki</h2>
     <div id="mealList"></div>
+  </section>
+
+  <section class="panel" data-mode="food" hidden>
+    <h2>Pijača</h2>
+    <label style="display:block; margin-bottom:8px;">Kaj</label>
+    <div class="chips" id="drinkTypeChips"></div>
+    <label style="display:block; margin-bottom:8px;">Koliko (ml)</label>
+    <div class="portion-row" style="margin:0 0 14px;">
+      <div class="chips" id="drinkAmountChips" style="margin:0;"></div>
+      <div class="portion-input"><input type="number" id="drinkMl" min="10" max="5000" step="10" inputmode="numeric" aria-label="Količina v ml"><span>ml</span></div>
+    </div>
+    <button type="button" class="add-btn" id="drinkLogBtn">Zabeleži pijačo</button>
+    <div class="supp-add">
+      <label style="display:block; margin-bottom:0;">Nova vrsta pijače</label>
+      <div class="add-word-row" style="margin:0; flex-wrap:wrap;">
+        <input type="text" id="newDrinkName" placeholder="ime, npr. Kombucha" maxlength="30">
+        <input type="number" id="newDrinkKcal" placeholder="kcal / 100 ml" min="0" max="900" inputmode="decimal" style="max-width:130px;">
+        <button type="button" class="export-btn" id="addDrinkBtn">Dodaj</button>
+      </div>
+    </div>
+    <div id="drinkLog"></div>
   </section>
 
   <section class="panel" data-mode="food" hidden>
@@ -515,6 +553,17 @@
       <button class="save-btn" id="saveBtn">Shrani trening</button>
       <button class="clear-btn" id="clearBtn">Počisti</button>
     </div>
+  </section>
+
+  <section class="panel" data-mode="train">
+    <h2>Telesna masa</h2>
+    <div class="weight-row">
+      <div class="field"><label for="weightDate">Datum</label><input type="date" id="weightDate"></div>
+      <div class="field"><label for="weightKg">Masa (kg)</label><input type="text" id="weightKg" inputmode="decimal" autocomplete="off" placeholder="npr. 72,4"></div>
+      <button type="button" class="add-btn" id="weightSaveBtn">Shrani maso</button>
+    </div>
+    <div class="weight-latest" id="weightLatest"></div>
+    <div id="weightList"></div>
   </section>
 
   <section class="panel" data-mode="train">
@@ -710,7 +759,7 @@ async function driveSyncNow() {
   if (!driveAccessToken) return;
   setDriveStatus('sinhroniziram …', 'syncing');
   try {
-    const payload = { workouts: sessions, words: quickWords, oura: ouraDays, meals: meals, supplements: supplements, supplementList: supplementList, savedAt: Date.now() };
+    const payload = { workouts: sessions, words: quickWords, oura: ouraDays, meals: meals, supplements: supplements, supplementList: supplementList, drinks: drinks, drinkTypes: drinkTypes, weights: weights, savedAt: Date.now() };
     const fileId = localStorage.getItem(LS_DRIVE_FILE_ID);
     if (!fileId && await driveLookupFileId()) {
       // A backup from another device exists. Never overwrite it with this
@@ -821,22 +870,33 @@ function xlsxSheets() {
     .concat([...supplements].sort((a, b) => a.date.localeCompare(b.date) || a.time - b.time)
       .map((x) => [x.date, hhmm(x.time), x.name, x.servings || 1, x.serving || '', ingredientsText(takenIngredients(x))]));
 
-  const days = [...new Set([].concat(sessions.map((x) => x.date), meals.map((x) => x.date), supplements.map((x) => x.date), Object.keys(ouraDays)))].sort();
-  const daily = [['Datum', 'Km', 'kcal', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Dopolnila', 'Ocena spanja', 'Pripravljenost', 'HRV (ms)', 'Utrip noč najn.']]
+  const drinkRows = [['Datum', 'Ura', 'Pijača', 'ml', 'kcal']]
+    .concat([...drinks].sort((a, b) => a.date.localeCompare(b.date) || a.time - b.time).map((x) => [x.date, hhmm(x.time), x.name, x.ml, x.kcal || 0]));
+  const weightRows = [['Datum', 'Masa (kg)']].concat(weights.map((w) => [w.date, w.kg]));
+
+  const days = [...new Set([].concat(sessions.map((x) => x.date), meals.map((x) => x.date), supplements.map((x) => x.date),
+    drinks.map((x) => x.date), weights.map((x) => x.date), Object.keys(ouraDays)))].sort();
+  const daily = [['Datum', 'Masa (kg)', 'Km', 'kcal (hrana + pijača)', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Tekočina (ml)', 'Dopolnila', 'Ocena spanja', 'Pripravljenost', 'HRV (ms)', 'Utrip noč najn.']]
     .concat(days.map((d) => {
       const dm = meals.filter((m) => m.date === d);
       const sum = (k) => dm.length ? dm.reduce((acc, m) => acc + (m[k] || 0), 0) : null;
       const km = sessions.filter((x) => x.date === d).reduce((acc, x) => acc + (x.totalMeters || 0), 0) / 1000;
       const sd = supplements.filter((x) => x.date === d).map((x) => x.name + (x.servings && x.servings !== 1 ? ' ×' + fmtAmount(x.servings) : '')).join(', ');
-      return [d, km || null, sum('calories'), sum('protein'), sum('carbs'), sum('fat'), sd,
+      const dd = drinks.filter((x) => x.date === d);
+      const ml = dd.reduce((acc, x) => acc + x.ml, 0);
+      const kcal = dm.length || dd.length ? (sum('calories') || 0) + dd.reduce((acc, x) => acc + (x.kcal || 0), 0) : null;
+      const w = weights.find((x) => x.date === d);
+      return [d, w ? w.kg : null, km || null, kcal, sum('protein'), sum('carbs'), sum('fat'), ml || null, sd,
         o(d).sleep_score, o(d).readiness_score, o(d).avg_hrv_overnight, o(d).lowest_hr_overnight];
     }));
   return [
-    { name: 'Dnevni pregled', rows: daily, widths: [12, 7, 8, 10, 8, 10, 30, 10, 10, 9, 10] },
+    { name: 'Dnevni pregled', rows: daily, widths: [12, 9, 7, 12, 10, 8, 10, 10, 30, 10, 10, 9, 10] },
     { name: 'Treningi', rows: workouts, widths: [12, 24, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9] },
     { name: 'Seti', rows: sets, widths: [12, 24, 50, 9] },
     { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 10, 7, 10, 8, 10, 10, 11, 50] },
     { name: 'Dopolnila', rows: supps, widths: [12, 7, 26, 10, 12, 70] },
+    { name: 'Pijača', rows: drinkRows, widths: [12, 7, 16, 8, 7] },
+    { name: 'Telesna masa', rows: weightRows, widths: [12, 10] },
     { name: 'Oura', rows: oura, widths: [12].concat(ouraCols.map((c) => c[0].startsWith('bedtime') ? 26 : 11)) }
   ];
 }
@@ -970,6 +1030,10 @@ document.getElementById('driveRestoreBtn').addEventListener('click', async () =>
     if (Array.isArray(data.workouts)) { sessions = data.workouts; persistSessions(); renderHistory(); }
     if (Array.isArray(data.words)) { quickWords = data.words; persistWords(); renderChips(); }
     if (Array.isArray(data.meals)) { meals = data.meals; persistMeals(); }
+    if (Array.isArray(data.drinks)) { drinks = data.drinks; }
+    if (Array.isArray(data.drinkTypes)) { drinkTypes = data.drinkTypes; }
+    if (Array.isArray(data.drinks) || Array.isArray(data.drinkTypes)) { persistDrinks(); renderDrinkChips(); renderFood(); }
+    if (Array.isArray(data.weights)) { weights = data.weights; persistWeights(); renderWeights(); }
     if (Array.isArray(data.supplements)) { supplements = data.supplements; }
     if (Array.isArray(data.supplementList)) { supplementList = data.supplementList.map(normSupp); }
     if (Array.isArray(data.meals) || Array.isArray(data.supplements)) { persistSupps(); renderSuppChips(); renderFood(); }
@@ -1914,7 +1978,11 @@ function renderFood() {
   const day = foodDate.value;
   const dayMeals = meals.filter((m) => m.date === day);
   const sum = (k) => dayMeals.reduce((s, m) => s + (m[k] || 0), 0);
-  document.getElementById('foodKcal').textContent = sum('calories');
+  const drunk = renderDrinks(day);
+  document.getElementById('foodKcal').textContent = sum('calories') + drunk.kcal;
+  document.getElementById('foodDrinkNote').textContent = drunk.ml
+    ? 'tekočina: ' + fmtLitres(drunk.ml) + (drunk.kcal ? ' · od tega kalorij iz pijače: ' + drunk.kcal + ' kcal' : '')
+    : '';
   document.getElementById('foodProtein').textContent = sum('protein');
   document.getElementById('foodCarbs').textContent = sum('carbs');
   document.getElementById('foodFat').textContent = sum('fat');
@@ -1986,11 +2054,181 @@ function renderFood() {
 }
 foodDate.addEventListener('change', renderFood);
 
+// ---------- drinks ----------
+const LS_DRINKS = 'kilometrina.drinks';
+const LS_DRINK_TYPES = 'kilometrina.drinkTypes';
+// kcal per 100 ml — typical values; custom drinks carry their own.
+const DEFAULT_DRINK_TYPES = [
+  { name: 'Voda', kcal100: 0 }, { name: 'Kava', kcal100: 2 }, { name: 'Čaj', kcal100: 1 },
+  { name: 'Mleko', kcal100: 64 }, { name: 'Sok', kcal100: 45 }, { name: 'Izotonik', kcal100: 25 },
+  { name: 'Pivo', kcal100: 43 }, { name: 'Vino', kcal100: 83 }
+];
+const DRINK_AMOUNTS = [100, 200, 250, 330, 500, 750];
+let drinks = lsGet(LS_DRINKS, []);                                  // {id, date, time, name, ml, kcal}
+let drinkTypes = lsGet(LS_DRINK_TYPES, DEFAULT_DRINK_TYPES.slice()); // {name, kcal100}
+let drinkChoice = null;
+
+function persistDrinks() { lsSet(LS_DRINKS, drinks); lsSet(LS_DRINK_TYPES, drinkTypes); scheduleDriveSync(); }
+const drinkMl = document.getElementById('drinkMl');
+/** Amount last logged for this drink — the default for the next one. */
+function lastDrinkMl(name) {
+  const prev = drinks.filter((x) => x.name === name).sort((a, b) => b.time - a.time)[0];
+  return prev ? prev.ml : 250;
+}
+function chooseDrink(name) {
+  drinkChoice = name;
+  drinkMl.value = lastDrinkMl(name);
+  renderDrinkChips();
+}
+function renderDrinkChips() {
+  const types = document.getElementById('drinkTypeChips');
+  types.innerHTML = '';
+  drinkTypes.forEach((t, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (t.name === drinkChoice ? ' chip-on' : '');
+    const label = document.createElement('button');
+    label.type = 'button';
+    label.className = 'chip-label';
+    label.textContent = t.name;
+    label.setAttribute('aria-pressed', t.name === drinkChoice ? 'true' : 'false');
+    label.addEventListener('click', () => chooseDrink(t.name));
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'chip-del';
+    del.textContent = '✕';
+    del.setAttribute('aria-label', 'Odstrani ' + t.name);
+    del.addEventListener('click', () => {
+      drinkTypes.splice(i, 1);
+      if (drinkChoice === t.name) drinkChoice = null;
+      persistDrinks();
+      renderDrinkChips();
+    });
+    chip.appendChild(label);
+    chip.appendChild(del);
+    types.appendChild(chip);
+  });
+  const amounts = document.getElementById('drinkAmountChips');
+  amounts.innerHTML = '';
+  DRINK_AMOUNTS.forEach((ml) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip chip-choice' + (Number(drinkMl.value) === ml ? ' selected' : '');
+    b.textContent = ml;
+    b.addEventListener('click', () => { drinkMl.value = ml; renderDrinkChips(); });
+    amounts.appendChild(b);
+  });
+}
+drinkMl.addEventListener('input', renderDrinkChips);
+
+document.getElementById('drinkLogBtn').addEventListener('click', () => {
+  const ml = Math.round(Number(drinkMl.value) || 0);
+  if (!drinkChoice) { showError('najprej izberi, kaj si popil'); return; }
+  if (ml <= 0) { drinkMl.focus(); return; }
+  const type = drinkTypes.find((t) => t.name === drinkChoice) || { kcal100: 0 };
+  drinks.push({
+    id: newId('d'), date: foodDate.value || localDay(new Date()), time: Date.now(),
+    name: drinkChoice, ml: ml, kcal: Math.round((type.kcal100 || 0) * ml / 100)
+  });
+  persistDrinks();
+  renderFood();
+});
+
+document.getElementById('addDrinkBtn').addEventListener('click', () => {
+  const name = document.getElementById('newDrinkName').value.trim();
+  if (!name) return;
+  const kcal100 = Math.max(0, Number(document.getElementById('newDrinkKcal').value) || 0);
+  const at = drinkTypes.findIndex((t) => t.name.toLowerCase() === name.toLowerCase());
+  if (at === -1) drinkTypes.push({ name: name, kcal100: kcal100 }); else drinkTypes[at].kcal100 = kcal100;
+  document.getElementById('newDrinkName').value = '';
+  document.getElementById('newDrinkKcal').value = '';
+  persistDrinks();
+  chooseDrink(name);
+});
+
+const fmtLitres = (ml) => (ml / 1000).toLocaleString('sl-SI', { minimumFractionDigits: 1, maximumFractionDigits: 2 }) + ' L';
+
+function renderDrinks(day) {
+  const dayDrinks = drinks.filter((x) => x.date === day).sort((a, b) => a.time - b.time);
+  const log = document.getElementById('drinkLog');
+  const totalMl = dayDrinks.reduce((acc, x) => acc + x.ml, 0);
+  const byName = {};
+  dayDrinks.forEach((x) => { byName[x.name] = (byName[x.name] || 0) + x.ml; });
+  log.innerHTML = dayDrinks.length ? dayDrinks.map((x) => `
+    <div class="supp-row">
+      <div><span class="t">${clock(x.time)}</span>${escapeHtml(x.name)} <span class="supp-contents" style="display:inline;">${x.ml} ml${x.kcal ? ' · ' + x.kcal + ' kcal' : ''}</span></div>
+      <div class="item-actions"><button type="button" class="danger" data-ddel="${x.id}" aria-label="Izbriši vnos">✕</button></div>
+    </div>`).join('') + `
+    <div class="drink-total">skupaj ${fmtLitres(totalMl)} — ${Object.keys(byName).map((n) => escapeHtml(n) + ' ' + fmtLitres(byName[n])).join(' · ')}</div>`
+    : '<div class="empty">Za ta dan še ni vnosov pijače.</div>';
+  log.querySelectorAll('[data-ddel]').forEach((b) => b.addEventListener('click', () => armedDelete(b, () => {
+    drinks = drinks.filter((x) => x.id !== b.dataset.ddel);
+    persistDrinks();
+    renderFood();
+  })));
+  return { ml: totalMl, kcal: dayDrinks.reduce((acc, x) => acc + (x.kcal || 0), 0) };
+}
+
 function initFood() {
+  const lastDrink = [...drinks].sort((a, b) => b.time - a.time)[0];
+  if (lastDrink) chooseDrink(lastDrink.name); else chooseDrink('Voda');
   resetMealForm();
   renderSuppChips();
   renderFood();
   setMode(lsGet(LS_MODE, 'train') === 'food' ? 'food' : 'train');
+}
+// ============================================================
+
+// ============================================================
+// TELESNA MASA (body weight) — one value per day; saving the same day again replaces it.
+// ============================================================
+const LS_WEIGHTS = 'kilometrina.weights';
+let weights = lsGet(LS_WEIGHTS, []); // {date, kg, time}, sorted by date
+const weightDate = document.getElementById('weightDate');
+const weightKg = document.getElementById('weightKg');
+weightDate.value = localDay(new Date());
+
+const fmtKg = (kg) => kg.toLocaleString('sl-SI', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const shortDay = (d) => new Date(d + 'T00:00:00').toLocaleDateString('sl-SI', { day: 'numeric', month: 'numeric' });
+
+function persistWeights() { lsSet(LS_WEIGHTS, weights); scheduleDriveSync(); }
+
+document.getElementById('weightSaveBtn').addEventListener('click', () => {
+  const kg = Math.round(Number(String(weightKg.value).replace(',', '.')) * 10) / 10;
+  if (!(kg >= 20 && kg <= 300)) { weightKg.focus(); return; }
+  const date = weightDate.value || localDay(new Date());
+  weights = weights.filter((w) => w.date !== date).concat({ date: date, kg: kg, time: Date.now() });
+  weights.sort((a, b) => a.date.localeCompare(b.date));
+  persistWeights();
+  weightKg.value = '';
+  renderWeights();
+});
+weightKg.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('weightSaveBtn').click(); }
+});
+
+function renderWeights() {
+  const latest = document.getElementById('weightLatest');
+  const list = document.getElementById('weightList');
+  if (!weights.length) {
+    latest.innerHTML = '';
+    list.innerHTML = '<div class="empty">Še ni vpisane mase.</div>';
+    return;
+  }
+  const last = weights[weights.length - 1], prev = weights[weights.length - 2];
+  const delta = prev ? Math.round((last.kg - prev.kg) * 10) / 10 : null;
+  latest.innerHTML = `<span class="big">${fmtKg(last.kg)} kg</span><span class="delta">${shortDay(last.date)}${
+    delta === null ? '' : ' · ' + (delta > 0 ? '+' : delta < 0 ? '−' : '±') + fmtKg(Math.abs(delta)) + ' kg od ' + shortDay(prev.date)}</span>`;
+  list.innerHTML = weights.slice(-10).reverse().map((w) => `
+    <div class="weight-item">
+      <span class="d">${new Date(w.date + 'T00:00:00').toLocaleDateString('sl-SI', { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' })}</span>
+      <span class="kg">${fmtKg(w.kg)} kg</span>
+      <span class="item-actions"><button type="button" class="danger" data-wdel="${w.date}" aria-label="Izbriši meritev">✕</button></span>
+    </div>`).join('');
+  list.querySelectorAll('[data-wdel]').forEach((b) => b.addEventListener('click', () => armedDelete(b, () => {
+    weights = weights.filter((w) => w.date !== b.dataset.wdel);
+    persistWeights();
+    renderWeights();
+  })));
 }
 // ============================================================
 
@@ -2344,6 +2582,7 @@ function init() {
   initDrive();
   initOura();
   initFood();
+  renderWeights();
 }
 
 init();
