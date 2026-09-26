@@ -57,8 +57,9 @@ shrani datoteko in jo znova naloži v GitHub repozitorij (prepiše obstoječo `i
 
 ## 5. Oura Ring nastavitev (neobvezno)
 
-Aplikacija lahko pokaže tvoje Oura ocene (spanec, pripravljenost, aktivnost, HRV) in
-srčni utrip (najnižji / povprečni) za zadnjih 7 dni, pri vsakem treningu v zgodovini pa ocene za tisti dan.
+Aplikacija vsak dan pobere tvoje Oura podatke o spanju, pripravljenosti in srčnem utripu,
+jih shrani po datumih (tudi v Google Drive varnostno kopijo, glej razdelek 6) in jih pokaže
+v razdelku "Oura Ring" ter pri vsakem treningu v zgodovini — za isti dan.
 
 Zakaj je potreben še Cloudflare: Oura ne izdaja več osebnih žetonov (Personal Access
 Tokens), prijava gre samo prek OAuth, ta pa zahteva **skrivni ključ** (client secret).
@@ -118,10 +119,65 @@ const OURA_WORKER_URL = 'https://kilometrina-oura.YOUR-SUBDOMAIN.workers.dev';
 s svojim Client ID (ta ni skriven) in naslovom Workerja (brez poševnice na koncu). Znova naloži
 `index.html` na GitHub, odpri aplikacijo in tapni **"Prijava v Oura"**.
 
-Podatki se samodejno osvežijo ob vsakem odprtju aplikacije (zadnjih 14 dni), ali ročno z
-**"Osveži zdaj"**. Prijava v Oura ostane veljavna (aplikacija žeton sama osvežuje), dokler ne tapneš **"Odjava"**.
-Oura podatki se hranijo samo v brskalniku na napravi, ne v Drive varnostni kopiji — ob
-ponovni prijavi se preprosto znova naložijo.
+Prijava v Oura ostane veljavna (aplikacija žeton sama osvežuje), dokler ne tapneš **"Odjava"**.
+
+## 6. Shema podatkov in kaj se dnevno pridobiva iz Oura
+
+Ob vsakem odprtju aplikacija (če si prijavljen v Oura) pogleda zadnjih **7 dni** in iz Oure
+pobere samo tiste dni, ki še niso popolni (manjka ocena spanja ali pripravljenosti). Danes je
+pogosto nepopoln, dokler se prstan zjutraj ne sinhronizira, zato ga poskusi znova ob naslednjem
+odprtju. **"Osveži zdaj"** na novo pobere vseh 7 dni. Po vsaki spremembi se sproži običajna
+Drive sinhronizacija.
+
+Datum je Ourin "dan": noč spada k jutru, ko se zbudiš — torej isti dan kot trening po njej.
+
+Datoteka `kilometrina-podatki.json` v Drive:
+
+```json
+{
+  "workouts": [ … ],
+  "words": [ … ],
+  "oura": {
+    "2026-09-26": {
+      "sleep_score": 84,
+      "total_sleep_duration_min": 452,
+      "deep_sleep_min": 98,
+      "rem_sleep_min": 110,
+      "light_sleep_min": 244,
+      "sleep_efficiency": 93,
+      "avg_hr_overnight": 52,
+      "lowest_hr_overnight": 46,
+      "avg_hrv_overnight": 68,
+      "respiratory_rate": 14.2,
+      "readiness_score": 78,
+      "resting_heart_rate": 48,
+      "temperature_deviation": 0.1,
+      "bedtime_start": "2026-09-25T23:12:00+02:00",
+      "bedtime_end": "2026-09-26T07:04:00+02:00",
+      "activity_score": 90
+    }
+  },
+  "savedAt": 1790000000000
+}
+```
+
+Od kod pride posamezno polje (Oura API v2):
+
+| Polje | Vir |
+|---|---|
+| `sleep_score` | `daily_sleep` → `score` |
+| `total_sleep_duration_min`, `deep_sleep_min`, `rem_sleep_min`, `light_sleep_min` | `sleep` (najdaljše spanje tistega dne) → trajanja, pretvorjena v minute |
+| `sleep_efficiency`, `bedtime_start`, `bedtime_end` | `sleep` → `efficiency`, `bedtime_start`, `bedtime_end` |
+| `avg_hr_overnight`, `lowest_hr_overnight` | izračunano iz `heartrate` (vzorci na ~5 min) med `bedtime_start` in `bedtime_end`; če v tem času ni vzorcev, se uporabita Ourina `average_heart_rate` / `lowest_heart_rate` iz `sleep` |
+| `avg_hrv_overnight` | `sleep` → `average_hrv` |
+| `respiratory_rate` | `sleep` → `average_breath` (vdihov na minuto) |
+| `readiness_score`, `temperature_deviation` | `daily_readiness` → `score`, `temperature_deviation` (°C) |
+| `resting_heart_rate` | `sleep` → `lowest_heart_rate` (to Oura v aplikaciji prikazuje kot mirovni utrip) |
+| `activity_score` | `daily_activity` → `score` |
+
+Polje, ki ga Oura za tisti dan nima, je `null`. Dan, ko prstana nisi nosil, se ne zapiše.
+Pri **"Obnovi iz Drive"** se `workouts` in `words` nadomestijo s kopijo iz Drive, `oura` pa se
+združi (dnevi iz Drive dopolnijo tiste na napravi).
 
 ## Ko boš želel dodati novo funkcijo
 

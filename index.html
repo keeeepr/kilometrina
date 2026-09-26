@@ -199,6 +199,12 @@
   /* Oura Ring — same panel/status/button vocabulary as the Drive block above,
      plus a compact day table and the per-workout badges in the history. */
   .oura-table { margin-top: 16px; }
+  .oura-summary { margin-bottom: 16px; }
+  .oura-summary .num.good { color: var(--teal); }
+  .oura-summary .num.mid { color: var(--amber); }
+  .oura-summary .num.low { color: var(--coral); }
+  .oura-summary .num.none { color: var(--text-dim); }
+  .oura-summary .unit { font-size: 15px; color: var(--text-dim); }
   .oura-head, .oura-day {
     display: grid;
     grid-template-columns: 1.1fr repeat(5, 1fr);
@@ -495,7 +501,7 @@ async function driveSyncNow() {
   if (!driveAccessToken) return;
   setDriveStatus('sinhroniziram …', 'syncing');
   try {
-    const payload = { workouts: sessions, words: quickWords, savedAt: Date.now() };
+    const payload = { workouts: sessions, words: quickWords, oura: ouraDays, savedAt: Date.now() };
     const fileId = localStorage.getItem(LS_DRIVE_FILE_ID);
     if (!fileId && await driveLookupFileId()) {
       // A backup from another device exists. Never overwrite it with this
@@ -550,6 +556,8 @@ document.getElementById('driveRestoreBtn').addEventListener('click', async () =>
     const data = await res.json();
     if (Array.isArray(data.workouts)) { sessions = data.workouts; persistSessions(); renderHistory(); }
     if (Array.isArray(data.words)) { quickWords = data.words; persistWords(); renderChips(); }
+    // Oura days are merged, not replaced: both copies came from the same ring.
+    if (data.oura && typeof data.oura === 'object') { ouraDays = Object.assign({}, ouraDays, data.oura); persistOura(); renderOuraSummary(); renderHistory(); }
     localStorage.setItem(LS_DRIVE_FILE_ID, fileId); // from now on this device syncs into that file
     setDriveStatus('obnovljeno iz Drive', 'ok');
   } catch (e) {
@@ -572,14 +580,16 @@ const OURA_CLIENT_ID = 'YOUR_OURA_CLIENT_ID';
 const OURA_WORKER_URL = 'https://kilometrina-oura.YOUR-SUBDOMAIN.workers.dev';
 const OURA_AUTHORIZE_URL = 'https://cloud.ouraring.com/oauth/authorize';
 const OURA_API = 'https://api.ouraring.com/v2/usercollection/';
-const OURA_FETCH_DAYS = 14;  // how far back each refresh reaches
-const OURA_TABLE_DAYS = 7;   // rows shown in the Oura panel
+const OURA_DAYS = 7; // days kept up to date, and rows shown in the Oura panel
 const LS_OURA_TOKENS = 'kilometrina.ouraTokens';
-const LS_OURA_DAYS = 'kilometrina.ouraDays';
+const LS_OURA = 'kilometrina.oura';
 const LS_OURA_STATE = 'kilometrina.ouraState';
 
 let ouraTokens = lsGet(LS_OURA_TOKENS, null); // {access_token, refresh_token, expires_at}
-let ouraDays = lsGet(LS_OURA_DAYS, {});       // {'YYYY-MM-DD': {sleep, readiness, activity, hrv}}
+// {'YYYY-MM-DD': {sleep_score, total_sleep_duration_min, …}} — same object that
+// goes into the Drive backup under "oura". Field list: README.md, "Shema podatkov".
+let ouraDays = lsGet(LS_OURA, {});
+try { localStorage.removeItem('kilometrina.ouraDays'); } catch (e) {} // pre-schema cache, refetched on demand
 
 function ouraConfigured() {
   return OURA_CLIENT_ID && !OURA_CLIENT_ID.startsWith('YOUR_') && !OURA_WORKER_URL.includes('YOUR-');
@@ -661,7 +671,7 @@ document.getElementById('ouraSignInBtn').addEventListener('click', () => {
 });
 
 document.getElementById('ouraSignOutBtn').addEventListener('click', () => ouraSignOut());
-document.getElementById('ouraSyncBtn').addEventListener('click', () => ouraSyncNow());
+document.getElementById('ouraSyncBtn').addEventListener('click', () => ouraSyncNow(true));
 
 /** Back from Oura's login page with ?code=…&state=… — trade the code for tokens. */
 async function handleOuraRedirect() {
@@ -724,52 +734,108 @@ async function ouraApiGet(endpoint, query) {
   return all;
 }
 
-async function ouraSyncNow() {
+function persistOura() {
+  lsSet(LS_OURA, ouraDays);
+  scheduleDriveSync();
+}
+
+function lastOuraDays() {
+  const out = [];
+  for (let i = 0; i < OURA_DAYS; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    out.push(localDay(d));
+  }
+  return out; // newest first
+}
+
+// A day counts as done once both scores are in. Today often isn't until the
+// ring syncs in the morning, so it keeps being asked for until it is.
+function ouraDayComplete(o) {
+  return !!o && o.sleep_score != null && o.readiness_score != null;
+}
+
+const toMin = (sec) => sec == null ? null : Math.round(sec / 60);
+const round1 = (v) => v == null ? null : Math.round(v * 10) / 10;
+const round2 = (v) => v == null ? null : Math.round(v * 100) / 100;
+
+/**
+ * Fill in the last OURA_DAYS days that are missing (or all of them when
+ * `force`). Dates are Oura's own "day": a night belongs to the morning you
+ * wake up, which is also the day you would log a swim after it.
+ */
+async function ouraSyncNow(force) {
   if (!ouraTokens) return;
+  const wanted = lastOuraDays().filter((d) => force === true || !ouraDayComplete(ouraDays[d]));
+  if (!wanted.length) { renderOuraSummary(); setOuraStatus('podatki so ažurni', 'ok'); return; }
+
   const btn = document.getElementById('ouraSyncBtn');
   btn.disabled = true;
   setOuraStatus('nalagam podatke …', 'syncing');
   try {
-    const from = new Date();
-    from.setDate(from.getDate() - (OURA_FETCH_DAYS - 1));
-    const to = new Date();
-    to.setDate(to.getDate() + 1); // end_date is exclusive for some endpoints
-    const days = { start_date: localDay(from), end_date: localDay(to) };
-    from.setHours(0, 0, 0, 0);
+    const first = wanted[wanted.length - 1];
+    const after = new Date(wanted[0] + 'T00:00:00');
+    after.setDate(after.getDate() + 1); // end_date is exclusive for some endpoints
+    const days = { start_date: first, end_date: localDay(after) };
 
-    const [sleep, readiness, activity, sleepPeriods, heartrate] = await Promise.all([
+    const [dailySleep, readiness, activity, sleepPeriods] = await Promise.all([
       ouraApiGet('daily_sleep', days),
       ouraApiGet('daily_readiness', days),
       ouraApiGet('daily_activity', days),
-      ouraApiGet('sleep', days),
-      ouraApiGet('heartrate', { start_datetime: from.toISOString(), end_datetime: new Date().toISOString() })
+      ouraApiGet('sleep', days)
     ]);
 
-    const day = (d) => (ouraDays[d] = ouraDays[d] || {});
-    sleep.forEach((r) => { day(r.day).sleep = r.score; });
-    readiness.forEach((r) => { day(r.day).readiness = r.score; });
-    activity.forEach((r) => { day(r.day).activity = r.score; });
-    // Several sleep periods per day (naps); HRV comes from the longest one.
-    const longest = {};
+    // Several sleep periods per day (naps); the night is the longest one.
+    const night = {};
     sleepPeriods.forEach((p) => {
-      if (p.average_hrv == null) return;
-      if (!longest[p.day] || (p.total_sleep_duration || 0) > (longest[p.day].total_sleep_duration || 0)) longest[p.day] = p;
+      if (!night[p.day] || (p.total_sleep_duration || 0) > (night[p.day].total_sleep_duration || 0)) night[p.day] = p;
     });
-    Object.keys(longest).forEach((d) => { day(d).hrv = longest[d].average_hrv; });
-    // Heart rate arrives as ~5-minute samples; keep a per-day min / average.
-    const hr = {};
-    heartrate.forEach((h) => {
-      if (!h.bpm) return;
-      const d = localDay(new Date(h.timestamp));
-      const acc = hr[d] = hr[d] || { min: Infinity, sum: 0, n: 0 };
-      acc.min = Math.min(acc.min, h.bpm);
-      acc.sum += h.bpm;
-      acc.n++;
-    });
-    Object.keys(hr).forEach((d) => { day(d).hr = { min: hr[d].min, avg: Math.round(hr[d].sum / hr[d].n) }; });
 
-    lsSet(LS_OURA_DAYS, ouraDays);
-    renderOuraTable();
+    // Overnight heart rate from the 5-minute series, limited to each night's
+    // bedtime window. One request covers all the nights being filled in.
+    const nights = wanted.map((d) => night[d]).filter((p) => p && p.bedtime_start && p.bedtime_end);
+    const hrByDay = {};
+    if (nights.length) {
+      const from = new Date(Math.min(...nights.map((p) => Date.parse(p.bedtime_start))));
+      const to = new Date(Math.max(...nights.map((p) => Date.parse(p.bedtime_end))));
+      const samples = await ouraApiGet('heartrate', { start_datetime: from.toISOString(), end_datetime: to.toISOString() });
+      nights.forEach((p) => {
+        const a = Date.parse(p.bedtime_start), b = Date.parse(p.bedtime_end);
+        const bpm = samples.filter((h) => h.bpm && Date.parse(h.timestamp) >= a && Date.parse(h.timestamp) <= b).map((h) => h.bpm);
+        if (bpm.length) hrByDay[p.day] = { avg: Math.round(bpm.reduce((x, y) => x + y, 0) / bpm.length), min: Math.min(...bpm) };
+      });
+    }
+
+    const byDay = (list) => Object.fromEntries(list.map((r) => [r.day, r]));
+    const ds = byDay(dailySleep), dr = byDay(readiness), da = byDay(activity);
+    wanted.forEach((d) => {
+      const p = night[d], hr = hrByDay[d];
+      if (!ds[d] && !dr[d] && !p) return; // ring not worn / not synced yet
+      ouraDays[d] = {
+        sleep_score: ds[d] ? ds[d].score : null,
+        total_sleep_duration_min: p ? toMin(p.total_sleep_duration) : null,
+        deep_sleep_min: p ? toMin(p.deep_sleep_duration) : null,
+        rem_sleep_min: p ? toMin(p.rem_sleep_duration) : null,
+        light_sleep_min: p ? toMin(p.light_sleep_duration) : null,
+        sleep_efficiency: p ? p.efficiency : null,
+        // Oura keeps sleep-time HR in the sleep document; the heartrate series
+        // may have gaps overnight, so fall back to Oura's own figures.
+        avg_hr_overnight: hr ? hr.avg : (p && p.average_heart_rate != null ? Math.round(p.average_heart_rate) : null),
+        lowest_hr_overnight: hr ? hr.min : (p ? p.lowest_heart_rate : null),
+        avg_hrv_overnight: p && p.average_hrv != null ? Math.round(p.average_hrv) : null,
+        respiratory_rate: p ? round1(p.average_breath) : null,
+        readiness_score: dr[d] ? dr[d].score : null,
+        // What the Oura app calls resting heart rate: the night's lowest.
+        resting_heart_rate: p ? p.lowest_heart_rate : null,
+        temperature_deviation: dr[d] ? round2(dr[d].temperature_deviation) : null,
+        bedtime_start: p ? p.bedtime_start : null,
+        bedtime_end: p ? p.bedtime_end : null,
+        activity_score: da[d] ? da[d].score : null
+      };
+    });
+
+    persistOura();
+    renderOuraSummary();
     renderHistory();
     const now = new Date();
     setOuraStatus('osveženo ob ' + now.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }), 'ok');
@@ -792,28 +858,37 @@ function ouraScoreClass(v) {
   return v >= 85 ? 'good' : v >= 70 ? 'mid' : 'low';
 }
 
-function renderOuraTable() {
+function renderOuraSummary() {
   const wrap = document.getElementById('ouraTable');
-  const rows = [];
-  for (let i = 0; i < OURA_TABLE_DAYS; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const key = localDay(d);
-    if (ouraDays[key]) rows.push([key, d, ouraDays[key]]);
-  }
-  if (!rows.length) { wrap.innerHTML = ''; return; }
-  const cell = (v, cls) => `<div class="v ${cls}">${v == null ? '—' : v}</div>`;
-  wrap.innerHTML =
-    `<div class="oura-head"><div>dan</div><div class="v">spanec</div><div class="v">pripr.</div><div class="v">aktiv.</div><div class="v">hrv</div><div class="v">utrip</div></div>` +
-    rows.map(([key, d, o]) => `
+  const rows = lastOuraDays().filter((d) => ouraDays[d]);
+  const latest = Object.keys(ouraDays).sort().pop();
+  if (!latest) { wrap.innerHTML = ''; return; }
+  const o = ouraDays[latest];
+  const fmtDay = (key, opts) => new Date(key + 'T00:00:00').toLocaleDateString('sl-SI', opts);
+  const num = (v) => v == null ? '—' : v;
+  const hr = (x) => x.avg_hr_overnight == null ? null : x.avg_hr_overnight + '/' + num(x.lowest_hr_overnight);
+  const cell = (v, cls) => `<div class="v ${v == null ? 'none' : cls}">${num(v)}</div>`;
+  wrap.innerHTML = `
+    <div class="stats oura-summary">
+      <div class="stat"><div class="num">${fmtDay(latest, { day: 'numeric', month: 'numeric' })}</div><div class="lbl">zadnji zabeležen dan</div></div>
+      <div class="stat"><div class="num ${ouraScoreClass(o.sleep_score)}">${num(o.sleep_score)}</div><div class="lbl">ocena spanja</div></div>
+      <div class="stat"><div class="num ${ouraScoreClass(o.readiness_score)}">${num(o.readiness_score)}</div><div class="lbl">pripravljenost</div></div>
+      <div class="stat"><div class="num">${num(o.avg_hr_overnight)}<span class="unit"> / ${num(o.lowest_hr_overnight)}</span></div><div class="lbl">utrip čez noč povp. / najn.</div></div>
+    </div>` + (rows.length < 2 ? '' :
+    `<div class="oura-head"><div>dan</div><div class="v">spanec</div><div class="v">pripr.</div><div class="v">ur</div><div class="v">hrv</div><div class="v">utrip</div></div>` +
+    rows.map((key) => {
+      const x = ouraDays[key];
+      const hours = x.total_sleep_duration_min == null ? null : (x.total_sleep_duration_min / 60).toFixed(1);
+      return `
       <div class="oura-day">
-        <div class="d">${d.toLocaleDateString('sl-SI', { weekday: 'short', day: 'numeric', month: 'numeric' })}</div>
-        ${cell(o.sleep, ouraScoreClass(o.sleep))}
-        ${cell(o.readiness, ouraScoreClass(o.readiness))}
-        ${cell(o.activity, ouraScoreClass(o.activity))}
-        ${cell(o.hrv == null ? null : Math.round(o.hrv), o.hrv == null ? 'none' : '')}
-        ${cell(o.hr ? o.hr.min : null, o.hr ? '' : 'none')}
-      </div>`).join('');
+        <div class="d">${fmtDay(key, { weekday: 'short', day: 'numeric', month: 'numeric' })}</div>
+        ${cell(x.sleep_score, ouraScoreClass(x.sleep_score))}
+        ${cell(x.readiness_score, ouraScoreClass(x.readiness_score))}
+        ${cell(hours, '')}
+        ${cell(x.avg_hrv_overnight, '')}
+        ${cell(hr(x), '')}
+      </div>`;
+    }).join(''));
 }
 
 /** Scores for a workout's date, shown inside its expanded history entry. */
@@ -822,16 +897,17 @@ function ouraBadgesHtml(date) {
   if (!o) return '';
   const b = (label, v, cls) => v == null ? '' : `<span>${label} <strong class="${cls}">${v}</strong></span>`;
   return `<div class="oura-badges">` +
-    b('spanec', o.sleep, ouraScoreClass(o.sleep)) +
-    b('pripravljenost', o.readiness, ouraScoreClass(o.readiness)) +
-    b('aktivnost', o.activity, ouraScoreClass(o.activity)) +
-    b('hrv', o.hrv == null ? null : Math.round(o.hrv) + ' ms', '') +
-    b('utrip min / povp.', o.hr ? o.hr.min + ' / ' + o.hr.avg + ' bpm' : null, '') +
+    b('spanec', o.sleep_score, ouraScoreClass(o.sleep_score)) +
+    b('pripravljenost', o.readiness_score, ouraScoreClass(o.readiness_score)) +
+    b('aktivnost', o.activity_score, ouraScoreClass(o.activity_score)) +
+    b('spal', o.total_sleep_duration_min == null ? null : Math.floor(o.total_sleep_duration_min / 60) + ' h ' + (o.total_sleep_duration_min % 60) + ' min', '') +
+    b('hrv', o.avg_hrv_overnight == null ? null : o.avg_hrv_overnight + ' ms', '') +
+    b('utrip čez noč povp. / najn.', o.avg_hr_overnight == null ? null : o.avg_hr_overnight + ' / ' + (o.lowest_hr_overnight ?? '—') + ' bpm', '') +
     `</div>`;
 }
 
 async function initOura() {
-  renderOuraTable();
+  renderOuraSummary();
   if (!ouraConfigured()) {
     setOuraStatus('Oura ni nastavljen (dodaj OURA_CLIENT_ID in OURA_WORKER_URL v kodo)');
     document.getElementById('ouraSignInBtn').disabled = true;
