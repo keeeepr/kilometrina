@@ -310,6 +310,10 @@
     width: 26px; height: 26px; cursor: pointer; font-size: 14px; line-height: 1;
   }
   .servings button:hover { border-color: var(--teal); color: var(--teal); }
+  .ai-pass-form { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 14px; }
+  .ai-pass-form input[type="password"], .ai-pass-form input[type="text"] { flex: 1; min-width: 180px; }
+  .check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-dim); cursor: pointer; }
+  .check input { width: 16px; height: 16px; accent-color: var(--teal); }
   .weight-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; }
   .weight-latest { margin: 16px 0 8px; font-family: 'IBM Plex Mono', monospace; }
   .weight-latest .big { font-size: 26px; font-weight: 600; color: var(--teal); }
@@ -390,6 +394,24 @@
       <div class="stat"><div class="num" id="foodFat">0</div><div class="lbl">maščobe (g)</div></div>
     </div>
     <div class="hint" id="foodDrinkNote" style="margin-top:12px;"></div>
+  </section>
+
+  <section class="panel drive-panel" data-mode="food" hidden>
+    <div class="drive-row">
+      <div>
+        <h2 style="margin:0 0 4px;">AI analiza</h2>
+        <div class="drive-status" id="aiAccessStatus"></div>
+      </div>
+      <div class="drive-actions">
+        <button type="button" class="export-btn" id="aiPassEditBtn">Vpiši geslo</button>
+        <button type="button" class="export-btn" id="aiPassForgetBtn">Pozabi geslo</button>
+      </div>
+    </div>
+    <form class="ai-pass-form" id="aiPassForm" autocomplete="off" hidden>
+      <input type="password" id="aiPassInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AI geslo (APP_PASSCODE)" aria-label="AI geslo">
+      <label class="check"><input type="checkbox" id="aiPassShow"> Pokaži geslo</label>
+      <button type="submit" class="add-btn">Shrani geslo</button>
+    </form>
   </section>
 
   <section class="panel" data-mode="food" hidden>
@@ -665,7 +687,9 @@ function initDrive() {
   }
   driveTokenClient = google.accounts.oauth2.initTokenClient({
     client_id: GOOGLE_CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/drive.file',
+    // drive.file for the backup; openid + email so the Worker can confirm it's
+    // the owner before spending the AI key.
+    scope: 'https://www.googleapis.com/auth/drive.file openid email',
     callback: (resp) => {
       // Google's consent screen lets the Drive permission be left unticked;
       // the sign-in still "succeeds", but every Drive call would then fail.
@@ -701,6 +725,17 @@ function onDriveSignedIn() {
   document.getElementById('driveRestoreBtn').style.display = '';
   setDriveStatus('povezano', 'ok');
   scheduleDriveSync();
+  renderAiAccess();
+}
+
+/** Google session over (expired or rejected): back to the sign-in button. */
+function onDriveSignedOut(message) {
+  driveAccessToken = null;
+  document.getElementById('driveSignInBtn').style.display = '';
+  document.getElementById('driveSyncBtn').style.display = 'none';
+  document.getElementById('driveRestoreBtn').style.display = 'none';
+  setDriveStatus(message);
+  renderAiAccess();
 }
 
 document.getElementById('driveSignInBtn').addEventListener('click', () => {
@@ -714,11 +749,7 @@ async function driveApiFetch(url, options) {
   const res = await fetch(url, options);
   if (res.status === 401) {
     // token expired — ask for a fresh one and let the user retry the action
-    driveAccessToken = null;
-    document.getElementById('driveSignInBtn').style.display = '';
-    document.getElementById('driveSyncBtn').style.display = 'none';
-    document.getElementById('driveRestoreBtn').style.display = 'none';
-    setDriveStatus('seja je potekla — prijavi se znova');
+    onDriveSignedOut('seja je potekla — prijavi se znova');
     throw new Error('Drive prijava je potekla, prijavi se znova.');
   }
   if (!res.ok) {
@@ -1575,14 +1606,64 @@ function setAiStatus(text, cls) {
   el.className = 'ai-status' + (cls ? ' ' + cls : '');
 }
 
-function aiPasscode(forceAsk) {
-  let code = forceAsk ? '' : (lsGet(LS_AI_PASSCODE, '') || '');
-  if (!code) {
-    code = (window.prompt('Geslo za AI analizo obrokov (APP_PASSCODE, ki si ga nastavil v Cloudflare):') || '').trim();
-    if (code) lsSet(LS_AI_PASSCODE, code);
+// ---------- AI access: passcode (typed hidden) + Google sign-in ----------
+const aiPassForm = document.getElementById('aiPassForm');
+const aiPassInput = document.getElementById('aiPassInput');
+const savedPasscode = () => lsGet(LS_AI_PASSCODE, '') || '';
+
+function renderAiAccess(message) {
+  const signedIn = !!driveAccessToken;
+  const hasCode = !!savedPasscode();
+  const status = document.getElementById('aiAccessStatus');
+  const editBtn = document.getElementById('aiPassEditBtn');
+  // The passcode can only be typed in while signed in to Google.
+  editBtn.disabled = !signedIn;
+  editBtn.textContent = hasCode ? 'Spremeni geslo' : 'Vpiši geslo';
+  document.getElementById('aiPassForgetBtn').hidden = !hasCode;
+  if (!signedIn) aiPassForm.hidden = true;
+  if (message) {
+    status.textContent = message;
+    status.className = 'drive-status';
+  } else if (!signedIn) {
+    status.textContent = hasCode ? 'geslo je shranjeno — za AI se prijavi v Google (zgoraj)' : 'za AI se najprej prijavi v Google (zgoraj)';
+    status.className = 'drive-status';
+  } else if (!hasCode) {
+    status.textContent = 'vpiši AI geslo';
+    status.className = 'drive-status syncing';
+    aiPassForm.hidden = false;
+  } else {
+    status.textContent = 'pripravljeno';
+    status.className = 'drive-status ok';
   }
-  return code;
 }
+
+function showPassForm() {
+  if (!driveAccessToken) return;
+  aiPassForm.hidden = false;
+  aiPassInput.value = '';
+  aiPassInput.focus();
+}
+document.getElementById('aiPassEditBtn').addEventListener('click', showPassForm);
+document.getElementById('aiPassForgetBtn').addEventListener('click', () => {
+  try { localStorage.removeItem(LS_AI_PASSCODE); } catch (e) {}
+  renderAiAccess();
+});
+// Hidden by default; visible only while "Pokaži geslo" is ticked.
+document.getElementById('aiPassShow').addEventListener('change', (e) => {
+  aiPassInput.type = e.target.checked ? 'text' : 'password';
+});
+aiPassForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (!driveAccessToken) { renderAiAccess(); return; }
+  const code = aiPassInput.value.trim();
+  if (!code) { aiPassInput.focus(); return; }
+  lsSet(LS_AI_PASSCODE, code);
+  aiPassInput.value = '';
+  aiPassInput.type = 'password';
+  document.getElementById('aiPassShow').checked = false;
+  aiPassForm.hidden = true;
+  renderAiAccess();
+});
 
 const CONFIDENCE_TEXT = { high: 'zanesljiva ocena', medium: 'srednje zanesljiva ocena', low: 'groba ocena — preveri številke' };
 
@@ -1592,23 +1673,31 @@ const CONFIDENCE_TEXT = { high: 'zanesljiva ocena', medium: 'srednje zanesljiva 
  * a readable message otherwise.
  */
 async function aiRequest(path, payload) {
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const code = aiPasscode(attempt > 0);
-    if (!code) throw new Error('brez gesla AI analiza ni mogoča');
-    const res = await fetch(OURA_WORKER_URL + path, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-App-Passcode': code },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.status === 401 && data.error === 'bad_passcode') {
-      try { localStorage.removeItem(LS_AI_PASSCODE); } catch (e) {}
-      continue;
-    }
-    if (!res.ok) throw new Error(data.error_description || data.error || ('HTTP ' + res.status));
-    return data;
+  if (!driveAccessToken) {
+    renderAiAccess();
+    throw new Error('za AI analizo se najprej prijavi v Google');
   }
-  throw new Error('napačno geslo');
+  const code = savedPasscode();
+  if (!code) {
+    renderAiAccess();
+    showPassForm();
+    throw new Error('najprej vpiši AI geslo (razdelek AI analiza zgoraj)');
+  }
+  const res = await fetch(OURA_WORKER_URL + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-App-Passcode': code, 'X-Google-Token': driveAccessToken },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && data.error === 'bad_passcode') {
+    try { localStorage.removeItem(LS_AI_PASSCODE); } catch (e) {}
+    renderAiAccess('napačno geslo — vpiši ga znova');
+    showPassForm();
+  } else if (res.status === 401 && data.error === 'google_required') {
+    onDriveSignedOut('Google prijava je potekla — prijavi se znova');
+  }
+  if (!res.ok) throw new Error(data.error_description || data.error || ('HTTP ' + res.status));
+  return data;
 }
 
 async function analyzeMeal() {
@@ -2169,6 +2258,7 @@ function renderDrinks(day) {
 }
 
 function initFood() {
+  renderAiAccess();
   const lastDrink = [...drinks].sort((a, b) => b.time - a.time)[0];
   if (lastDrink) chooseDrink(lastDrink.name); else chooseDrink('Voda');
   resetMealForm();

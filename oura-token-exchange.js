@@ -14,9 +14,10 @@
  *
  * POST /meal sends a meal photo (and/or a description) to Claude and returns
  * calories and macros; POST /supplement reads a supplement label photo into
- * product name, serving and ingredients per serving. The Anthropic API key lives here as a secret; because
- * that key costs money, the route also requires APP_PASSCODE, which the page
- * asks for once and keeps in the browser.
+ * product name, serving and ingredients per serving. The Anthropic API key
+ * lives here as a secret; because that key costs money, the AI routes need
+ * both APP_PASSCODE and a live Google sign-in of ALLOWED_EMAIL (checked with
+ * Google, and only for tokens issued to this app's GOOGLE_CLIENT_ID).
  *
  * It stores nothing and logs nothing. It is a relay, not a backend.
  *
@@ -27,6 +28,7 @@
  *   npx wrangler secret put OURA_CLIENT_SECRET
  *   npx wrangler secret put ANTHROPIC_API_KEY
  *   npx wrangler secret put APP_PASSCODE
+ *   npx wrangler secret put ALLOWED_EMAIL      (the one Google account allowed to use AI)
  *
  * ALLOWED_ORIGIN is the exact origin of the hosted page (scheme + host, no
  * path, no trailing slash). Several may be comma-separated, which is handy
@@ -46,7 +48,7 @@ function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-App-Passcode',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-App-Passcode, X-Google-Token',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin'
   };
@@ -122,6 +124,7 @@ async function relayOuraApi(request, url, origin) {
 // ---------- AI routes: POST /meal and POST /supplement ----------
 
 const AI_MODEL = 'claude-opus-5';
+const GOOGLE_TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo';
 const MAX_IMAGE_BASE64 = 4 * 1024 * 1024; // the page sends ~1024px JPEGs, far below this
 
 const MEAL_SYSTEM_PROMPT = `You estimate the nutrition of meals for a personal food diary. The user sends a photo of food or a drink, a short description, or both. The user is Slovenian: write "name" and "notes" in Slovenian.
@@ -161,13 +164,40 @@ function sameSecret(a, b) {
   return diff === 0;
 }
 
-/** Passcode + configuration gate shared by the AI routes. Returns a Response to send, or null. */
-function aiAccessError(request, env, origin) {
-  if (!env.ANTHROPIC_API_KEY || !env.APP_PASSCODE) {
-    return jsonResponse({ error: 'worker_not_configured', error_description: 'ANTHROPIC_API_KEY / APP_PASSCODE secrets are missing on this Worker.' }, 500, origin);
+/**
+ * Gate shared by the AI routes: the passcode AND a live Google sign-in of the
+ * owner. The page sends its Google access token; Google's tokeninfo tells us
+ * which OAuth client it was issued to and for which account, so a leaked
+ * passcode alone is not enough. Returns a Response to send, or null.
+ */
+async function aiAccessError(request, env, origin) {
+  if (!env.ANTHROPIC_API_KEY || !env.APP_PASSCODE || !env.ALLOWED_EMAIL || !env.GOOGLE_CLIENT_ID) {
+    return jsonResponse({ error: 'worker_not_configured', error_description: 'ANTHROPIC_API_KEY / APP_PASSCODE / ALLOWED_EMAIL / GOOGLE_CLIENT_ID are missing on this Worker.' }, 500, origin);
   }
   if (!sameSecret(request.headers.get('X-App-Passcode') || '', env.APP_PASSCODE)) {
     return jsonResponse({ error: 'bad_passcode', error_description: 'Napačno geslo za AI analizo.' }, 401, origin);
+  }
+
+  const token = request.headers.get('X-Google-Token') || '';
+  if (!token) {
+    return jsonResponse({ error: 'google_required', error_description: 'Za AI analizo se prijavi v Google.' }, 401, origin);
+  }
+  let info;
+  try {
+    const res = await fetch(GOOGLE_TOKENINFO_URL + '?access_token=' + encodeURIComponent(token));
+    info = res.ok ? await res.json() : null;
+  } catch (e) {
+    return jsonResponse({ error: 'google_unreachable', error_description: 'Google prijave ni bilo mogoče preveriti. Poskusi znova.' }, 502, origin);
+  }
+  // No info = expired or revoked token.
+  if (!info) {
+    return jsonResponse({ error: 'google_required', error_description: 'Google prijava je potekla — prijavi se znova.' }, 401, origin);
+  }
+  const issuedToUs = info.aud === env.GOOGLE_CLIENT_ID || info.azp === env.GOOGLE_CLIENT_ID;
+  const owner = String(info.email || '').toLowerCase() === String(env.ALLOWED_EMAIL).trim().toLowerCase()
+    && String(info.email_verified) === 'true';
+  if (!issuedToUs || !owner) {
+    return jsonResponse({ error: 'google_not_allowed', error_description: 'Ta Google račun nima dostopa do AI analize.' }, 403, origin);
   }
   return null;
 }
@@ -232,7 +262,7 @@ const imageBlock = (image) => ({ type: 'image', source: { type: 'base64', media_
 const wholeNumber = (v) => (typeof v === 'number' && isFinite(v) && v >= 0 ? Math.round(v) : 0);
 
 async function estimateMeal(request, env, origin) {
-  const denied = aiAccessError(request, env, origin);
+  const denied = await aiAccessError(request, env, origin);
   if (denied) return denied;
   const input = await readAiBody(request, origin);
   if (input.error) return input.error;
@@ -309,7 +339,7 @@ const SUPPLEMENT_SCHEMA = {
 };
 
 async function readSupplement(request, env, origin) {
-  const denied = aiAccessError(request, env, origin);
+  const denied = await aiAccessError(request, env, origin);
   if (denied) return denied;
   const input = await readAiBody(request, origin);
   if (input.error) return input.error;

@@ -1,6 +1,6 @@
 # Cloudflare Worker for Kilometrina — deploy with: npx wrangler deploy
 # Secrets (never in this file): OURA_CLIENT_ID, OURA_CLIENT_SECRET,
-# ANTHROPIC_API_KEY, APP_PASSCODE — set with: npx wrangler secret put <NAME>
+# ANTHROPIC_API_KEY, APP_PASSCODE, ALLOWED_EMAIL — set with: npx wrangler secret put <NAME>
 name = "kilometrina-oura"
 main = "oura-token-exchange.js"
 compatibility_date = "2025-01-01"
@@ -8,3 +8,6 @@ compatibility_date = "2025-01-01"
 [vars]
 # Exact origin of the hosted page; comma-separate to add http://localhost:8000 for testing.
 ALLOWED_ORIGIN = "https://keeeepr.github.io"
+# Google OAuth client of the page (public). AI requests must carry a Google
+# token issued to this client for ALLOWED_EMAIL.
+GOOGLE_CLIENT_ID = "770905152734-b55e4hdt398loie5vd3aoitihkicmtat.apps.googleusercontent.com"

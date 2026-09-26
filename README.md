@@ -244,8 +244,13 @@ Vse gre v Drive varnostno kopijo in v `kilometrina.xlsx` (zavihki *Prehrana*, *D
 ### Nastavitev (enkrat)
 
 API ključ za Claude ne sme biti v `index.html` (repozitorij je javen), zato oceno naredi isti
-Cloudflare Worker kot pri Ouri. Ker ključ stane denar, Worker zahteva še **geslo**, ki ga
-aplikacija vpraša ob prvi oceni in si ga zapomni.
+Cloudflare Worker kot pri Ouri. Ker ključ stane denar, Worker za vsako AI zahtevo preveri **dvoje**:
+
+- **geslo** (`APP_PASSCODE`), ki ga vpišeš v razdelku *AI analiza* (Prehrana) — znaki so skriti,
+  vidni so samo, ko obkljukaš *Pokaži geslo*; aplikacija si ga zapomni na napravi;
+- **prijavo v Google** z računom `ALLOWED_EMAIL` — Worker pri Googlu preveri, da je žeton res
+  izdan za to aplikacijo in za tvoj račun. Brez prijave v Google AI ne deluje (niti z geslom), in
+  geslo lahko vpišeš samo, ko si prijavljen. Google prijava velja približno 1 uro.
 
 1. Na https://console.anthropic.com → **API Keys** → **Create Key** ustvari nov ključ (npr.
    "Kilometrina") in ga kopiraj.
@@ -255,11 +260,13 @@ aplikacija vpraša ob prvi oceni in si ga zapomni.
    ```sh
    npx wrangler secret put ANTHROPIC_API_KEY
    npx wrangler secret put APP_PASSCODE
+   npx wrangler secret put ALLOWED_EMAIL
    ```
 
-   Pri prvem prilepi API ključ, pri drugem si izmisli geslo (npr. 4–6 besed). Nobenega od njiju
-   ne pošiljaj nikomur in ju ne vpisuj v kodo.
-4. V aplikaciji odpri Prehrana, slikaj obrok in ob vprašanju vpiši geslo iz koraka 3.
+   Pri prvem prilepi API ključ, pri drugem si izmisli geslo (npr. 4–6 besed), pri tretjem vpiši
+   Gmail naslov, s katerim se v aplikaciji prijavljaš v Google. Ključa in gesla ne pošiljaj
+   nikomur in ju ne vpisuj v kodo. `GOOGLE_CLIENT_ID` je v `wrangler.toml` (ni skriven).
+4. V aplikaciji se prijavi v Google, odpri Prehrana → *AI analiza* in vpiši geslo iz koraka 3.
 
 Ena ocena obroka stane približno 1–3 cente (slika je pred pošiljanjem pomanjšana).
 
