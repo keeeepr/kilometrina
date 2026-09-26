@@ -71,8 +71,10 @@ v razdelku "Oura Ring" ter pri vsakem treningu v zgodovini — za isti dan.
 Zakaj je potreben še Cloudflare: Oura ne izdaja več osebnih žetonov (Personal Access
 Tokens), prijava gre samo prek OAuth, ta pa zahteva **skrivni ključ** (client secret).
 Tega ne smemo dati v `index.html`, ker je repozitorij javen. Zato skrivni ključ hrani
-majhen brezplačen Cloudflare Worker (`oura-token-exchange.js`), ki samo zamenja kodo za
-žeton — ničesar ne shranjuje.
+majhen brezplačen Cloudflare Worker (`oura-token-exchange.js`), ki zamenja kodo za žeton.
+Ker Oura ne dovoli branja podatkov neposredno iz brskalnika (CORS), Worker posreduje tudi
+branje podatkov (samo spanje, pripravljenost, aktivnost in srčni utrip) — s tvojim žetonom,
+ničesar ne shranjuje.
 
 ### 5a. Registriraj aplikacijo pri Oura
 

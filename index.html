@@ -784,7 +784,9 @@ document.getElementById('driveRestoreBtn').addEventListener('click', async () =>
 const OURA_CLIENT_ID = '475978ff-b75d-4013-bac7-851cb956568d';
 const OURA_WORKER_URL = 'https://kilometrina-oura.kilometrina-pwa.workers.dev';
 const OURA_AUTHORIZE_URL = 'https://cloud.ouraring.com/oauth/authorize';
-const OURA_API = 'https://api.ouraring.com/v2/usercollection/';
+// Oura's API refuses browser requests from other sites (CORS), so data reads
+// go through the same Worker, which forwards them with this page's own token.
+const OURA_API = OURA_WORKER_URL + '/api/';
 const OURA_DAYS = 7; // days kept up to date, and rows shown in the Oura panel
 const LS_OURA_TOKENS = 'kilometrina.ouraTokens';
 const LS_OURA = 'kilometrina.oura';

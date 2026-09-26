@@ -7,6 +7,10 @@
  * Worker is the one place that holds the secret: the page sends it an
  * authorization code, the Worker trades it for tokens, the page gets tokens.
  *
+ * It also relays the page's data requests (GET /api/<collection>) to Oura's
+ * API, because Oura's API does not answer browser requests from other sites
+ * (CORS). The page's own access token is passed through; nothing is added.
+ *
  * It stores nothing and logs nothing. It is a relay, not a backend.
  *
  * ---- Deploy (details in README.md, "Oura Ring nastavitev") --------------
@@ -25,12 +29,15 @@
  */
 
 const OURA_TOKEN_URL = 'https://api.ouraring.com/oauth/token';
+const OURA_API_URL = 'https://api.ouraring.com/v2/usercollection/';
+// Only what Kilometrina reads — the relay is not a general Oura proxy.
+const OURA_COLLECTIONS = ['daily_sleep', 'daily_readiness', 'daily_activity', 'sleep', 'heartrate'];
 
 function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin'
   };
@@ -75,6 +82,34 @@ async function requestOuraTokens(form, env) {
   return { ok: res.ok, status: res.status, data: data };
 }
 
+/** GET /api/<collection>?… → Oura API, with the caller's own Bearer token. */
+async function relayOuraApi(request, url, origin) {
+  const collection = url.pathname.slice('/api/'.length).replace(/\/$/, '');
+  if (OURA_COLLECTIONS.indexOf(collection) === -1) {
+    return jsonResponse({ error: 'not_found', error_description: 'Unknown collection' }, 404, origin);
+  }
+  const auth = request.headers.get('Authorization') || '';
+  if (!/^Bearer \S+$/.test(auth)) {
+    return jsonResponse({ error: 'missing_token' }, 401, origin);
+  }
+  let res;
+  try {
+    res = await fetch(OURA_API_URL + collection + url.search, {
+      headers: { 'Authorization': auth, 'Accept': 'application/json' }
+    });
+  } catch (e) {
+    return jsonResponse({ error: 'oura_unreachable', error_description: String(e && e.message || e) }, 502, origin);
+  }
+  // Status and body pass through unchanged, so the page's 401 → refresh logic still works.
+  return new Response(res.body, {
+    status: res.status,
+    headers: Object.assign(
+      { 'Content-Type': res.headers.get('Content-Type') || 'application/json', 'Cache-Control': 'no-store' },
+      corsHeaders(origin)
+    )
+  });
+}
+
 export default {
   async fetch(request, env) {
     const origin = (request.headers.get('Origin') || '').replace(/\/$/, '');
@@ -98,6 +133,11 @@ export default {
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
+    }
+
+    const url = new URL(request.url);
+    if (request.method === 'GET' && url.pathname.startsWith('/api/')) {
+      return relayOuraApi(request, url, origin);
     }
     if (request.method !== 'POST') {
       return jsonResponse({ error: 'method_not_allowed' }, 405, origin);
