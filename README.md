@@ -194,12 +194,12 @@ Prehrana (razdelek 7) doda v isto datoteko še tri ključe:
 "meals": [
   { "id": "m-…", "date": "2026-09-26", "time": 1790000000000, "type": "kosilo",
     "name": "Losos z rižem", "calories": 620, "protein": 38, "carbs": 65, "fat": 20,
-    "confidence": "medium", "notes": "Predpostavljena 1 skodelica riža.",
+    "portion": 1, "confidence": "medium", "notes": "Predpostavljena 1 skodelica riža.",
     "source": "ai", "hasPhoto": true }
 ],
 "supplements": [
   { "id": "s-…", "date": "2026-09-26", "time": 1790000000000, "name": "Magnezij B6",
-    "serving": "2 tableti",
+    "serving": "2 tableti", "servings": 1,
     "ingredients": [ { "name": "Magnezij", "amount": 375, "unit": "mg", "nrv": 100 } ] }
 ],
 "supplementList": [
@@ -208,7 +208,9 @@ Prehrana (razdelek 7) doda v isto datoteko še tri ključe:
 ]
 ```
 
-`type` je `zajtrk`, `kosilo`, `vecerja` ali `prigrizek`; `source` je `ai` ali `manual`. Vnos
+`type` je `zajtrk`, `kosilo`, `vecerja` ali `prigrizek`; `source` je `ai`, `repeat` (ponovljen
+prejšnji obrok) ali `manual`; `portion` je izbrana količina (številke so že pomnožene z njo).
+Pri dopolnilih je `servings` število odmerkov; `ingredients` so na en odmerek. Vnos
 dopolnila ima kopijo sestavin iz časa vnosa, zato ostane pravilen, tudi če dopolnilo kasneje
 znova slikaš ali izbrišeš s seznama.
 
@@ -222,12 +224,18 @@ Prehrana:
   predpostavil. Številke lahko pred shranjevanjem popraviš. Namesto slike (ali poleg nje) lahko
   obrok opišeš, npr. "200 g riža, brez omake" — opis ima prednost pred sliko. Brez AI lahko
   številke vpišeš tudi ročno.
+- **Že jedel** — obroki, ki si jih že vnesel (najpogostejši najprej, z iskanjem). Tapni enega in
+  obrazec se izpolni z isto količino kot zadnjič; če si pojedel več ali manj, izberi količino
+  (½, ¾, 1, 1½, 2 ali poljubno število) in shrani. Brez AI.
+- **Količina** velja tudi za AI oceno in ročni vnos: številke se pomnožijo s količino.
 - **Obroki** — seznam za izbrani dan, s seštevkom zgoraj; vsak obrok lahko urediš ali izbrišeš.
 - **Prehranska dopolnila** — tapni *Slikaj etiketo dopolnila*: Claude z etikete prebere ime,
   znamko, odmerek in vse sestavine s količinami na odmerek (in % priporočenega vnosa). Dopolnilo
   shraniš med svoja, nato ga vsakič z enim dotikom zabeležiš; pri vnosu so izpisane sestavine,
   pod seznamom pa seštevek sestavin za cel dan (npr. dva izdelka z magnezijem se seštejeta).
-  Dopolnilo lahko dodaš tudi samo z imenom, brez slike.
+  Brez AI: vpiši ime in (neobvezno) sestavine na odmerek, npr. `Magnezij 300 mg, Vitamin B6 2 mg`.
+  Pri vsakem vnosu z gumboma − / + spremeniš število odmerkov (npr. 2 tableti); naslednjič je
+  privzeto enako kot zadnjič.
 
 Vse gre v Drive varnostno kopijo in v `kilometrina.xlsx` (zavihki *Prehrana*, *Dopolnila* in
 *Dnevni pregled*, ki po dnevih združi km, kalorije, makrohranila, dopolnila in Oura podatke).

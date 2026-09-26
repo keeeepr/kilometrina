@@ -297,6 +297,19 @@
     padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13.5px;
   }
   .supp-row:last-child { border-bottom: none; }
+  .past-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .past-head input { width: 150px; }
+  .past-chip .kc { color: var(--amber); margin-left: 6px; }
+  .portion-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .portion-input { display: flex; align-items: center; gap: 6px; font-family: 'IBM Plex Mono', monospace; color: var(--text-dim); }
+  .portion-input input { width: 80px; }
+  .supp-add { display: flex; flex-direction: column; gap: 8px; margin: 14px 0 6px; }
+  .servings { display: inline-flex; align-items: center; gap: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--text); }
+  .servings button {
+    background: none; border: 1px solid var(--line); color: var(--text-dim); border-radius: 6px;
+    width: 26px; height: 26px; cursor: pointer; font-size: 14px; line-height: 1;
+  }
+  .servings button:hover { border-color: var(--teal); color: var(--teal); }
   .supp-contents { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--amber); margin-top: 3px; line-height: 1.5; }
   .supp-total {
     margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
@@ -371,6 +384,14 @@
       <button type="button" class="clear-btn" id="mealPhotoRemove" style="padding:8px 12px;" hidden>Odstrani sliko</button>
     </div>
 
+    <div id="pastMealsBlock" hidden>
+      <div class="past-head">
+        <label for="pastMealSearch">Že jedel — tapni za ponovni vnos</label>
+        <input type="search" id="pastMealSearch" class="date-compact" placeholder="išči …" autocomplete="off">
+      </div>
+      <div class="chips" id="pastMealChips"></div>
+    </div>
+
     <label style="display:block; margin-bottom:8px;">Obrok</label>
     <div class="chips" id="mealTypeChips"></div>
 
@@ -388,6 +409,12 @@
       <div class="field"><label for="mealCarbs">OH g</label><input type="number" id="mealCarbs" min="0" inputmode="numeric"></div>
       <div class="field"><label for="mealFat">maščobe g</label><input type="number" id="mealFat" min="0" inputmode="numeric"></div>
     </div>
+    <div class="portion-row">
+      <label for="mealPortion">Količina</label>
+      <div class="chips" id="portionChips" style="margin:0;"></div>
+      <div class="portion-input"><span>×</span><input type="number" id="mealPortion" min="0.1" step="0.25" value="1" inputmode="decimal" aria-label="Količina (večkratnik)"></div>
+    </div>
+    <div class="hint">Brez AI: vpiši ime in številke, nato shrani. Količina pomnoži številke — 1 je porcija, kot je bila zadnjič (ali kot jo je ocenil AI), 2 je dvojna.</div>
 
     <div class="save-row">
       <button type="button" class="save-btn" id="mealSaveBtn">Shrani obrok</button>
@@ -419,9 +446,14 @@
     </div>
     <label style="display:block; margin-bottom:8px;">Tapni dopolnilo, da ga zabeležiš za izbrani dan</label>
     <div class="chips" id="suppChips"></div>
-    <div class="add-word-row">
-      <input type="text" id="newSuppInput" placeholder="npr. Magnezij 300 mg" maxlength="40">
-      <button type="button" class="export-btn" id="addSuppBtn">Dodaj dopolnilo</button>
+    <div class="supp-add">
+      <label style="display:block; margin-bottom:6px;">Dodaj z besedilom (brez AI)</label>
+      <input type="text" id="newSuppInput" placeholder="ime, npr. Magnezij" maxlength="60">
+      <input type="text" id="newSuppContents" placeholder="sestavine na odmerek (neobvezno), npr. Magnezij 300 mg, Vitamin B6 2 mg" maxlength="300">
+      <div class="save-row" style="margin-top:0; flex-wrap:wrap;">
+        <button type="button" class="add-btn" id="addSuppLogBtn">Dodaj in zabeleži zdaj</button>
+        <button type="button" class="export-btn" id="addSuppBtn">Samo dodaj med dopolnila</button>
+      </div>
     </div>
     <div id="suppLog"></div>
   </section>
@@ -781,12 +813,13 @@ function xlsxSheets() {
   const oura = [['Datum'].concat(ouraCols.map((c) => c[1]))]
     .concat(Object.keys(ouraDays).sort().map((d) => [d].concat(ouraCols.map((c) => ouraDays[d][c[0]]))));
   const hhmm = (t) => new Date(t).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
-  const food = [['Datum', 'Ura', 'Obrok', 'Ime', 'kcal', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Vir', 'Zanesljivost', 'Opomba']]
-    .concat(meals.map((m) => [m.date, hhmm(m.time), mealTypeLabel(m.type), m.name, m.calories, m.protein, m.carbs, m.fat,
-      m.source === 'ai' ? 'AI' : 'ročno', m.confidence, m.notes]));
-  const supps = [['Datum', 'Ura', 'Dopolnilo', 'Odmerek', 'Sestavine']]
+  const SOURCE_LABEL = { ai: 'AI', repeat: 'ponovljeno', manual: 'ročno' };
+  const food = [['Datum', 'Ura', 'Obrok', 'Ime', 'Količina ×', 'kcal', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Vir', 'Zanesljivost', 'Opomba']]
+    .concat(meals.map((m) => [m.date, hhmm(m.time), mealTypeLabel(m.type), m.name, m.portion || 1, m.calories, m.protein, m.carbs, m.fat,
+      SOURCE_LABEL[m.source] || 'ročno', m.confidence, m.notes]));
+  const supps = [['Datum', 'Ura', 'Dopolnilo', 'Število odmerkov', 'Odmerek', 'Zaužite sestavine']]
     .concat([...supplements].sort((a, b) => a.date.localeCompare(b.date) || a.time - b.time)
-      .map((x) => [x.date, hhmm(x.time), x.name, x.serving || '', ingredientsText(x.ingredients)]));
+      .map((x) => [x.date, hhmm(x.time), x.name, x.servings || 1, x.serving || '', ingredientsText(takenIngredients(x))]));
 
   const days = [...new Set([].concat(sessions.map((x) => x.date), meals.map((x) => x.date), supplements.map((x) => x.date), Object.keys(ouraDays)))].sort();
   const daily = [['Datum', 'Km', 'kcal', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Dopolnila', 'Ocena spanja', 'Pripravljenost', 'HRV (ms)', 'Utrip noč najn.']]
@@ -794,7 +827,7 @@ function xlsxSheets() {
       const dm = meals.filter((m) => m.date === d);
       const sum = (k) => dm.length ? dm.reduce((acc, m) => acc + (m[k] || 0), 0) : null;
       const km = sessions.filter((x) => x.date === d).reduce((acc, x) => acc + (x.totalMeters || 0), 0) / 1000;
-      const sd = supplements.filter((x) => x.date === d).map((x) => x.name).join(', ');
+      const sd = supplements.filter((x) => x.date === d).map((x) => x.name + (x.servings && x.servings !== 1 ? ' ×' + fmtAmount(x.servings) : '')).join(', ');
       return [d, km || null, sum('calories'), sum('protein'), sum('carbs'), sum('fat'), sd,
         o(d).sleep_score, o(d).readiness_score, o(d).avg_hrv_overnight, o(d).lowest_hr_overnight];
     }));
@@ -802,8 +835,8 @@ function xlsxSheets() {
     { name: 'Dnevni pregled', rows: daily, widths: [12, 7, 8, 10, 8, 10, 30, 10, 10, 9, 10] },
     { name: 'Treningi', rows: workouts, widths: [12, 24, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9] },
     { name: 'Seti', rows: sets, widths: [12, 24, 50, 9] },
-    { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 7, 10, 8, 10, 7, 11, 50] },
-    { name: 'Dopolnila', rows: supps, widths: [12, 7, 26, 12, 70] },
+    { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 10, 7, 10, 8, 10, 10, 11, 50] },
+    { name: 'Dopolnila', rows: supps, widths: [12, 7, 26, 10, 12, 70] },
     { name: 'Oura', rows: oura, widths: [12].concat(ouraCols.map((c) => c[0].startsWith('bedtime') ? 26 : 11)) }
   ];
 }
@@ -1335,6 +1368,9 @@ let mealDraft = null;      // {analysisB64, keepBlob, previewUrl} for a newly pi
 let editingMealId = null;
 let mealType = null;
 let mealEstimate = null;   // {confidence, notes} from the last AI answer
+let mealBase = null;       // {calories, protein, carbs, fat} for a portion of 1 — what "Količina" multiplies
+const MACRO_FIELDS = [['calories', 'mealKcal'], ['protein', 'mealProtein'], ['carbs', 'mealCarbs'], ['fat', 'mealFat']];
+const PORTIONS = [[0.5, '½'], [0.75, '¾'], [1, '1'], [1.5, '1½'], [2, '2']];
 
 const foodDate = document.getElementById('foodDate');
 foodDate.value = localDay(new Date());
@@ -1522,10 +1558,7 @@ async function analyzeMeal() {
   try {
     const data = await aiRequest('/meal', { image: image, description: description });
     document.getElementById('mealName').value = data.name || '';
-    document.getElementById('mealKcal').value = data.calories;
-    document.getElementById('mealProtein').value = data.protein;
-    document.getElementById('mealCarbs').value = data.carbs;
-    document.getElementById('mealFat').value = data.fat;
+    setMealBase({ calories: data.calories, protein: data.protein, carbs: data.carbs, fat: data.fat }, 1);
     mealEstimate = { confidence: data.confidence, notes: data.notes };
     setAiStatus((CONFIDENCE_TEXT[data.confidence] || '') + (data.notes ? ' · ' + data.notes : ''), data.confidence === 'low' ? 'low' : 'ok');
   } catch (e) {
@@ -1536,14 +1569,104 @@ async function analyzeMeal() {
 }
 document.getElementById('mealAnalyzeBtn').addEventListener('click', () => analyzeMeal());
 
+// ---------- portion ----------
+function currentPortion() {
+  const p = Number(document.getElementById('mealPortion').value);
+  return p > 0 ? p : 1;
+}
+/** Set the portion-of-1 numbers and show them multiplied by `portion`. */
+function setMealBase(base, portion) {
+  mealBase = base;
+  document.getElementById('mealPortion').value = portion;
+  applyPortion();
+}
+function applyPortion() {
+  const p = currentPortion();
+  if (mealBase) {
+    MACRO_FIELDS.forEach(([key, id]) => { document.getElementById(id).value = Math.round((mealBase[key] || 0) * p); });
+  }
+  renderPortionChips();
+}
+function renderPortionChips() {
+  const wrap = document.getElementById('portionChips');
+  const p = currentPortion();
+  wrap.innerHTML = '';
+  PORTIONS.forEach(([value, label]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip chip-choice' + (Math.abs(value - p) < 0.001 ? ' selected' : '');
+    b.textContent = label;
+    b.addEventListener('click', () => { document.getElementById('mealPortion').value = value; applyPortion(); });
+    wrap.appendChild(b);
+  });
+}
+document.getElementById('mealPortion').addEventListener('input', applyPortion);
+// Typing a number by hand redefines the base for the current portion.
+MACRO_FIELDS.forEach(([key, id]) => {
+  document.getElementById(id).addEventListener('input', () => {
+    mealBase = mealBase || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    mealBase[key] = (Number(document.getElementById(id).value) || 0) / currentPortion();
+  });
+});
+
+// ---------- meals eaten before ----------
+/** One entry per distinct meal name: its latest version, most-eaten first. */
+function pastMeals() {
+  const byName = {};
+  meals.forEach((m) => {
+    const key = m.name.trim().toLowerCase();
+    const e = byName[key] || (byName[key] = { count: 0, last: m });
+    e.count++;
+    if (m.date > e.last.date || (m.date === e.last.date && m.time > e.last.time)) e.last = m;
+  });
+  return Object.values(byName).sort((a, b) => b.count - a.count || (b.last.date + b.last.time).localeCompare(a.last.date + a.last.time));
+}
+
+function renderPastMeals() {
+  const all = pastMeals();
+  document.getElementById('pastMealsBlock').hidden = !all.length;
+  const q = document.getElementById('pastMealSearch').value.trim().toLowerCase();
+  const shown = (q ? all.filter((e) => e.last.name.toLowerCase().includes(q)) : all).slice(0, q ? 30 : 12);
+  const wrap = document.getElementById('pastMealChips');
+  wrap.innerHTML = shown.length ? '' : '<div class="empty" style="padding:0;">Ni zadetkov.</div>';
+  shown.forEach((e) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip chip-choice past-chip';
+    b.innerHTML = escapeHtml(e.last.name) + '<span class="kc">' + e.last.calories + '</span>';
+    b.title = e.last.calories + ' kcal · B ' + e.last.protein + ' · OH ' + e.last.carbs + ' · M ' + e.last.fat;
+    b.addEventListener('click', () => repeatMeal(e.last));
+    wrap.appendChild(b);
+  });
+}
+document.getElementById('pastMealSearch').addEventListener('input', renderPastMeals);
+
+/** Fill the form from an earlier meal, with the same amounts as that time. */
+function repeatMeal(m) {
+  resetMealForm();
+  document.getElementById('mealName').value = m.name;
+  // Same portion as last time by default; the base stays the original portion
+  // of 1, so ×2 always means "twice the original", not twice the last amount.
+  const p = m.portion || 1;
+  setMealBase({ calories: m.calories / p, protein: m.protein / p, carbs: m.carbs / p, fat: m.fat / p }, p);
+  mealRepeatOf = m;
+  const when = new Date(m.date + 'T00:00:00').toLocaleDateString('sl-SI', { day: 'numeric', month: 'numeric' });
+  setAiStatus('enaka količina kot ' + when + ' — spremeni jo, če si pojedel več ali manj, nato shrani', 'ok');
+}
+let mealRepeatOf = null;
+
 // ---------- save / edit / delete ----------
 function resetMealForm() {
   clearMealDraftPhoto();
   editingMealId = null;
   mealEstimate = null;
   mealPhotoRemoved = false;
+  mealRepeatOf = null;
+  mealBase = null;
   mealType = defaultMealType();
   ['mealDesc', 'mealName', 'mealKcal', 'mealProtein', 'mealCarbs', 'mealFat'].forEach((id) => { document.getElementById(id).value = ''; });
+  document.getElementById('mealPortion').value = 1;
+  renderPortionChips();
   document.getElementById('mealFormTitle').textContent = 'Nov obrok';
   document.getElementById('mealSaveBtn').textContent = 'Shrani obrok';
   showMealPhoto(null);
@@ -1575,9 +1698,10 @@ document.getElementById('mealSaveBtn').addEventListener('click', () => {
     protein: numVal('mealProtein'),
     carbs: numVal('mealCarbs'),
     fat: numVal('mealFat'),
+    portion: currentPortion(),
     confidence: mealEstimate ? mealEstimate.confidence : (existing ? existing.confidence : null),
     notes: mealEstimate ? mealEstimate.notes : (existing ? existing.notes : ''),
-    source: mealEstimate || (existing && existing.source === 'ai') ? 'ai' : 'manual',
+    source: mealEstimate ? 'ai' : mealRepeatOf ? 'repeat' : (existing ? existing.source : 'manual'),
     hasPhoto: hasPhoto
   };
   meals = existing ? meals.map((m) => (m.id === id ? meal : m)) : meals.concat(meal);
@@ -1603,10 +1727,8 @@ function editMeal(id) {
   editingMealId = id;
   mealType = m.type;
   document.getElementById('mealName').value = m.name;
-  document.getElementById('mealKcal').value = m.calories;
-  document.getElementById('mealProtein').value = m.protein;
-  document.getElementById('mealCarbs').value = m.carbs;
-  document.getElementById('mealFat').value = m.fat;
+  const p = m.portion || 1;
+  setMealBase({ calories: m.calories / p, protein: m.protein / p, carbs: m.carbs / p, fat: m.fat / p }, p);
   document.getElementById('mealFormTitle').textContent = 'Uredi obrok';
   document.getElementById('mealSaveBtn').textContent = 'Shrani spremembe';
   if (m.hasPhoto) photoUrl(m.id).then((url) => { if (editingMealId === id) showMealPhoto(url); });
@@ -1655,37 +1777,69 @@ function renderSuppChips() {
   });
 }
 
+/** Servings taken last time for this supplement — the default for the next entry. */
+function lastServings(name) {
+  const prev = supplements.filter((x) => x.name === name).sort((a, b) => b.time - a.time)[0];
+  return prev && prev.servings ? prev.servings : 1;
+}
+
 function logSupplement(item) {
   supplements.push({
     id: newId('s'), date: foodDate.value || localDay(new Date()), time: Date.now(),
-    name: item.name, serving: item.serving || '', ingredients: item.ingredients || []
+    name: item.name, serving: item.serving || '', ingredients: item.ingredients || [],
+    servings: lastServings(item.name)
   });
   persistSupps();
   renderFood();
 }
 
+/** "Magnezij 300 mg, Vitamin B6 2 mg" → [{name, amount, unit}] (a name alone is fine too). */
+function parseIngredients(text) {
+  return String(text || '').split(/[,;\n]+/).map((part) => part.trim()).filter(Boolean).map((part) => {
+    const m = part.match(/^(.*?)\s*([\d]+(?:[.,]\d+)?)\s*([^\d\s]+)?$/);
+    if (!m || !m[1]) return { name: part, amount: 0, unit: '', nrv: 0 };
+    return { name: m[1].trim(), amount: Number(m[2].replace(',', '.')), unit: (m[3] || '').trim(), nrv: 0 };
+  });
+}
+
 const newSuppInput = document.getElementById('newSuppInput');
-document.getElementById('addSuppBtn').addEventListener('click', () => {
+const newSuppContents = document.getElementById('newSuppContents');
+function addTypedSupplement(logNow) {
   const name = newSuppInput.value.trim();
-  if (!name) return;
-  if (!supplementList.some((x) => x.name === name)) supplementList.push(normSupp(name));
+  if (!name) { newSuppInput.focus(); return; }
+  const ingredients = parseIngredients(newSuppContents.value);
+  const at = supplementList.findIndex((x) => x.name.toLowerCase() === name.toLowerCase());
+  let item;
+  if (at === -1) {
+    item = { name: name, brand: '', serving: '', ingredients: ingredients };
+    supplementList.push(item);
+  } else {
+    item = supplementList[at];
+    if (ingredients.length) item.ingredients = ingredients; // typing contents again updates them
+  }
   newSuppInput.value = '';
+  newSuppContents.value = '';
   persistSupps();
   renderSuppChips();
-});
-newSuppInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('addSuppBtn').click(); }
-});
+  if (logNow) logSupplement(item);
+}
+document.getElementById('addSuppBtn').addEventListener('click', () => addTypedSupplement(false));
+document.getElementById('addSuppLogBtn').addEventListener('click', () => addTypedSupplement(true));
+[newSuppInput, newSuppContents].forEach((el) => el.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); addTypedSupplement(true); }
+}));
 
 // ---------- supplement label scan ----------
 const fmtAmount = (n) => (Math.round(n * 100) / 100).toLocaleString('sl-SI');
 function ingredientsText(list) {
   return (list || []).map((i) => i.name + (i.amount ? ' ' + fmtAmount(i.amount) + ' ' + i.unit : '')).join(' · ');
 }
+/** An entry's contents for the servings actually taken. */
+const takenIngredients = (x) => (x.ingredients || []).map((i) => Object.assign({}, i, { amount: i.amount * (x.servings || 1) }));
 /** Same ingredient + unit across the day's entries, added up (e.g. two magnesium products). */
 function ingredientTotals(entries) {
   const acc = {};
-  entries.forEach((x) => (x.ingredients || []).forEach((i) => {
+  entries.forEach((x) => takenIngredients(x).forEach((i) => {
     if (!i.amount) return;
     const key = i.name.toLowerCase() + '|' + i.unit;
     acc[key] = acc[key] || { name: i.name, unit: i.unit, amount: 0 };
@@ -1774,7 +1928,7 @@ function renderFood() {
         ${m.hasPhoto ? `<img class="meal-thumb" data-photo="${m.id}" alt="">` : ''}
         <div class="info">
           <div class="title">${escapeHtml(m.name)}</div>
-          <div class="meta">${mealTypeLabel(m.type)} · ${clock(m.time)}${m.source === 'ai' ? ' · AI' : ''}</div>
+          <div class="meta">${mealTypeLabel(m.type)} · ${clock(m.time)}${m.portion && m.portion !== 1 ? ' · ×' + fmtAmount(m.portion) : ''}${m.source === 'ai' ? ' · AI' : ''}</div>
           <div class="macros">${m.calories} kcal · B ${m.protein} · OH ${m.carbs} · M ${m.fat}</div>
         </div>
         <div class="item-actions">
@@ -1796,6 +1950,8 @@ function renderFood() {
     })));
   }
 
+  renderPastMeals();
+
   const daySupps = supplements.filter((x) => x.date === day).sort((a, b) => a.time - b.time);
   const log = document.getElementById('suppLog');
   const totals = ingredientTotals(daySupps);
@@ -1803,12 +1959,25 @@ function renderFood() {
     <div class="supp-row">
       <div>
         <div><span class="t">${clock(x.time)}</span>${escapeHtml(x.name)}</div>
-        ${x.ingredients && x.ingredients.length ? `<div class="supp-contents">${escapeHtml(ingredientsText(x.ingredients))}</div>` : ''}
+        ${x.ingredients && x.ingredients.length ? `<div class="supp-contents">${escapeHtml(ingredientsText(takenIngredients(x)))}</div>` : ''}
       </div>
-      <div class="item-actions"><button type="button" class="danger" data-sdel="${x.id}" aria-label="Izbriši vnos">✕</button></div>
+      <div class="item-actions">
+        <span class="servings" title="${escapeHtml(x.serving ? 'odmerek: ' + x.serving : 'število odmerkov')}">
+          <button type="button" data-sstep="-1" data-sid="${x.id}" aria-label="Manj">−</button>×${fmtAmount(x.servings || 1)}<button type="button" data-sstep="1" data-sid="${x.id}" aria-label="Več">+</button>
+        </span>
+        <button type="button" class="danger" data-sdel="${x.id}" aria-label="Izbriši vnos">✕</button>
+      </div>
     </div>`).join('') + (totals.length ? `
     <div class="supp-total"><span class="lbl">skupaj ta dan</span>${escapeHtml(ingredientsText(totals))}</div>` : '')
     : '<div class="empty">Za ta dan ni zabeleženih dopolnil.</div>';
+  log.querySelectorAll('[data-sstep]').forEach((b) => b.addEventListener('click', () => {
+    const x = supplements.find((e) => e.id === b.dataset.sid);
+    if (!x) return;
+    const step = x.servings && x.servings < 1 ? 0.5 : 1; // half tablets work too
+    x.servings = Math.max(0.5, (x.servings || 1) + step * Number(b.dataset.sstep));
+    persistSupps();
+    renderFood();
+  }));
   log.querySelectorAll('[data-sdel]').forEach((b) => b.addEventListener('click', () => armedDelete(b, () => {
     supplements = supplements.filter((x) => x.id !== b.dataset.sdel);
     persistSupps();
