@@ -1,0 +1,11 @@
+{
+  "name": "kilometrina-oura-worker",
+  "private": true,
+  "description": "Cloudflare Worker for Kilometrina (Oura token exchange + API relay, meal photo estimates). The page itself has no build step.",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.127.0"
+  }
+}

@@ -1,0 +1,10 @@
+# Cloudflare Worker for Kilometrina — deploy with: npx wrangler deploy
+# Secrets (never in this file): OURA_CLIENT_ID, OURA_CLIENT_SECRET,
+# ANTHROPIC_API_KEY, APP_PASSCODE — set with: npx wrangler secret put <NAME>
+name = "kilometrina-oura"
+main = "oura-token-exchange.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+# Exact origin of the hosted page; comma-separate to add http://localhost:8000 for testing.
+ALLOWED_ORIGIN = "https://keeeepr.github.io"

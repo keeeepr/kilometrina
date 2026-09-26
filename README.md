@@ -8,8 +8,9 @@ Datoteke:
 - `index.html` — sama aplikacija
 - `manifest.json`, `service-worker.js` — naredita jo namestljivo in delujočo brez interneta
 - `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` — ikona aplikacije
-- `oura-token-exchange.js` — majhen Cloudflare Worker za prijavo v Oura (glej razdelek 5).
-  Te datoteke **ni treba** nalagati na GitHub — teče na Cloudflare, ne na GitHub Pages.
+- `oura-token-exchange.js`, `wrangler.toml`, `package.json` — Cloudflare Worker za prijavo in
+  branje podatkov iz Oure (razdelek 5) ter AI oceno obrokov (razdelek 7). Teče na Cloudflare,
+  ne na GitHub Pages; v repozitoriju je samo zato, da je koda shranjena.
 
 ## 1. Postavi GitHub Pages (gostovanje, brezplačno)
 
@@ -102,15 +103,14 @@ ničesar ne shranjuje.
 
    ```sh
    npx wrangler login
-   npx wrangler deploy oura-token-exchange.js \
-     --name kilometrina-oura \
-     --compatibility-date 2025-01-01 \
-     --var ALLOWED_ORIGIN:https://keeeepr.github.io
-   npx wrangler secret put OURA_CLIENT_ID     --name kilometrina-oura
-   npx wrangler secret put OURA_CLIENT_SECRET --name kilometrina-oura
+   npm install
+   npx wrangler deploy
+   npx wrangler secret put OURA_CLIENT_ID
+   npx wrangler secret put OURA_CLIENT_SECRET
    ```
 
-   Pri zadnjih dveh ukazih te vpraša za vrednost — prilepi Client ID oziroma Client Secret iz 5a.
+   Nastavitve (ime Workerja, `ALLOWED_ORIGIN`) so v `wrangler.toml`. Pri zadnjih dveh ukazih te
+   vpraša za vrednost — prilepi Client ID oziroma Client Secret iz 5a.
    `ALLOWED_ORIGIN` je naslov strani **brez** poti (brez `/kilometrina/`). Za lokalno testiranje
    lahko navedeš več naslovov, ločenih z vejico, npr.
    `https://keeeepr.github.io,http://localhost:8000`.
@@ -185,8 +185,63 @@ Od kod pride posamezno polje (Oura API v2):
 | `activity_score` | `daily_activity` → `score` |
 
 Polje, ki ga Oura za tisti dan nima, je `null`. Dan, ko prstana nisi nosil, se ne zapiše.
-Pri **"Obnovi iz Drive"** se `workouts` in `words` nadomestijo s kopijo iz Drive, `oura` pa se
-združi (dnevi iz Drive dopolnijo tiste na napravi).
+Pri **"Obnovi iz Drive"** se `workouts`, `words`, `meals`, `supplements` in `supplementList`
+nadomestijo s kopijo iz Drive, `oura` pa se združi (dnevi iz Drive dopolnijo tiste na napravi).
+
+Prehrana (razdelek 7) doda v isto datoteko še tri ključe:
+
+```json
+"meals": [
+  { "id": "m-…", "date": "2026-09-26", "time": 1790000000000, "type": "kosilo",
+    "name": "Losos z rižem", "calories": 620, "protein": 38, "carbs": 65, "fat": 20,
+    "confidence": "medium", "notes": "Predpostavljena 1 skodelica riža.",
+    "source": "ai", "hasPhoto": true }
+],
+"supplements": [ { "id": "s-…", "date": "2026-09-26", "time": 1790000000000, "name": "Magnezij 300 mg" } ],
+"supplementList": [ "Magnezij 300 mg", "Vitamin D 2000 IE" ]
+```
+
+`type` je `zajtrk`, `kosilo`, `vecerja` ali `prigrizek`; `source` je `ai` ali `manual`.
+
+## 7. Prehrana: prehranski dnevnik z AI oceno
+
+Na vrhu aplikacije izbereš **Treningi & Oura** ali **Prehrana** (izbira se zapomni). V delu
+Prehrana:
+
+- **Nov obrok** — tapni *Slikaj ali izberi sliko*; Claude (model Claude Opus 5) oceni ime obroka,
+  kalorije, beljakovine, ogljikove hidrate in maščobe ter pove, kako zanesljiva je ocena in kaj je
+  predpostavil. Številke lahko pred shranjevanjem popraviš. Namesto slike (ali poleg nje) lahko
+  obrok opišeš, npr. "200 g riža, brez omake" — opis ima prednost pred sliko. Brez AI lahko
+  številke vpišeš tudi ročno.
+- **Obroki** — seznam za izbrani dan, s seštevkom zgoraj; vsak obrok lahko urediš ali izbrišeš.
+- **Prehranska dopolnila** — enkrat dodaš svoja dopolnila (npr. "Magnezij 300 mg"), nato vsakič
+  z enim dotikom zabeležiš, da si ga vzel.
+
+Vse gre v Drive varnostno kopijo in v `kilometrina.xlsx` (zavihki *Prehrana*, *Dopolnila* in
+*Dnevni pregled*, ki po dnevih združi km, kalorije, makrohranila, dopolnila in Oura podatke).
+**Slike obrokov ostanejo samo na napravi**, kjer si jih slikal — za Drive so prevelike.
+
+### Nastavitev (enkrat)
+
+API ključ za Claude ne sme biti v `index.html` (repozitorij je javen), zato oceno naredi isti
+Cloudflare Worker kot pri Ouri. Ker ključ stane denar, Worker zahteva še **geslo**, ki ga
+aplikacija vpraša ob prvi oceni in si ga zapomni.
+
+1. Na https://console.anthropic.com → **API Keys** → **Create Key** ustvari nov ključ (npr.
+   "Kilometrina") in ga kopiraj.
+2. Priporočeno: v **Settings → Limits** nastavi mesečno omejitev porabe.
+3. V terminalu v tej mapi:
+
+   ```sh
+   npx wrangler secret put ANTHROPIC_API_KEY
+   npx wrangler secret put APP_PASSCODE
+   ```
+
+   Pri prvem prilepi API ključ, pri drugem si izmisli geslo (npr. 4–6 besed). Nobenega od njiju
+   ne pošiljaj nikomur in ju ne vpisuj v kodo.
+4. V aplikaciji odpri Prehrana, slikaj obrok in ob vprašanju vpiši geslo iz koraka 3.
+
+Ena ocena obroka stane približno 1–3 cente (slika je pred pošiljanjem pomanjšana).
 
 ## Ko boš želel dodati novo funkcijo
 
