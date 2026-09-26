@@ -1,4 +1,4 @@
-const CACHE = 'kilometrina-v1';
+const CACHE = 'kilometrina-v2';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -32,7 +32,9 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return; // let Google/font requests pass through untouched
 
   event.respondWith(
-    fetch(event.request)
+    // no-cache: always ask GitHub Pages for a fresh copy instead of using the
+    // browser's HTTP cache (Pages lets it keep files for 10 minutes).
+    fetch(event.request, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((cache) => cache.put(event.request, copy));
