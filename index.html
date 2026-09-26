@@ -432,6 +432,13 @@ function initDrive() {
     client_id: GOOGLE_CLIENT_ID,
     scope: 'https://www.googleapis.com/auth/drive.file',
     callback: (resp) => {
+      // Google's consent screen lets the Drive permission be left unticked;
+      // the sign-in still "succeeds", but every Drive call would then fail.
+      if (resp && resp.access_token && !google.accounts.oauth2.hasGrantedAllScopes(resp, 'https://www.googleapis.com/auth/drive.file')) {
+        setDriveStatus('dostop do Drive ni bil dovoljen');
+        showError('pri prijavi obkljukaj dovoljenje za Google Drive datoteke in se prijavi znova');
+        return;
+      }
       if (resp && resp.access_token) {
         driveAccessToken = resp.access_token;
         onDriveSignedIn();
@@ -479,7 +486,22 @@ async function driveApiFetch(url, options) {
     setDriveStatus('seja je potekla — prijavi se znova');
     throw new Error('Drive prijava je potekla, prijavi se znova.');
   }
-  if (!res.ok) throw new Error('Drive napaka (' + res.status + ')');
+  if (!res.ok) {
+    // Google explains 403s in the body (API not enabled, missing permission, …)
+    let reason = '';
+    try {
+      const err = (await res.json()).error || {};
+      const first = (err.errors && err.errors[0]) || {};
+      if (first.reason === 'accessNotConfigured' || /has not been used|is disabled/.test(err.message || '')) {
+        reason = ': Google Drive API v Google Cloud projektu ni omogočen (APIs & Services → Library → Google Drive API → Enable)';
+      } else if (first.reason === 'insufficientPermissions' || err.status === 'PERMISSION_DENIED') {
+        reason = ': manjka dovoljenje za Drive — prijavi se znova in obkljukaj dostop do Google Drive datotek';
+      } else if (err.message) {
+        reason = ': ' + err.message;
+      }
+    } catch (e) {}
+    throw new Error('Drive napaka (' + res.status + ')' + reason);
+  }
   return res;
 }
 
