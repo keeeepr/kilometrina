@@ -297,6 +297,17 @@
     padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13.5px;
   }
   .supp-row:last-child { border-bottom: none; }
+  .supp-contents { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--amber); margin-top: 3px; line-height: 1.5; }
+  .supp-total {
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+    font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--teal); line-height: 1.6;
+  }
+  .supp-total .lbl { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 11px; color: var(--text-dim); }
+  .supp-scan {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px; margin-bottom: 16px;
+  }
+  .supp-scan .save-row { flex-wrap: wrap; }
   .supp-row .t { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-dim); margin-right: 10px; }
 
   @media (max-width: 640px) {
@@ -391,6 +402,21 @@
 
   <section class="panel" data-mode="food" hidden>
     <h2>Prehranska dopolnila</h2>
+    <div class="ai-row" style="margin:0 0 16px;">
+      <label class="export-btn" for="suppPhotoInput">Slikaj etiketo dopolnila</label>
+      <input type="file" id="suppPhotoInput" accept="image/*" hidden>
+      <div class="ai-status" id="suppAiStatus"></div>
+    </div>
+    <div class="supp-scan" id="suppScan" hidden>
+      <div class="field" style="margin-bottom:6px;"><label for="suppScanName">Ime dopolnila</label><input type="text" id="suppScanName" maxlength="60"></div>
+      <div class="supp-contents" id="suppScanMeta" style="margin-bottom:8px;"></div>
+      <div class="history-lines open" id="suppScanList" style="margin-top:0;"></div>
+      <div class="save-row" style="margin-top:12px;">
+        <button type="button" class="add-btn" id="suppScanAddLog">Dodaj in zabeleži zdaj</button>
+        <button type="button" class="export-btn" id="suppScanAdd">Samo dodaj med dopolnila</button>
+        <button type="button" class="clear-btn" id="suppScanCancel">Prekliči</button>
+      </div>
+    </div>
     <label style="display:block; margin-bottom:8px;">Tapni dopolnilo, da ga zabeležiš za izbrani dan</label>
     <div class="chips" id="suppChips"></div>
     <div class="add-word-row">
@@ -758,8 +784,9 @@ function xlsxSheets() {
   const food = [['Datum', 'Ura', 'Obrok', 'Ime', 'kcal', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Vir', 'Zanesljivost', 'Opomba']]
     .concat(meals.map((m) => [m.date, hhmm(m.time), mealTypeLabel(m.type), m.name, m.calories, m.protein, m.carbs, m.fat,
       m.source === 'ai' ? 'AI' : 'ročno', m.confidence, m.notes]));
-  const supps = [['Datum', 'Ura', 'Dopolnilo']]
-    .concat([...supplements].sort((a, b) => a.date.localeCompare(b.date) || a.time - b.time).map((x) => [x.date, hhmm(x.time), x.name]));
+  const supps = [['Datum', 'Ura', 'Dopolnilo', 'Odmerek', 'Sestavine']]
+    .concat([...supplements].sort((a, b) => a.date.localeCompare(b.date) || a.time - b.time)
+      .map((x) => [x.date, hhmm(x.time), x.name, x.serving || '', ingredientsText(x.ingredients)]));
 
   const days = [...new Set([].concat(sessions.map((x) => x.date), meals.map((x) => x.date), supplements.map((x) => x.date), Object.keys(ouraDays)))].sort();
   const daily = [['Datum', 'Km', 'kcal', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Dopolnila', 'Ocena spanja', 'Pripravljenost', 'HRV (ms)', 'Utrip noč najn.']]
@@ -776,7 +803,7 @@ function xlsxSheets() {
     { name: 'Treningi', rows: workouts, widths: [12, 24, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9] },
     { name: 'Seti', rows: sets, widths: [12, 24, 50, 9] },
     { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 7, 10, 8, 10, 7, 11, 50] },
-    { name: 'Dopolnila', rows: supps, widths: [12, 7, 30] },
+    { name: 'Dopolnila', rows: supps, widths: [12, 7, 26, 12, 70] },
     { name: 'Oura', rows: oura, widths: [12].concat(ouraCols.map((c) => c[0].startsWith('bedtime') ? 26 : 11)) }
   ];
 }
@@ -911,7 +938,7 @@ document.getElementById('driveRestoreBtn').addEventListener('click', async () =>
     if (Array.isArray(data.words)) { quickWords = data.words; persistWords(); renderChips(); }
     if (Array.isArray(data.meals)) { meals = data.meals; persistMeals(); }
     if (Array.isArray(data.supplements)) { supplements = data.supplements; }
-    if (Array.isArray(data.supplementList)) { supplementList = data.supplementList; }
+    if (Array.isArray(data.supplementList)) { supplementList = data.supplementList.map(normSupp); }
     if (Array.isArray(data.meals) || Array.isArray(data.supplements)) { persistSupps(); renderSuppChips(); renderFood(); }
     // Oura days are merged, not replaced: both copies came from the same ring.
     if (data.oura && typeof data.oura === 'object') { ouraDays = Object.assign({}, ouraDays, data.oura); persistOura(); renderOuraSummary(); renderHistory(); }
@@ -1294,14 +1321,15 @@ const LS_SUPPS = 'kilometrina.supplements';
 const LS_SUPP_LIST = 'kilometrina.supplementList';
 const LS_MODE = 'kilometrina.mode';
 const LS_AI_PASSCODE = 'kilometrina.aiPasscode';
-const MEAL_AI_URL = OURA_WORKER_URL + '/meal';
 const MEAL_TYPES = [['zajtrk', 'Zajtrk'], ['kosilo', 'Kosilo'], ['vecerja', 'Večerja'], ['prigrizek', 'Prigrizek']];
 const ANALYSIS_WIDTH = 1024, ANALYSIS_QUALITY = 0.7; // enough for recognition, few tokens
 const KEEP_WIDTH = 480, KEEP_QUALITY = 0.6;          // ~20–40 KB per meal on the device
 
 let meals = lsGet(LS_MEALS, []);          // {id, date, time, type, name, calories, protein, carbs, fat, confidence, notes, source, hasPhoto}
-let supplements = lsGet(LS_SUPPS, []);    // {id, date, time, name}
-let supplementList = lsGet(LS_SUPP_LIST, []);
+let supplements = lsGet(LS_SUPPS, []);    // {id, date, time, name, serving?, ingredients?} — contents copied at logging time
+// Supplements started as plain names; scanned ones carry the label contents.
+const normSupp = (x) => (typeof x === 'string' ? { name: x, brand: '', serving: '', ingredients: [] } : x);
+let supplementList = lsGet(LS_SUPP_LIST, []).map(normSupp); // {name, brand, serving, ingredients: [{name, amount, unit, nrv}]}
 
 let mealDraft = null;      // {analysisB64, keepBlob, previewUrl} for a newly picked photo
 let editingMealId = null;
@@ -1458,32 +1486,41 @@ function aiPasscode(forceAsk) {
 
 const CONFIDENCE_TEXT = { high: 'zanesljiva ocena', medium: 'srednje zanesljiva ocena', low: 'groba ocena — preveri številke' };
 
-async function analyzeMeal(retried) {
+/**
+ * POST to one of the Worker's AI routes with the saved passcode. A wrong
+ * passcode is asked for again once. Resolves to the JSON answer; throws with
+ * a readable message otherwise.
+ */
+async function aiRequest(path, payload) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const code = aiPasscode(attempt > 0);
+    if (!code) throw new Error('brez gesla AI analiza ni mogoča');
+    const res = await fetch(OURA_WORKER_URL + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-App-Passcode': code },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401 && data.error === 'bad_passcode') {
+      try { localStorage.removeItem(LS_AI_PASSCODE); } catch (e) {}
+      continue;
+    }
+    if (!res.ok) throw new Error(data.error_description || data.error || ('HTTP ' + res.status));
+    return data;
+  }
+  throw new Error('napačno geslo');
+}
+
+async function analyzeMeal() {
   const description = document.getElementById('mealDesc').value.trim();
   const image = mealDraft ? mealDraft.analysisB64 : null;
   if (!image && !description) { setAiStatus('najprej slikaj obrok ali ga opiši', 'low'); return; }
-  const code = aiPasscode(false);
-  if (!code) { setAiStatus('brez gesla AI analiza ni mogoča — vpiši številke ročno', 'low'); return; }
 
   const btn = document.getElementById('mealAnalyzeBtn');
   btn.disabled = true;
   setAiStatus('analiziram …', 'busy');
   try {
-    const res = await fetch(MEAL_AI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-App-Passcode': code },
-      body: JSON.stringify({ image: image, description: description })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.status === 401 && data.error === 'bad_passcode' && !retried) {
-      try { localStorage.removeItem(LS_AI_PASSCODE); } catch (e) {}
-      btn.disabled = false;
-      if (aiPasscode(true)) return analyzeMeal(true);
-      setAiStatus('napačno geslo', 'low');
-      return;
-    }
-    if (!res.ok) throw new Error(data.error_description || data.error || ('HTTP ' + res.status));
-
+    const data = await aiRequest('/meal', { image: image, description: description });
     document.getElementById('mealName').value = data.name || '';
     document.getElementById('mealKcal').value = data.calories;
     document.getElementById('mealProtein').value = data.protein;
@@ -1596,14 +1633,16 @@ function renderSuppChips() {
     wrap.innerHTML = '<div class="empty" style="padding:0;">Dodaj svoja dopolnila spodaj — potem jih vneseš z enim dotikom.</div>';
     return;
   }
-  supplementList.forEach((name, i) => {
+  supplementList.forEach((item, i) => {
+    const name = item.name;
     const chip = document.createElement('span');
     chip.className = 'chip';
     const label = document.createElement('button');
     label.type = 'button';
     label.className = 'chip-label';
     label.textContent = '+ ' + name;
-    label.addEventListener('click', () => logSupplement(name));
+    label.title = ingredientsText(item.ingredients) || name;
+    label.addEventListener('click', () => logSupplement(item));
     const del = document.createElement('button');
     del.type = 'button';
     del.className = 'chip-del';
@@ -1616,8 +1655,11 @@ function renderSuppChips() {
   });
 }
 
-function logSupplement(name) {
-  supplements.push({ id: newId('s'), date: foodDate.value || localDay(new Date()), time: Date.now(), name: name });
+function logSupplement(item) {
+  supplements.push({
+    id: newId('s'), date: foodDate.value || localDay(new Date()), time: Date.now(),
+    name: item.name, serving: item.serving || '', ingredients: item.ingredients || []
+  });
   persistSupps();
   renderFood();
 }
@@ -1626,7 +1668,7 @@ const newSuppInput = document.getElementById('newSuppInput');
 document.getElementById('addSuppBtn').addEventListener('click', () => {
   const name = newSuppInput.value.trim();
   if (!name) return;
-  if (!supplementList.includes(name)) supplementList.push(name);
+  if (!supplementList.some((x) => x.name === name)) supplementList.push(normSupp(name));
   newSuppInput.value = '';
   persistSupps();
   renderSuppChips();
@@ -1634,6 +1676,82 @@ document.getElementById('addSuppBtn').addEventListener('click', () => {
 newSuppInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); document.getElementById('addSuppBtn').click(); }
 });
+
+// ---------- supplement label scan ----------
+const fmtAmount = (n) => (Math.round(n * 100) / 100).toLocaleString('sl-SI');
+function ingredientsText(list) {
+  return (list || []).map((i) => i.name + (i.amount ? ' ' + fmtAmount(i.amount) + ' ' + i.unit : '')).join(' · ');
+}
+/** Same ingredient + unit across the day's entries, added up (e.g. two magnesium products). */
+function ingredientTotals(entries) {
+  const acc = {};
+  entries.forEach((x) => (x.ingredients || []).forEach((i) => {
+    if (!i.amount) return;
+    const key = i.name.toLowerCase() + '|' + i.unit;
+    acc[key] = acc[key] || { name: i.name, unit: i.unit, amount: 0 };
+    acc[key].amount += i.amount;
+  }));
+  return Object.values(acc).sort((a, b) => a.name.localeCompare(b.name, 'sl'));
+}
+
+let suppScan = null; // the last label read, waiting to be saved
+function setSuppStatus(text, cls) {
+  const el = document.getElementById('suppAiStatus');
+  el.textContent = text;
+  el.className = 'ai-status' + (cls ? ' ' + cls : '');
+}
+
+function renderSuppScan() {
+  const box = document.getElementById('suppScan');
+  box.hidden = !suppScan;
+  if (!suppScan) return;
+  document.getElementById('suppScanName').value = suppScan.name;
+  document.getElementById('suppScanMeta').textContent =
+    [suppScan.brand, suppScan.serving ? 'na odmerek: ' + suppScan.serving : ''].filter(Boolean).join(' · ');
+  document.getElementById('suppScanList').innerHTML = suppScan.ingredients.length
+    ? suppScan.ingredients.map((i) => `
+      <div class="hl"><span>${escapeHtml(i.name)}</span><span class="m">${i.amount ? fmtAmount(i.amount) + ' ' + escapeHtml(i.unit) : '—'}${i.nrv ? ' · ' + fmtAmount(i.nrv) + ' % PV' : ''}</span></div>`).join('')
+    : '<div class="empty" style="padding:4px 0;">Sestavin ni bilo mogoče prebrati.</div>';
+}
+
+document.getElementById('suppPhotoInput').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  suppScan = null;
+  renderSuppScan();
+  setSuppStatus('berem etiketo …', 'busy');
+  try {
+    const img = await loadImage(file);
+    // Labels have small print: send a larger image than for meals.
+    const image = renderJpeg(img, 1568).toDataURL('image/jpeg', 0.8).split(',')[1];
+    const data = await aiRequest('/supplement', { image: image });
+    suppScan = data;
+    renderSuppScan();
+    setSuppStatus((CONFIDENCE_TEXT[data.confidence] || '') + (data.notes ? ' · ' + data.notes : ''), data.confidence === 'low' ? 'low' : 'ok');
+  } catch (err) {
+    setSuppStatus('branje ni uspelo: ' + (err.message || err), 'low');
+  }
+});
+
+function saveScannedSupplement(logNow) {
+  if (!suppScan) return;
+  const item = {
+    name: document.getElementById('suppScanName').value.trim() || suppScan.name || 'Dopolnilo',
+    brand: suppScan.brand, serving: suppScan.serving, ingredients: suppScan.ingredients
+  };
+  const at = supplementList.findIndex((x) => x.name === item.name);
+  if (at === -1) supplementList.push(item); else supplementList[at] = item; // a re-scan updates the contents
+  persistSupps();
+  renderSuppChips();
+  if (logNow) logSupplement(item);
+  suppScan = null;
+  renderSuppScan();
+  setSuppStatus(logNow ? 'dodano in zabeleženo' : 'dodano med tvoja dopolnila', 'ok');
+}
+document.getElementById('suppScanAdd').addEventListener('click', () => saveScannedSupplement(false));
+document.getElementById('suppScanAddLog').addEventListener('click', () => saveScannedSupplement(true));
+document.getElementById('suppScanCancel').addEventListener('click', () => { suppScan = null; renderSuppScan(); setSuppStatus(''); });
 
 // ---------- rendering ----------
 const clock = (t) => new Date(t).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
@@ -1680,11 +1798,17 @@ function renderFood() {
 
   const daySupps = supplements.filter((x) => x.date === day).sort((a, b) => a.time - b.time);
   const log = document.getElementById('suppLog');
+  const totals = ingredientTotals(daySupps);
   log.innerHTML = daySupps.length ? daySupps.map((x) => `
     <div class="supp-row">
-      <div><span class="t">${clock(x.time)}</span>${escapeHtml(x.name)}</div>
+      <div>
+        <div><span class="t">${clock(x.time)}</span>${escapeHtml(x.name)}</div>
+        ${x.ingredients && x.ingredients.length ? `<div class="supp-contents">${escapeHtml(ingredientsText(x.ingredients))}</div>` : ''}
+      </div>
       <div class="item-actions"><button type="button" class="danger" data-sdel="${x.id}" aria-label="Izbriši vnos">✕</button></div>
-    </div>`).join('') : '<div class="empty">Za ta dan ni zabeleženih dopolnil.</div>';
+    </div>`).join('') + (totals.length ? `
+    <div class="supp-total"><span class="lbl">skupaj ta dan</span>${escapeHtml(ingredientsText(totals))}</div>` : '')
+    : '<div class="empty">Za ta dan ni zabeleženih dopolnil.</div>';
   log.querySelectorAll('[data-sdel]').forEach((b) => b.addEventListener('click', () => armedDelete(b, () => {
     supplements = supplements.filter((x) => x.id !== b.dataset.sdel);
     persistSupps();

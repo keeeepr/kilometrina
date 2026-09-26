@@ -13,7 +13,8 @@
  * (CORS). The page's own access token is passed through; nothing is added.
  *
  * POST /meal sends a meal photo (and/or a description) to Claude and returns
- * calories and macros. The Anthropic API key lives here as a secret; because
+ * calories and macros; POST /supplement reads a supplement label photo into
+ * product name, serving and ingredients per serving. The Anthropic API key lives here as a secret; because
  * that key costs money, the route also requires APP_PASSCODE, which the page
  * asks for once and keeps in the browser.
  *
@@ -118,9 +119,9 @@ async function relayOuraApi(request, url, origin) {
   });
 }
 
-// ---------- POST /meal: photo / description → calories and macros ----------
+// ---------- AI routes: POST /meal and POST /supplement ----------
 
-const MEAL_MODEL = 'claude-opus-5';
+const AI_MODEL = 'claude-opus-5';
 const MAX_IMAGE_BASE64 = 4 * 1024 * 1024; // the page sends ~1024px JPEGs, far below this
 
 const MEAL_SYSTEM_PROMPT = `You estimate the nutrition of meals for a personal food diary. The user sends a photo of food or a drink, a short description, or both. The user is Slovenian: write "name" and "notes" in Slovenian.
@@ -160,89 +161,187 @@ function sameSecret(a, b) {
   return diff === 0;
 }
 
-async function estimateMeal(request, env, origin) {
+/** Passcode + configuration gate shared by the AI routes. Returns a Response to send, or null. */
+function aiAccessError(request, env, origin) {
   if (!env.ANTHROPIC_API_KEY || !env.APP_PASSCODE) {
     return jsonResponse({ error: 'worker_not_configured', error_description: 'ANTHROPIC_API_KEY / APP_PASSCODE secrets are missing on this Worker.' }, 500, origin);
   }
   if (!sameSecret(request.headers.get('X-App-Passcode') || '', env.APP_PASSCODE)) {
     return jsonResponse({ error: 'bad_passcode', error_description: 'Napačno geslo za AI analizo.' }, 401, origin);
   }
+  return null;
+}
 
+async function readAiBody(request, origin) {
   let body;
   try { body = await request.json(); }
-  catch (e) { return jsonResponse({ error: 'invalid_json' }, 400, origin); }
-
+  catch (e) { return { error: jsonResponse({ error: 'invalid_json' }, 400, origin) }; }
   const image = typeof body.image === 'string' ? body.image : '';
   const description = typeof body.description === 'string' ? body.description.trim().slice(0, 1000) : '';
-  if (!image && !description) {
-    return jsonResponse({ error: 'missing_parameters', error_description: 'Pošlji sliko ali opis obroka.' }, 400, origin);
-  }
-  if (image.length > MAX_IMAGE_BASE64) {
-    return jsonResponse({ error: 'image_too_large' }, 413, origin);
-  }
+  if (image.length > MAX_IMAGE_BASE64) return { error: jsonResponse({ error: 'image_too_large' }, 413, origin) };
+  return { image: image, description: description };
+}
 
-  const content = [];
-  if (image) content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: image } });
-  content.push({
-    type: 'text',
-    text: description
-      ? 'Estimate the calories and macros for this meal. Description from the user: ' + description
-      : 'Estimate the calories and macros for this meal.'
-  });
-
+/**
+ * One structured-output request to Claude. Resolves to { data } with the
+ * parsed JSON, or { error } holding a Response ready to send to the page.
+ */
+async function askClaudeJson(env, origin, system, schema, content) {
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, timeout: 60000, maxRetries: 1 });
   let response;
   try {
     response = await client.beta.messages.create({
-      model: MEAL_MODEL,
-      max_tokens: 2000,
+      model: AI_MODEL,
+      max_tokens: 4000,
       // Photo → JSON is routine extraction; low effort keeps it fast and cheap.
-      output_config: { effort: 'low', format: { type: 'json_schema', schema: MEAL_SCHEMA } },
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: schema } },
       // If the safety classifiers decline, re-run on Anthropic's recommended fallback model.
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',
-      system: MEAL_SYSTEM_PROMPT,
+      system: system,
       messages: [{ role: 'user', content: content }]
     });
   } catch (error) {
     if (error instanceof Anthropic.AuthenticationError) {
-      return jsonResponse({ error: 'anthropic_auth', error_description: 'Claude API ključ na Workerju ni veljaven.' }, 502, origin);
+      return { error: jsonResponse({ error: 'anthropic_auth', error_description: 'Claude API ključ na Workerju ni veljaven.' }, 502, origin) };
     }
     if (error instanceof Anthropic.RateLimitError) {
-      return jsonResponse({ error: 'rate_limited', error_description: 'Preveč zahtev naenkrat. Poskusi čez minuto.' }, 429, origin);
+      return { error: jsonResponse({ error: 'rate_limited', error_description: 'Preveč zahtev naenkrat. Poskusi čez minuto.' }, 429, origin) };
     }
     if (error instanceof Anthropic.APIConnectionError) {
-      return jsonResponse({ error: 'anthropic_unreachable', error_description: 'Claude trenutno ni dosegljiv. Poskusi znova.' }, 502, origin);
+      return { error: jsonResponse({ error: 'anthropic_unreachable', error_description: 'Claude trenutno ni dosegljiv. Poskusi znova.' }, 502, origin) };
     }
     if (error instanceof Anthropic.APIError) {
-      return jsonResponse({ error: 'anthropic_error', error_description: 'Claude je vrnil napako (' + error.status + ').' }, 502, origin);
+      return { error: jsonResponse({ error: 'anthropic_error', error_description: 'Claude je vrnil napako (' + error.status + ').' }, 502, origin) };
     }
-    return jsonResponse({ error: 'worker_error', error_description: String(error && error.message || error) }, 500, origin);
+    return { error: jsonResponse({ error: 'worker_error', error_description: String(error && error.message || error) }, 500, origin) };
   }
 
   if (response.stop_reason === 'refusal') {
-    return jsonResponse({ error: 'refused', error_description: 'Claude te slike ni analiziral. Vnesi obrok ročno.' }, 422, origin);
+    return { error: jsonResponse({ error: 'refused', error_description: 'Claude te slike ni analiziral. Vnesi podatke ročno.' }, 422, origin) };
   }
   if (response.stop_reason === 'max_tokens') {
-    return jsonResponse({ error: 'truncated', error_description: 'Analiza je bila prekinjena. Poskusi znova.' }, 502, origin);
+    return { error: jsonResponse({ error: 'truncated', error_description: 'Analiza je bila prekinjena. Poskusi znova.' }, 502, origin) };
   }
   const text = response.content.find((b) => b.type === 'text');
-  let estimate;
-  try { estimate = JSON.parse(text ? text.text : ''); }
-  catch (e) { return jsonResponse({ error: 'unreadable', error_description: 'Odgovor ni bil berljiv. Poskusi znova.' }, 502, origin); }
+  try { return { data: JSON.parse(text ? text.text : '') }; }
+  catch (e) { return { error: jsonResponse({ error: 'unreadable', error_description: 'Odgovor ni bil berljiv. Poskusi znova.' }, 502, origin) }; }
+}
+
+const imageBlock = (image) => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: image } });
+const wholeNumber = (v) => (typeof v === 'number' && isFinite(v) && v >= 0 ? Math.round(v) : 0);
+
+async function estimateMeal(request, env, origin) {
+  const denied = aiAccessError(request, env, origin);
+  if (denied) return denied;
+  const input = await readAiBody(request, origin);
+  if (input.error) return input.error;
+  if (!input.image && !input.description) {
+    return jsonResponse({ error: 'missing_parameters', error_description: 'Pošlji sliko ali opis obroka.' }, 400, origin);
+  }
+
+  const content = [];
+  if (input.image) content.push(imageBlock(input.image));
+  content.push({
+    type: 'text',
+    text: input.description
+      ? 'Estimate the calories and macros for this meal. Description from the user: ' + input.description
+      : 'Estimate the calories and macros for this meal.'
+  });
+
+  const result = await askClaudeJson(env, origin, MEAL_SYSTEM_PROMPT, MEAL_SCHEMA, content);
+  if (result.error) return result.error;
+  const estimate = result.data;
   if (estimate.is_food === false) {
     return jsonResponse({ error: 'not_food', error_description: 'Na sliki ni hrane. Poskusi z drugo sliko ali vnesi ročno.' }, 422, origin);
   }
-
-  const n = (v) => (typeof v === 'number' && isFinite(v) && v >= 0 ? Math.round(v) : 0);
   return jsonResponse({
     name: String(estimate.name || '').trim().slice(0, 60),
-    calories: n(estimate.calories),
-    protein: n(estimate.protein_g),
-    carbs: n(estimate.carbs_g),
-    fat: n(estimate.fat_g),
+    calories: wholeNumber(estimate.calories),
+    protein: wholeNumber(estimate.protein_g),
+    carbs: wholeNumber(estimate.carbs_g),
+    fat: wholeNumber(estimate.fat_g),
     confidence: ['low', 'medium', 'high'].indexOf(estimate.confidence) !== -1 ? estimate.confidence : 'medium',
     notes: String(estimate.notes || '').trim()
+  }, 200, origin);
+}
+
+// ---------- POST /supplement: label photo → product and ingredients per serving ----------
+
+const SUPPLEMENT_SYSTEM_PROMPT = `You read dietary supplement labels for a personal supplement log. The user sends a photo of a supplement package, bottle or label (possibly only part of it), and sometimes a short note. The user is Slovenian: write "name", "serving", ingredient names and "notes" in Slovenian (keep the brand as printed).
+
+Read what the label states — do not guess amounts that are not printed:
+- name: the product name as a short title (e.g. "Magnezij B6", "Vitamin D3 2000 IE", "Omega-3 ribje olje").
+- brand: the manufacturer or brand, or "" if not visible.
+- serving: the serving size the amounts refer to (e.g. "1 kapsula", "2 tableti", "5 ml"), or "" if not visible.
+- ingredients: every active ingredient listed in the nutrition/supplement facts table with its amount PER SERVING. Use the common Slovenian name (e.g. "Magnezij", "Vitamin B6", "Vitamin D3", "EPA", "DHA", "Cink"). amount is the number, unit is exactly as printed ("mg", "µg", "g", "IE", "IU", "CFU", "ml"). nrv_percent is the % of the reference intake (%PV / %NRV / %RDA) if printed, otherwise 0. Leave out fillers and capsule materials (gelatin, magnesium stearate, colourings).
+- confidence: "high" when the facts table is clearly readable, "low" when parts are cut off, blurry, or you had to infer.
+- notes: one short sentence about anything important (e.g. "Tabela je delno zakrita — preveri količine." or the recommended daily dose if printed).
+
+If the photo shows no supplement or its label, set is_supplement to false and use empty values for the rest.`;
+
+const SUPPLEMENT_SCHEMA = {
+  type: 'object',
+  properties: {
+    is_supplement: { type: 'boolean' },
+    name: { type: 'string' },
+    brand: { type: 'string' },
+    serving: { type: 'string' },
+    ingredients: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          amount: { type: 'number' },
+          unit: { type: 'string' },
+          nrv_percent: { type: 'number' }
+        },
+        required: ['name', 'amount', 'unit', 'nrv_percent'],
+        additionalProperties: false
+      }
+    },
+    confidence: { type: 'string', enum: ['low', 'medium', 'high'] },
+    notes: { type: 'string' }
+  },
+  required: ['is_supplement', 'name', 'brand', 'serving', 'ingredients', 'confidence', 'notes'],
+  additionalProperties: false
+};
+
+async function readSupplement(request, env, origin) {
+  const denied = aiAccessError(request, env, origin);
+  if (denied) return denied;
+  const input = await readAiBody(request, origin);
+  if (input.error) return input.error;
+  if (!input.image) {
+    return jsonResponse({ error: 'missing_parameters', error_description: 'Pošlji sliko etikete.' }, 400, origin);
+  }
+
+  const content = [imageBlock(input.image), {
+    type: 'text',
+    text: input.description
+      ? 'Read this supplement label. Note from the user: ' + input.description
+      : 'Read this supplement label.'
+  }];
+  const result = await askClaudeJson(env, origin, SUPPLEMENT_SYSTEM_PROMPT, SUPPLEMENT_SCHEMA, content);
+  if (result.error) return result.error;
+  const label = result.data;
+  if (label.is_supplement === false) {
+    return jsonResponse({ error: 'not_supplement', error_description: 'Na sliki ni etikete dopolnila. Poskusi z bolj jasno sliko.' }, 422, origin);
+  }
+  const positive = (v) => (typeof v === 'number' && isFinite(v) && v > 0 ? Math.round(v * 1000) / 1000 : 0);
+  return jsonResponse({
+    name: String(label.name || '').trim().slice(0, 60),
+    brand: String(label.brand || '').trim().slice(0, 60),
+    serving: String(label.serving || '').trim().slice(0, 40),
+    ingredients: (Array.isArray(label.ingredients) ? label.ingredients : []).slice(0, 40).map((i) => ({
+      name: String(i.name || '').trim().slice(0, 40),
+      amount: positive(i.amount),
+      unit: String(i.unit || '').trim().slice(0, 10),
+      nrv: positive(i.nrv_percent)
+    })).filter((i) => i.name),
+    confidence: ['low', 'medium', 'high'].indexOf(label.confidence) !== -1 ? label.confidence : 'medium',
+    notes: String(label.notes || '').trim()
   }, 200, origin);
 }
 
@@ -277,6 +376,9 @@ export default {
     }
     if (request.method === 'POST' && url.pathname.replace(/\/$/, '') === '/meal') {
       return estimateMeal(request, env, origin);
+    }
+    if (request.method === 'POST' && url.pathname.replace(/\/$/, '') === '/supplement') {
+      return readSupplement(request, env, origin);
     }
     if (request.method !== 'POST') {
       return jsonResponse({ error: 'method_not_allowed' }, 405, origin);

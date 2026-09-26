@@ -197,11 +197,20 @@ Prehrana (razdelek 7) doda v isto datoteko še tri ključe:
     "confidence": "medium", "notes": "Predpostavljena 1 skodelica riža.",
     "source": "ai", "hasPhoto": true }
 ],
-"supplements": [ { "id": "s-…", "date": "2026-09-26", "time": 1790000000000, "name": "Magnezij 300 mg" } ],
-"supplementList": [ "Magnezij 300 mg", "Vitamin D 2000 IE" ]
+"supplements": [
+  { "id": "s-…", "date": "2026-09-26", "time": 1790000000000, "name": "Magnezij B6",
+    "serving": "2 tableti",
+    "ingredients": [ { "name": "Magnezij", "amount": 375, "unit": "mg", "nrv": 100 } ] }
+],
+"supplementList": [
+  { "name": "Magnezij B6", "brand": "Solgar", "serving": "2 tableti",
+    "ingredients": [ { "name": "Magnezij", "amount": 375, "unit": "mg", "nrv": 100 } ] }
+]
 ```
 
-`type` je `zajtrk`, `kosilo`, `vecerja` ali `prigrizek`; `source` je `ai` ali `manual`.
+`type` je `zajtrk`, `kosilo`, `vecerja` ali `prigrizek`; `source` je `ai` ali `manual`. Vnos
+dopolnila ima kopijo sestavin iz časa vnosa, zato ostane pravilen, tudi če dopolnilo kasneje
+znova slikaš ali izbrišeš s seznama.
 
 ## 7. Prehrana: prehranski dnevnik z AI oceno
 
@@ -214,8 +223,11 @@ Prehrana:
   obrok opišeš, npr. "200 g riža, brez omake" — opis ima prednost pred sliko. Brez AI lahko
   številke vpišeš tudi ročno.
 - **Obroki** — seznam za izbrani dan, s seštevkom zgoraj; vsak obrok lahko urediš ali izbrišeš.
-- **Prehranska dopolnila** — enkrat dodaš svoja dopolnila (npr. "Magnezij 300 mg"), nato vsakič
-  z enim dotikom zabeležiš, da si ga vzel.
+- **Prehranska dopolnila** — tapni *Slikaj etiketo dopolnila*: Claude z etikete prebere ime,
+  znamko, odmerek in vse sestavine s količinami na odmerek (in % priporočenega vnosa). Dopolnilo
+  shraniš med svoja, nato ga vsakič z enim dotikom zabeležiš; pri vnosu so izpisane sestavine,
+  pod seznamom pa seštevek sestavin za cel dan (npr. dva izdelka z magnezijem se seštejeta).
+  Dopolnilo lahko dodaš tudi samo z imenom, brez slike.
 
 Vse gre v Drive varnostno kopijo in v `kilometrina.xlsx` (zavihki *Prehrana*, *Dopolnila* in
 *Dnevni pregled*, ki po dnevih združi km, kalorije, makrohranila, dopolnila in Oura podatke).
