@@ -308,6 +308,9 @@ Stari treningi ostanejo nespremenjeni: set je še vedno `{ text, meters }`, novi
 `{ reps, dist, stroke, tags, note }`, trening pa `pool` (dolžina bazena). Stare vrstice brez sloga se pri
 urejanju pokažejo kot besedilo (lahko jih pretvoriš v set). Nekdanje besede »Hitro vstavi« so zdaj med
 oznakami. V Drive kopiji so novi ključi `shortcuts`, `templates` in `weekGoal`.
+V `kilometrina.xlsx` na Drivu je bazen jasno označen: stolpec *Bazen* (»25 m« / »50 m«, pri starejših
+treningih brez podatka »ni označeno«) v zavihkih *Treningi* in *Seti*, v *Dnevnem pregledu* pa sta
+stolpca *Km v 25 m bazenu* in *Km v 50 m bazenu*. Tudi CSV izvoz ima stolpec `pool`.
 
 ## 10. Prenova (faza 2): prehrana in makro cilji
 

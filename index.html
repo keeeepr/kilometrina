@@ -1775,20 +1775,23 @@ async function driveSyncXlsx() {
  * Tabs: one row per workout (with that day's Oura), per set, per Oura day,
  * per meal, per supplement, plus a per-day overview joining all of them.
  */
+/** "25 m" / "50 m" — which pool a swim was in (older entries may not say). */
+const poolLabel = (pool) => (pool === 25 || pool === 50 ? pool + ' m' : 'ni označeno');
+
 function xlsxSheets() {
   const byDate = [...sessions].sort((a, b) => a.date.localeCompare(b.date) || (a.createdAt || 0) - (b.createdAt || 0));
   const o = (d) => ouraDays[d] || {};
   const workouts = [[
-    'Datum', 'Naslov', 'Metri', 'Km', 'Število setov',
+    'Datum', 'Naslov', 'Bazen', 'Metri', 'Km', 'Število setov',
     'Ocena spanja', 'Pripravljenost', 'Spanje (min)', 'HRV (ms)',
-    'Utrip noč povp.', 'Utrip noč najn.', 'Mirovni utrip', 'Bazen (m)'
+    'Utrip noč povp.', 'Utrip noč najn.', 'Mirovni utrip'
   ]].concat(byDate.map((s) => [
-    s.date, s.title, s.totalMeters, s.totalMeters / 1000, (s.lines || []).length,
+    s.date, s.title, poolLabel(s.pool), s.totalMeters, s.totalMeters / 1000, (s.lines || []).length,
     o(s.date).sleep_score, o(s.date).readiness_score, o(s.date).total_sleep_duration_min, o(s.date).avg_hrv_overnight,
-    o(s.date).avg_hr_overnight, o(s.date).lowest_hr_overnight, o(s.date).resting_heart_rate, s.pool || null
+    o(s.date).avg_hr_overnight, o(s.date).lowest_hr_overnight, o(s.date).resting_heart_rate
   ]));
-  const sets = [['Datum', 'Naslov', 'Set', 'Metri']];
-  byDate.forEach((s) => (s.lines || []).forEach((l) => sets.push([s.date, s.title, l.text, l.meters])));
+  const sets = [['Datum', 'Naslov', 'Bazen', 'Set', 'Metri']];
+  byDate.forEach((s) => (s.lines || []).forEach((l) => sets.push([s.date, s.title, poolLabel(s.pool), l.text, l.meters])));
   const ouraCols = [
     ['sleep_score', 'Ocena spanja'], ['total_sleep_duration_min', 'Spanje (min)'], ['deep_sleep_min', 'Globoko (min)'],
     ['rem_sleep_min', 'REM (min)'], ['light_sleep_min', 'Lahko (min)'], ['sleep_efficiency', 'Učinkovitost (%)'],
@@ -1815,25 +1818,26 @@ function xlsxSheets() {
   const days = [...new Set([].concat(sessions.map((x) => x.date), meals.map((x) => x.date), supplements.map((x) => x.date),
     drinks.map((x) => x.date), weights.map((x) => x.date), fitnessLog.map((x) => x.date), Object.keys(ouraDays)))].sort();
   const GX = computeGoals();
-  const daily = [['Datum', 'Masa (kg)', 'Km', 'kcal (hrana + pijača)', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Tekočina (ml)', 'Dopolnila', 'Ocena spanja', 'Pripravljenost', 'HRV (ms)', 'Utrip noč najn.', 'Krona (makri ≥ 90 %)', 'Fitnes']]
+  const daily = [['Datum', 'Masa (kg)', 'Km', 'Km v 25 m bazenu', 'Km v 50 m bazenu', 'kcal (hrana + pijača)', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Tekočina (ml)', 'Dopolnila', 'Ocena spanja', 'Pripravljenost', 'HRV (ms)', 'Utrip noč najn.', 'Krona (makri ≥ 90 %)', 'Fitnes']]
     .concat(days.map((d) => {
       const dm = eatenMeals().filter((m) => m.date === d);
       const sum = (k) => dm.length ? dm.reduce((acc, m) => acc + (m[k] || 0), 0) : null;
       const km = sessions.filter((x) => x.date === d).reduce((acc, x) => acc + (x.totalMeters || 0), 0) / 1000;
+      const kmIn = (p) => sessions.filter((x) => x.date === d && x.pool === p).reduce((acc, x) => acc + (x.totalMeters || 0), 0) / 1000 || null;
       const sd = supplements.filter((x) => x.date === d).map((x) => x.name + (x.servings && x.servings !== 1 ? ' ×' + fmtAmount(x.servings) : '')).join(', ');
       const dd = drinks.filter((x) => x.date === d);
       const ml = dd.reduce((acc, x) => acc + x.ml, 0);
       const sk = supplements.filter((x) => x.date === d).reduce((acc, x) => acc + (x.calories || 0) * (x.servings || 1), 0);
       const kcal = dm.length || dd.length || sk ? Math.round((sum('calories') || 0) + dd.reduce((acc, x) => acc + (x.kcal || 0), 0) + sk) : null;
       const w = weights.find((x) => x.date === d);
-      return [d, w ? w.kg : null, km || null, kcal, sum('protein'), sum('carbs'), sum('fat'), ml || null, sd,
+      return [d, w ? w.kg : null, km || null, kmIn(25), kmIn(50), kcal, sum('protein'), sum('carbs'), sum('fat'), ml || null, sd,
         o(d).sleep_score, o(d).readiness_score, o(d).avg_hrv_overnight, o(d).lowest_hr_overnight, dayHits(d, GX) === 'bom' ? 'da' : null,
         fitnessLog.filter((f) => f.date === d).map((f) => f.sessName + (f.mc ? ' (' + f.mc + '. MC)' : '')).join(', ') || null];
     }));
   return [
-    { name: 'Dnevni pregled', rows: daily, widths: [12, 9, 7, 12, 10, 8, 10, 10, 30, 10, 10, 9, 10, 12, 22] },
-    { name: 'Treningi', rows: workouts, widths: [12, 24, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9] },
-    { name: 'Seti', rows: sets, widths: [12, 24, 50, 9] },
+    { name: 'Dnevni pregled', rows: daily, widths: [12, 9, 7, 10, 10, 12, 10, 8, 10, 10, 30, 10, 10, 9, 10, 12, 22] },
+    { name: 'Treningi', rows: workouts, widths: [12, 24, 8, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9] },
+    { name: 'Seti', rows: sets, widths: [12, 24, 8, 50, 9] },
     { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 10, 7, 10, 8, 10, 10, 11, 50, 10, 18] },
     { name: 'Dopolnila', rows: supps, widths: [12, 7, 26, 10, 12, 70] },
     { name: 'Pijača', rows: drinkRows, widths: [12, 7, 16, 8, 7] },
@@ -6372,16 +6376,17 @@ document.getElementById('weekGoalForm').addEventListener('submit', (e) => {
 });
 
 document.getElementById('exportBtn').addEventListener('click', async () => {
-  const header = ['date','title','total_km','line_text','line_meters'];
+  const header = ['date','title','pool','total_km','line_text','line_meters'];
   const rows = [header.join(',')];
   sessions.forEach(s => {
     if (!s.lines || !s.lines.length) {
-      rows.push([s.date, csvEsc(s.title), (s.totalMeters/1000).toFixed(2), '', ''].join(','));
+      rows.push([s.date, csvEsc(s.title), poolLabel(s.pool), (s.totalMeters/1000).toFixed(2), '', ''].join(','));
     } else {
       s.lines.forEach((l, i) => {
         rows.push([
           i === 0 ? s.date : '',
           i === 0 ? csvEsc(s.title) : '',
+          i === 0 ? poolLabel(s.pool) : '',
           i === 0 ? (s.totalMeters/1000).toFixed(2) : '',
           csvEsc(l.text),
           l.meters
