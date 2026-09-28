@@ -2643,6 +2643,9 @@ const clock = (t) => new Date(t).toLocaleTimeString('sl-SI', { hour: '2-digit', 
 // Leftovers waiting for "Pojedel / Polovico / Zavrgel" don't count anywhere yet.
 const eatenMeals = () => meals.filter((m) => !m.pending);
 const round0 = (v) => Math.max(0, Math.round(Number(v) || 0));
+// kcal and macros keep one decimal (e.g. 2,5 g fat); shown with a decimal comma
+const roundDec = (v) => Math.max(0, Math.round((Number(v) || 0) * 10) / 10);
+const fmt1 = (v) => roundDec(v).toLocaleString('sl-SI', { maximumFractionDigits: 1, useGrouping: false });
 const defaultSlot = () => { const h = new Date().getHours(); return h < 12 ? 'Zjutraj' : h >= 18 ? 'Zvečer' : 'Po treningu'; };
 const mealWord = (key) => mealTypeLabel(key).toLowerCase();
 
@@ -2650,7 +2653,7 @@ const mealWord = (key) => mealTypeLabel(key).toLowerCase();
 function wholeMeal(m) {
   const share = m.split && m.split.share > 0 && m.split.share < 1 ? m.split.share : 1;
   if (share === 1) return m;
-  return Object.assign({}, m, { calories: Math.round(m.calories / share), protein: Math.round(m.protein / share), carbs: Math.round(m.carbs / share), fat: Math.round(m.fat / share) });
+  return Object.assign({}, m, { calories: roundDec(m.calories / share), protein: roundDec(m.protein / share), carbs: roundDec(m.carbs / share), fat: roundDec(m.fat / share) });
 }
 
 // ---------- Moje jedi: every dish ever eaten, reusable without typing ----------
@@ -2883,7 +2886,7 @@ function mealMeta(m) {
   const conf = { high: ['visoka', 'conf-high'], medium: ['srednja', 'conf-mid'], low: ['nizka', 'conf-low'] }[m.confidence];
   const src = m.source === 'ai' && conf ? '<span class="' + conf[1] + '">AI · ' + conf[0] + '</span>'
     : m.source === 'repeat' ? 'ponovljeno · × ' + fmtAmount(m.portion || 1) : m.source === 'ai' ? 'AI' : 'ročni vnos';
-  return 'B ' + m.protein + ' · OH ' + m.carbs + ' · M ' + m.fat + ' · ' + src;
+  return 'B ' + fmt1(m.protein) + ' · OH ' + fmt1(m.carbs) + ' · M ' + fmt1(m.fat) + ' · ' + src;
 }
 function mealIcon(m) {
   const ico = document.createElement('div');
@@ -2942,7 +2945,7 @@ function leftoverCard(m) {
   const mid = document.createElement('div');
   mid.className = 'meal-mid';
   mid.innerHTML = '<b>Ostanki: ' + escapeHtml(m.name) + '</b><span class="m">' + Math.round((m.split.share || 0) * 100) + ' %' + (from ? ' od ' + (from.type === 'kosilo' ? 'kosila' : from.type === 'vecerja' ? 'večerje' : from.type === 'zajtrk' ? 'zajtrka' : 'prigrizka') : '')
-    + ' · B ' + m.protein + ' · OH ' + m.carbs + ' · M ' + m.fat + '</span>';
+    + ' · B ' + fmt1(m.protein) + ' · OH ' + fmt1(m.carbs) + ' · M ' + fmt1(m.fat) + '</span>';
   row.appendChild(mid);
   const k = document.createElement('span'); k.className = 'meal-kcal'; k.textContent = fmtInt(m.calories);
   row.appendChild(k);
@@ -2951,7 +2954,7 @@ function leftoverCard(m) {
   acts.className = 'leftover-acts';
   acts.appendChild(btn('Pojedel ✓', 'eat', () => { m.pending = false; m.time = Date.now(); persistMeals(); renderFood(); toast('Ostanki zabeleženi: ' + fmtInt(m.calories) + ' kcal'); }));
   acts.appendChild(btn('Polovico', '', () => {
-    ['calories', 'protein', 'carbs', 'fat'].forEach((f) => { m[f] = Math.round(m[f] / 2); });
+    ['calories', 'protein', 'carbs', 'fat'].forEach((f) => { m[f] = roundDec(m[f] / 2); });
     m.split.share = m.split.share / 2;
     m.pending = false; m.time = Date.now();
     persistMeals(); renderFood(); toast('Pol ostankov zabeleženo');
@@ -3201,7 +3204,7 @@ function splitOther() {
   if (vn.splitType && vn.splitType !== vn.type) return vn.splitType;
   return vn.type === 'vecerja' ? 'kosilo' : 'vecerja';
 }
-const baseScaled = (base, p) => ({ calories: round0(base.calories * p), protein: round0(base.protein * p), carbs: round0(base.carbs * p), fat: round0(base.fat * p) });
+const baseScaled = (base, p) => ({ calories: roundDec(base.calories * p), protein: roundDec(base.protein * p), carbs: roundDec(base.carbs * p), fat: roundDec(base.fat * p) });
 const MACRO_KEYS = ['calories', 'protein', 'carbs', 'fat'];
 /** Sum of all dishes for one portion. */
 function dishesTotal(dishes) {
@@ -3448,7 +3451,7 @@ function foodResultCard(edit) {
       f.className = 'fld';
       f.innerHTML = '<span class="cap">' + label + '</span>';
       const inp = document.createElement('input');
-      inp.inputMode = 'numeric'; inp.value = round0((d[key] || 0) * vn.portion) || ''; inp.placeholder = '0';
+      inp.inputMode = 'decimal'; inp.value = roundDec((d[key] || 0) * vn.portion) ? fmt1((d[key] || 0) * vn.portion) : ''; inp.placeholder = '0';
       // what is typed is for the chosen amount; stored per one portion
       inp.addEventListener('input', () => { d[key] = (Number(inp.value.replace(',', '.')) || 0) / vn.portion; renderVnosPrimary(true); });
       inp.addEventListener('change', () => renderVnos());
@@ -3507,7 +3510,7 @@ function foodResultCard(edit) {
   if (r.dishes.length > 1) {
     const tot = document.createElement('div');
     tot.className = 'dish-total';
-    tot.textContent = 'Skupaj ' + fmtInt(t.calories) + ' kcal · B ' + t.protein + ' · OH ' + t.carbs + ' · M ' + t.fat;
+    tot.textContent = 'Skupaj ' + fmtInt(t.calories) + ' kcal · B ' + fmt1(t.protein) + ' · OH ' + fmt1(t.carbs) + ' · M ' + fmt1(t.fat);
     card.appendChild(tot);
   }
   const pc = document.createElement('div');
@@ -3546,7 +3549,7 @@ function suppResultCard() {
     f.className = 'fld';
     f.innerHTML = '<span class="cap">' + l + '</span>';
     const i = document.createElement('input');
-    i.inputMode = 'decimal'; i.value = r[k] ? round0(r[k]) : ''; i.placeholder = '0';
+    i.inputMode = 'decimal'; i.value = r[k] ? fmt1(r[k]) : ''; i.placeholder = '0';
     i.addEventListener('input', () => { r[k] = Math.max(0, Number(i.value.replace(',', '.')) || 0); });
     f.appendChild(i);
     mg.appendChild(f);
@@ -3759,7 +3762,7 @@ function renderVnosHistList(food) {
     if (food) {
       const d = x.d;
       const v = baseScaled(d.base, d.portion);
-      head.innerHTML = '<span class="n"><b>' + escapeHtml(d.name) + '</b><span>B ' + v.protein + ' · OH ' + v.carbs + ' · M ' + v.fat
+      head.innerHTML = '<span class="n"><b>' + escapeHtml(d.name) + '</b><span>B ' + fmt1(v.protein) + ' · OH ' + fmt1(v.carbs) + ' · M ' + fmt1(v.fat)
         + (d.count ? ' · ' + d.count + '× · nazadnje ' + lastLabel(d.last.date) : ' · shranjena jed') + '</span></span><span class="r">' + fmtInt(v.calories) + '</span>';
     } else {
       const s = x.s;
@@ -3838,7 +3841,7 @@ function valuesForm(title, values, withIngredients) {
     lab.className = 'fld';
     lab.innerHTML = '<span class="cap">' + l + '</span>';
     const inp = document.createElement('input');
-    inp.inputMode = 'decimal'; inp.value = values[k] ? round0(values[k]) : ''; inp.placeholder = '0';
+    inp.inputMode = 'decimal'; inp.value = values[k] ? fmt1(values[k]) : ''; inp.placeholder = '0';
     lab.appendChild(inp);
     grid.appendChild(lab);
     inputs[k] = inp;
@@ -4053,7 +4056,7 @@ function saveFood(src) {
     if (vn.split) {
       const groupId = newId('g');
       const a = vn.splitPct / 100;
-      const part = (share) => ({ calories: round0(total.calories * share), protein: round0(total.protein * share), carbs: round0(total.carbs * share), fat: round0(total.fat * share) });
+      const part = (share) => ({ calories: roundDec(total.calories * share), protein: roundDec(total.protein * share), carbs: roundDec(total.carbs * share), fat: roundDec(total.fat * share) });
       const mA = Object.assign({ id: newId('m'), date: day, time: now + di * 2, type: vn.type, hasPhoto: false, split: { groupId: groupId, share: a } }, common, part(a));
       const mB = Object.assign({ id: newId('m'), date: day, time: now + di * 2 + 1, type: splitOther(), hasPhoto: false, split: { groupId: groupId, share: 1 - a } }, common, part(1 - a));
       if (vn.later) mB.pending = true;
