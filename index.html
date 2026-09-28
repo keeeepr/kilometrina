@@ -696,6 +696,22 @@
   .supp-chip[aria-pressed="true"] { border-color: #6A5230; background: #2A2418; color: #FFD19A; font-weight: 700; }
   .supp-chip.add { border-style: dashed; border-color: #3A4F63; color: var(--food); font-weight: 700; }
   .supp-chip.edit { color: var(--text-dim); }
+  .supp-sub { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0 8px; }
+  .supp-sub:first-child { margin-top: 0; }
+  .supp-cards { display: flex; flex-direction: column; gap: 8px; }
+  .supp-card { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); }
+  .supp-card .top { display: flex; align-items: center; gap: 12px; }
+  .supp-card .meal-ico { width: 44px; height: 44px; }
+  .supp-card .bot { display: flex; align-items: center; gap: 8px; }
+  .supp-card .ic { flex: none; width: 40px; height: 40px; border-radius: 12px; border: 1px solid #2A3F53; background: transparent; color: var(--text-soft); font-size: 15px; cursor: pointer; }
+  .supp-card .ic.danger:hover { border-color: var(--coral); color: var(--coral); }
+  .sv-step { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+  .sv-step button { width: 40px; height: 40px; border-radius: 12px; border: 1px solid #2A3F53; background: transparent; color: var(--text); font-size: 20px; line-height: 1; cursor: pointer; }
+  .sv-step button:disabled { opacity: 0.35; cursor: default; }
+  .sv-step input { width: 58px; height: 40px; min-height: 0; padding: 0 4px; text-align: center; font-size: 17px; font-weight: 700; }
+  .sv-lbl { flex: 1; min-width: 0; font-size: 12.5px; color: var(--text-dim); line-height: 1.35; }
+  .sv-lbl b { color: var(--text); font-weight: 700; }
+  .supp-all-done { font-size: 13px; color: var(--text-dim); }
   .rename-all { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--text-soft); line-height: 1.4; cursor: pointer; }
   .rename-all input { width: 20px; height: 20px; min-height: 0; flex: none; margin: 0; accent-color: var(--food); }
   .fab-food {
@@ -2600,11 +2616,46 @@ function lastServings(name) {
   return prev && prev.servings ? prev.servings : 1;
 }
 
-function logSupplement(item, slot) {
+/** "1 odmerek", "2 odmerka", "3 odmerki", "5 odmerkov", "1,5 odmerka". */
+function servingsWord(n) {
+  if (n % 1) return fmtAmount(n) + ' odmerka';
+  const h = n % 100;
+  return n + ' ' + (h === 1 ? 'odmerek' : h === 2 ? 'odmerka' : h === 3 || h === 4 ? 'odmerki' : 'odmerkov');
+}
+/** "2 × 1 tableta" — what the servings mean in tablets, scoops … */
+function servingsDetail(n, serving) {
+  serving = String(serving || '').trim();
+  return serving ? fmtAmount(n) + ' × ' + serving : '';
+}
+/** − [amount] + ; any amount can also be typed (0,5 · 1,5 · 3 …). */
+function servingStepper(value, onChange) {
+  const wrap = document.createElement('span');
+  wrap.className = 'sv-step';
+  const next = (v, dir) => {
+    if (dir < 0) return v > 1 ? Math.ceil(v) - 1 : v > 0.5 ? 0.5 : v;
+    return v < 1 ? (v < 0.5 ? 0.5 : 1) : Math.floor(v) + 1;
+  };
+  const minus = btn('−', '', () => onChange(next(value, -1)), { 'aria-label': 'Manj odmerkov' });
+  if (value <= 0.5) minus.disabled = true;
+  const inp = document.createElement('input');
+  inp.inputMode = 'decimal';
+  inp.value = fmtAmount(value);
+  inp.setAttribute('aria-label', 'Število odmerkov');
+  inp.addEventListener('focus', () => inp.select());
+  inp.addEventListener('change', () => {
+    const v = Math.round(Number(inp.value.replace(',', '.')) * 100) / 100;
+    if (v > 0 && v <= 50) onChange(v); else inp.value = fmtAmount(value);
+  });
+  const plus = btn('+', '', () => onChange(next(value, 1)), { 'aria-label': 'Več odmerkov' });
+  wrap.appendChild(minus); wrap.appendChild(inp); wrap.appendChild(plus);
+  return wrap;
+}
+
+function logSupplement(item, slot, servings) {
   supplements.push({
     id: newId('s'), date: foodDate.value || localDay(new Date()), time: Date.now(),
     name: item.name, serving: item.serving || '', ingredients: item.ingredients || [],
-    servings: lastServings(item.name), slot: slot || defaultSlot(),
+    servings: servings || lastServings(item.name), slot: slot || defaultSlot(),
     calories: item.calories || 0, protein: item.protein || 0, carbs: item.carbs || 0, fat: item.fat || 0
   });
   persistSupps();
@@ -2986,57 +3037,97 @@ function renderDrinkTiles(day) {
   });
 }
 
-/** Supplement chips: ✓ when taken on the chosen day; tap logs it, tap a ✓ removes that day's latest entry. */
+const PILL_ICON = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFB45E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z"/><path d="M8.5 8.5l7 7"/></svg>';
+
+/** Supplements like meals: what was taken on the chosen day (with servings you can always change), then what is still left. */
 function renderSuppMain(day) {
+  const daySupps = supplements.filter((x) => x.date === day).sort((a, b) => a.time - b.time);
+  const takenNames = new Set(daySupps.map((x) => x.name));
+  const isToday = day === localDay(new Date());
+  document.getElementById('suppSummary').textContent = supplementList.length
+    ? supplementList.filter((s) => takenNames.has(s.name)).length + ' / ' + supplementList.length + ' vzeto' : '';
+
+  const log = document.getElementById('suppLog');
+  log.innerHTML = '';
+  if (daySupps.length) {
+    const h = document.createElement('div');
+    h.className = 'supp-sub';
+    h.innerHTML = '<span class="cap">' + (isToday ? 'Vzeto danes' : 'Vzeto ' + shortDay(day)) + '</span>';
+    log.appendChild(h);
+    const cards = document.createElement('div');
+    cards.className = 'supp-cards';
+    daySupps.forEach((x) => cards.appendChild(suppCard(x)));
+    log.appendChild(cards);
+    const totals = ingredientTotals(daySupps);
+    const kcal = daySupps.reduce((acc, x) => acc + (x.calories || 0) * (x.servings || 1), 0);
+    if (totals.length || kcal) {
+      const t = document.createElement('div');
+      t.className = 'supp-total';
+      t.innerHTML = '<span class="lbl">skupaj ' + (isToday ? 'danes' : 'ta dan') + '</span>' + escapeHtml([ingredientsText(totals), kcal ? fmtInt(kcal) + ' kcal' : ''].filter(Boolean).join(' · '));
+      log.appendChild(t);
+    }
+  }
+
   const wrap = document.getElementById('suppChips');
   wrap.innerHTML = '';
-  const takenNames = new Set(supplements.filter((x) => x.date === day).map((x) => x.name));
-  supplementList.forEach((item) => {
-    const on = takenNames.has(item.name);
-    wrap.appendChild(btn((on ? '✓ ' : '') + item.name, 'supp-chip', () => {
-      if (on) {
-        const last = supplements.filter((x) => x.date === day && x.name === item.name).sort((a, b) => b.time - a.time)[0];
-        supplements = supplements.filter((x) => x !== last);
-        persistSupps(); renderFood(); toast('Odstranjeno: ' + item.name);
-      } else {
-        logSupplement(item, defaultSlot());
-        toast('Zabeleženo: ' + item.name);
-      }
-    }, { 'aria-pressed': on ? 'true' : 'false', title: ingredientsText(item.ingredients) || item.name }));
+  const left = supplementList.filter((s) => !takenNames.has(s.name));
+  const sub = document.createElement('div');
+  sub.className = 'supp-sub';
+  sub.style.width = '100%';
+  sub.innerHTML = '<span class="cap">' + (daySupps.length ? 'Še ni vzeto' : 'Tapni, kar vzameš') + '</span>';
+  if (supplementList.length) wrap.appendChild(sub);
+  if (supplementList.length && !left.length) {
+    const done = document.createElement('span');
+    done.className = 'supp-all-done';
+    done.textContent = 'Vse vzeto ✓';
+    wrap.appendChild(done);
+  }
+  left.forEach((item) => {
+    const n = lastServings(item.name);
+    wrap.appendChild(btn(item.name + (n !== 1 ? ' ×' + fmtAmount(n) : ''), 'supp-chip', () => {
+      logSupplement(item, defaultSlot());
+      toast('Zabeleženo: ' + item.name + ' · ' + servingsWord(n) + ' — število spremeniš spodaj');
+    }, { title: ingredientsText(item.ingredients) || item.name }));
   });
   wrap.appendChild(btn('+ Novo / slikaj etiketo', 'supp-chip add', () => openVnos({ kind: 'dopolnilo' })));
   if (supplementList.length) wrap.appendChild(btn('✎ Uredi', 'supp-chip edit', () => openVnos({ kind: 'dopolnilo', tab: 'zgod' }), { 'aria-label': 'Uredi dopolnila' }));
-  document.getElementById('suppSummary').textContent = supplementList.length ? takenNames.size + ' / ' + supplementList.length : '';
+  // taken first, then what is left
+  const sec = log.parentNode;
+  if (sec && sec.lastElementChild !== wrap) sec.appendChild(wrap);
+}
 
-  const daySupps = supplements.filter((x) => x.date === day).sort((a, b) => a.time - b.time);
-  const log = document.getElementById('suppLog');
-  const totals = ingredientTotals(daySupps);
-  log.innerHTML = daySupps.length ? daySupps.map((x) => `
-    <div class="supp-row">
-      <div>
-        <div><span class="t">${clock(x.time)}${x.slot ? ' · ' + escapeHtml(x.slot.toLowerCase()) : ''}</span>${escapeHtml(x.name)}${x.calories ? ' <span class="supp-contents" style="display:inline;">' + fmtInt(x.calories * (x.servings || 1)) + ' kcal</span>' : ''}</div>
-        ${x.ingredients && x.ingredients.length ? `<div class="supp-contents">${escapeHtml(ingredientsText(takenIngredients(x)))}</div>` : ''}
-      </div>
-      <div class="item-actions">
-        <span class="servings" title="${escapeHtml(x.serving ? 'odmerek: ' + x.serving : 'število odmerkov')}">
-          <button type="button" data-sstep="-1" data-sid="${x.id}" aria-label="Manj">−</button>×${fmtAmount(x.servings || 1)}<button type="button" data-sstep="1" data-sid="${x.id}" aria-label="Več">+</button>
-        </span>
-        <button type="button" data-sedit="${x.id}" aria-label="Uredi ${escapeHtml(x.name)}">✎</button>
-        <button type="button" class="danger" data-sdel="${x.id}" aria-label="Izbriši vnos">✕</button>
-      </div>
-    </div>`).join('') + (totals.length ? `
-    <div class="supp-total"><span class="lbl">skupaj ta dan</span>${escapeHtml(ingredientsText(totals))}</div>` : '') : '';
-  log.querySelectorAll('[data-sstep]').forEach((b) => b.addEventListener('click', () => {
-    const x = supplements.find((e) => e.id === b.dataset.sid);
-    if (!x) return;
-    const step = x.servings && x.servings < 1 ? 0.5 : 1; // half tablets work too
-    x.servings = Math.max(0.5, (x.servings || 1) + step * Number(b.dataset.sstep));
-    persistSupps();
-    renderFood();
-  }));
-  log.querySelectorAll('[data-sedit]').forEach((b) => b.addEventListener('click', () => {
-    const x = supplements.find((e) => e.id === b.dataset.sedit);
-    if (!x) return;
+function suppCard(x) {
+  const n = x.servings || 1;
+  const card = document.createElement('div');
+  card.className = 'supp-card';
+  const top = document.createElement('div');
+  top.className = 'top';
+  const ico = document.createElement('div');
+  ico.className = 'meal-ico';
+  ico.innerHTML = PILL_ICON;
+  top.appendChild(ico);
+  const mid = document.createElement('div');
+  mid.className = 'meal-mid';
+  const contents = ingredientsText(takenIngredients(x));
+  mid.innerHTML = '<b>' + escapeHtml(x.name) + '</b><span class="m">' + escapeHtml([x.slot ? x.slot.toLowerCase() : '', clock(x.time)].filter(Boolean).join(' · ')) + '</span>'
+    + (contents ? '<span class="supp-contents">' + escapeHtml(contents) + '</span>' : '');
+  top.appendChild(mid);
+  if (x.calories) {
+    const k = document.createElement('span');
+    k.className = 'meal-kcal';
+    k.textContent = fmtInt(x.calories * n);
+    top.appendChild(k);
+  }
+  card.appendChild(top);
+  const bot = document.createElement('div');
+  bot.className = 'bot';
+  bot.appendChild(servingStepper(n, (v) => { x.servings = v; persistSupps(); renderFood(); }));
+  const lbl = document.createElement('span');
+  lbl.className = 'sv-lbl';
+  const detail = servingsDetail(n, x.serving);
+  lbl.innerHTML = '<b>' + escapeHtml(servingsWord(n)) + '</b>' + (detail ? '<br>' + escapeHtml(detail) : '');
+  bot.appendChild(lbl);
+  bot.appendChild(btn('✎', 'ic', () => {
     // an entry whose supplement was removed from the list comes back to it, so it can be edited
     if (!supplementList.some((s) => s.name === x.name)) {
       supplementList.push({ name: x.name, brand: '', serving: x.serving || '', ingredients: x.ingredients || [],
@@ -3045,12 +3136,16 @@ function renderSuppMain(day) {
     }
     const key = x.name.toLowerCase();
     openVnos({ kind: 'dopolnilo', tab: 'zgod', pick: key, editSupp: key });
-  }));
-  log.querySelectorAll('[data-sdel]').forEach((b) => b.addEventListener('click', () => armedDelete(b, () => {
-    supplements = supplements.filter((x) => x.id !== b.dataset.sdel);
+  }, { 'aria-label': 'Uredi ' + x.name, 'data-sedit': x.id }));
+  const del = btn('✕', 'ic danger', null, { 'aria-label': 'Izbriši vnos ' + x.name, 'data-sdel': x.id });
+  del.addEventListener('click', () => armedDelete(del, () => {
+    supplements = supplements.filter((e) => e.id !== x.id);
     persistSupps();
     renderFood();
-  })));
+  }));
+  bot.appendChild(del);
+  card.appendChild(bot);
+  return card;
 }
 
 foodDate.addEventListener('change', () => { if (!foodDate.value) foodDate.value = localDay(new Date()); renderFood(); });
@@ -3577,6 +3672,15 @@ function suppResultCard() {
   when.appendChild(slots);
   two.appendChild(when);
   card.appendChild(two);
+  const sv = vn.servings || 1;
+  const svRow = document.createElement('div');
+  svRow.style.display = 'flex'; svRow.style.alignItems = 'center'; svRow.style.gap = '8px';
+  svRow.appendChild(servingStepper(sv, (v) => { vn.servings = v; renderVnos(); }));
+  const svl = document.createElement('span');
+  svl.className = 'sv-lbl';
+  svl.innerHTML = '<b>Vzel sem ' + escapeHtml(servingsWord(sv)) + '</b>' + (r.dose ? '<br>' + escapeHtml(servingsDetail(sv, r.dose)) : '');
+  svRow.appendChild(svl);
+  card.appendChild(svRow);
   const list = document.createElement('div');
   list.className = 'stack';
   list.style.gap = '6px';
@@ -3775,6 +3879,7 @@ function renderVnosHistList(food) {
       vn.editDish = null;
       vn.editSupp = null;
       if (food && !open) { vn.portion = x.d.portion || 1; vn.split = false; vn.splitType = null; }
+      if (!food && !open) vn.servings = lastServings(x.s.name);
       renderVnosHistList(food);
     });
     const editing = open && (food ? vn.editDish : vn.editSupp) === x.key;
@@ -3807,14 +3912,25 @@ function renderVnosHistList(food) {
       } else if (vn.editSupp === x.key) {
         b.appendChild(suppEditor(x.s));
       } else {
+        const sv = vn.servings || lastServings(x.s.name);
+        const svRow = document.createElement('div');
+        svRow.className = 'bot';
+        svRow.style.display = 'flex'; svRow.style.alignItems = 'center'; svRow.style.gap = '8px';
+        svRow.appendChild(servingStepper(sv, (v) => { vn.servings = v; renderVnosHistList(false); }));
+        const svl = document.createElement('span');
+        svl.className = 'sv-lbl';
+        const det = servingsDetail(sv, x.s.serving);
+        svl.innerHTML = '<b>' + escapeHtml(servingsWord(sv)) + '</b>' + (det ? '<br>' + escapeHtml(det) : '');
+        svRow.appendChild(svl);
+        b.appendChild(svRow);
         const slots = document.createElement('div');
         slots.className = 'split-grid';
         SUPP_SLOTS.forEach(([full]) => slots.appendChild(btn(full, 'opt', () => { vn.slot = full; renderVnosHistList(false); }, { 'aria-pressed': vn.slot === full ? 'true' : 'false' })));
         b.appendChild(slots);
-        b.appendChild(btn('Zabeleži za ' + (day === localDay(new Date()) ? 'danes' : shortDay(day)) + ' · ' + vn.slot.toLowerCase(), 'big-food-btn', () => {
-          logSupplement(x.s, vn.slot);
+        b.appendChild(btn('Zabeleži (' + servingsWord(sv) + ') · ' + (day === localDay(new Date()) ? 'danes' : shortDay(day)) + ', ' + vn.slot.toLowerCase(), 'big-food-btn', () => {
+          logSupplement(x.s, vn.slot, sv);
           vn.pick = null;
-          toast('Zabeleženo: ' + x.s.name + (x.s.serving ? ', ' + x.s.serving : '') + ' (' + vn.slot.toLowerCase() + ')');
+          toast('Zabeleženo: ' + x.s.name + ' · ' + servingsWord(sv) + ' (' + vn.slot.toLowerCase() + ')');
           renderVnosHistList(false);
         }));
         b.appendChild(btn('Uredi ime, vrednosti in sestavine', 'link-plain', () => { vn.editSupp = x.key; renderVnosHistList(false); }));
@@ -4131,8 +4247,8 @@ function saveSupplementResult() {
     calories: r.calories || 0, protein: r.protein || 0, carbs: r.carbs || 0, fat: r.fat || 0 };
   const at = supplementList.findIndex((x) => x.name.toLowerCase() === item.name.toLowerCase());
   if (at === -1) supplementList.push(item); else supplementList[at] = Object.assign({}, supplementList[at], item); // a new label updates the contents
-  logSupplement(item, vn.slot);
-  toast('Zabeleženo: ' + item.name + ' (' + vn.slot.toLowerCase() + ') — dodano med tvoja dopolnila');
+  logSupplement(item, vn.slot, vn.servings || 1);
+  toast('Zabeleženo: ' + item.name + ' · ' + servingsWord(vn.servings || 1) + ' (' + vn.slot.toLowerCase() + ') — dodano med tvoja dopolnila');
   showFoodView('main');
 }
 

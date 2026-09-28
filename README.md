@@ -394,6 +394,9 @@ worker) in varni robovi za iPhone z zarezo (`viewport-fit=cover`, `env(safe-area
 - **Dopolnila** — na Prehrani ✎ pri zabeleženem dopolnilu (ali čip *✎ Uredi*) odpre urejanje imena,
   vrednosti in sestavin; enako svinčnik v *Moja dopolnila*. Dopolnilo ima lahko kcal in makrohranila na
   odmerek (npr. proteinski napitek), ki se prištejejo dnevu. Preimenovanje preimenuje tudi pretekle vnose.
+  Na Prehrani je blok *Vzeto danes* (kartica za vsak vnos: čas, sestavine, kcal) in pod njim *Še ni vzeto*
+  (tap zabeleži z enakim številom odmerkov kot zadnjič). Število odmerkov se vedno spremeni z − / + ali
+  vpisom (npr. 1,5); enako se izbere pred beleženjem v *Moja dopolnila* in pri novem dopolnilu z etikete.
 - **Stari vnosi po jedeh** — v *Dodaj hrano → Že jedel* je kartica *Stari vnosi*: *Razdeli stare vnose na
   jedi (AI)* pošlje imena in vrednosti starih obrokov (Worker, pot `/split-meals`, isto preverjanje) in
   pokaže predogled (npr. »Losos z rižem → Losos 500 + Riž 320«). *Uporabi razdelitev* vsak tak obrok
