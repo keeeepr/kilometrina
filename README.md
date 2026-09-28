@@ -239,7 +239,9 @@ Prehrana:
 
 Vse gre v Drive varnostno kopijo in v `kilometrina.xlsx` (zavihki *Prehrana*, *Dopolnila* in
 *Dnevni pregled*, ki po dnevih združi km, kalorije, makrohranila, dopolnila in Oura podatke).
-**Slike obrokov ostanejo samo na napravi**, kjer si jih slikal — za Drive so prevelike.
+**Slike obrokov** se ob sinhronizaciji naložijo v mapo **Kilometrina slike** v tvojem Drive (nekaj na
+sinhronizacijo, vsaka samo enkrat; obrok dobi `photoDriveId`). Na novi napravi se po *Obnovi iz Drive*
+slika prenese, ko jo prvič odpreš; ob brisanju obroka ali slike se izbriše tudi v Drive.
 
 ### Nastavitev (enkrat)
 
@@ -370,6 +372,16 @@ Današnje kljukice pred potrditvijo so samo na napravi (`kilometrina.fitnessDraf
 Preverjeno na koncu: prazna aplikacija (vsi zasloni brez napak), obnova iz stare Drive kopije (pred
 prenovo — stare »hitro vstavi« besede se pri tem dodajo med oznake), delovanje brez interneta (service
 worker) in varni robovi za iPhone z zarezo (`viewport-fit=cover`, `env(safe-area-inset-*)`).
+
+## 13. Popravki po prenovi
+
+- **Krone ostanejo** — cilj, ki je veljal na določen dan, se zapomni (`kilometrina.goalHistory`, v Drive
+  kopiji `goalHistory`). Sprememba ciljev ali nove mase velja od tega dne naprej; pretekle krone se ne
+  spremenijo.
+- **Slike obrokov v Drive** — glej razdelek 7.
+- **Fitnes v Zgodovini** — tapni zapis → **Uredi** odpre ta trening v Fitnesu; vsaka sprememba sproti
+  posodobi isti zapis (datum ostane). *Končano* te vrne na današnji trening.
+- Google prijava še vedno velja približno 1 uro (namenoma).
 
 ## Ko boš želel dodati novo funkcijo
 

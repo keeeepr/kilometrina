@@ -1613,7 +1613,10 @@ async function driveSyncNow() {
   if (!driveAccessToken) return;
   setDriveStatus('sinhroniziram …', 'syncing');
   try {
-    const payload = { workouts: sessions, words: quickWords, oura: ouraDays, meals: meals, supplements: supplements, supplementList: supplementList, drinks: drinks, drinkTypes: drinkTypes, weights: weights, shortcuts: shortcuts, templates: templates, weekGoal: weekGoalKm, goals: goals, fitnessPrograms: fitnessPrograms, fitnessLog: fitnessLog, savedAt: Date.now() };
+    const fileIdFirst = localStorage.getItem(LS_DRIVE_FILE_ID);
+    // Photos first (only once this device writes to the backup), so their Drive ids go into the JSON.
+    if (fileIdFirst || !(await driveLookupFileId())) await drivePushPhotos();
+    const payload = { goalHistory: goalHistory, workouts: sessions, words: quickWords, oura: ouraDays, meals: meals, supplements: supplements, supplementList: supplementList, drinks: drinks, drinkTypes: drinkTypes, weights: weights, shortcuts: shortcuts, templates: templates, weekGoal: weekGoalKm, goals: goals, fitnessPrograms: fitnessPrograms, fitnessLog: fitnessLog, savedAt: Date.now() };
     const fileId = localStorage.getItem(LS_DRIVE_FILE_ID);
     if (!fileId && await driveLookupFileId()) {
       // A backup from another device exists. Never overwrite it with this
@@ -1649,6 +1652,58 @@ async function driveSyncNow() {
     setDriveStatus('sinhronizacija ni uspela');
     showError('Drive sinhronizacija: ' + (e.message || e));
   }
+}
+
+// ---------- meal photos in Drive (folder "Kilometrina slike") ----------
+const LS_DRIVE_PHOTO_FOLDER = 'kilometrina.drivePhotoFolder';
+const DRIVE_PHOTO_FOLDER = 'Kilometrina slike';
+async function drivePhotoFolderId() {
+  const known = localStorage.getItem(LS_DRIVE_PHOTO_FOLDER);
+  if (known) return known;
+  const q = "name = '" + DRIVE_PHOTO_FOLDER + "' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+  const found = (await (await driveApiFetch('https://www.googleapis.com/drive/v3/files?pageSize=1&fields=files(id)&q=' + encodeURIComponent(q))).json()).files || [];
+  let id = found.length ? found[0].id : null;
+  if (!id) {
+    const res = await driveApiFetch('https://www.googleapis.com/drive/v3/files', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: DRIVE_PHOTO_FOLDER, mimeType: 'application/vnd.google-apps.folder' })
+    });
+    id = (await res.json()).id;
+  }
+  localStorage.setItem(LS_DRIVE_PHOTO_FOLDER, id);
+  return id;
+}
+/** Upload photos that aren't in Drive yet (a few per sync, so a sync stays quick). */
+async function drivePushPhotos() {
+  const todo = meals.filter((m) => m.hasPhoto && !m.photoDriveId).slice(0, 8);
+  if (!todo.length) return;
+  let folder;
+  try { folder = await drivePhotoFolderId(); } catch (e) { return; }
+  for (const m of todo) {
+    let blob = null;
+    try { blob = await photoGet(m.id); } catch (e) {}
+    if (!blob) continue;
+    const boundary = 'kmph-' + Date.now();
+    const body = new Blob([
+      '--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' +
+      JSON.stringify({ name: 'obrok-' + m.date + '-' + m.id + '.jpg', mimeType: 'image/jpeg', parents: [folder] }) + '\r\n' +
+      '--' + boundary + '\r\nContent-Type: image/jpeg\r\n\r\n', blob, '\r\n--' + boundary + '--'
+    ]);
+    try {
+      const res = await driveApiFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+        { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary="' + boundary + '"' }, body: body });
+      m.photoDriveId = (await res.json()).id;
+    } catch (e) {
+      if (e.status === 404) localStorage.removeItem(LS_DRIVE_PHOTO_FOLDER); // folder was deleted — make it again next time
+      break;
+    }
+  }
+  lsSet(LS_MEALS, meals); // ids only; the JSON upload right after carries them to Drive
+}
+/** Remove a meal photo from Drive when the meal or its photo goes away (best effort). */
+function driveDeletePhoto(driveId) {
+  if (!driveId || !driveAccessToken) return;
+  fetch('https://www.googleapis.com/drive/v3/files/' + driveId, { method: 'DELETE', headers: { Authorization: 'Bearer ' + driveAccessToken } }).catch(() => {});
 }
 
 /**
@@ -1922,6 +1977,7 @@ document.getElementById('driveRestoreBtn').addEventListener('click', async () =>
     if (Array.isArray(data.supplements)) { supplements = data.supplements; }
     if (Array.isArray(data.supplementList)) { supplementList = data.supplementList.map(normSupp); }
     if (Array.isArray(data.meals) || Array.isArray(data.supplements)) { persistSupps(); renderFood(); }
+    if (Array.isArray(data.goalHistory) && data.goalHistory.length) { goalHistory = data.goalHistory; lsSet(LS_GOAL_HISTORY, goalHistory); }
     if (data.goals && typeof data.goals === 'object') { goals = Object.assign(cloneJsonSafe(DEFAULT_GOALS), data.goals); persistGoals(); renderFood(); }
     // Oura days are merged, not replaced: both copies came from the same ring.
     if (data.oura && typeof data.oura === 'object') { ouraDays = Object.assign({}, ouraDays, data.oura); persistOura(); renderOuraSummary(); renderHistory(); }
@@ -2357,8 +2413,16 @@ const photoUrls = {};
 async function photoUrl(id) {
   if (photoUrls[id]) return photoUrls[id];
   try {
-    const blob = await photoGet(id);
-    if (!blob) return null;
+    let blob = await photoGet(id);
+    if (!blob) {
+      // e.g. a new phone after "Obnovi iz Drive": fetch the copy from Drive once, then keep it here
+      const m = meals.find((x) => x.id === id);
+      if (!m || !m.photoDriveId || !driveAccessToken) return null;
+      const res = await fetch('https://www.googleapis.com/drive/v3/files/' + m.photoDriveId + '?alt=media', { headers: { Authorization: 'Bearer ' + driveAccessToken } });
+      if (!res.ok) return null;
+      blob = await res.blob();
+      photoPut(id, blob).catch(() => {});
+    }
     return (photoUrls[id] = URL.createObjectURL(blob));
   } catch (e) { return null; }
 }
@@ -2601,7 +2665,30 @@ const DEFAULT_GOALS = {
 };
 let goals = Object.assign(cloneJsonSafe(DEFAULT_GOALS), lsGet(LS_GOALS, {}) || {});
 function cloneJsonSafe(x) { return JSON.parse(JSON.stringify(x)); }
-function persistGoals() { lsSet(LS_GOALS, goals); scheduleDriveSync(); }
+function persistGoals() { lsSet(LS_GOALS, goals); recordGoalSnapshot(); scheduleDriveSync(); }
+
+// Past days are judged against the goal that applied then, not today's:
+// every change of the computed goal (settings or a new body mass) is kept
+// here as {from: 'YYYY-MM-DD', kcal, b, oh, m}.
+const LS_GOAL_HISTORY = 'kilometrina.goalHistory';
+let goalHistory = lsGet(LS_GOAL_HISTORY, []);
+function recordGoalSnapshot() {
+  const G = computeGoals();
+  const today = localDay(new Date());
+  const snap = { from: goalHistory.length ? today : '0000-00-00', kcal: G.kcal, b: G.b, oh: G.oh, m: G.m };
+  const last = goalHistory[goalHistory.length - 1];
+  if (last && last.kcal === snap.kcal && last.b === snap.b && last.oh === snap.oh && last.m === snap.m) return;
+  if (last && last.from === today) goalHistory[goalHistory.length - 1] = Object.assign(snap, { from: last.from });
+  else goalHistory.push(snap);
+  lsSet(LS_GOAL_HISTORY, goalHistory);
+}
+/** The goal in force on a day: today's live goal, or the snapshot that applied back then. */
+function goalOn(key) {
+  if (key >= localDay(new Date()) || !goalHistory.length) return computeGoals();
+  let g = goalHistory[0];
+  goalHistory.forEach((x) => { if (x.from <= key) g = x; });
+  return g;
+}
 const DAILY_FACTOR = { sedece: 1.25, zmerno: 1.4, veliko: 1.55 };
 const goalMass = () => (weights.length ? weights[weights.length - 1].kg : goals.massFallback);
 
@@ -2638,6 +2725,7 @@ function dayTotals(key) {
 }
 /** Which macros reached 90 % of the goal: 'b', 'o', 'm' letters; all three = crown. */
 function dayHits(key, G) {
+  if (key < localDay(new Date())) G = goalOn(key);
   const t = dayTotals(key);
   if (!t.n) return '';
   return (t.b >= 0.9 * G.b ? 'b' : '') + (t.oh >= 0.9 * G.oh ? 'o' : '') + (t.m >= 0.9 * G.m ? 'm' : '');
@@ -2708,10 +2796,11 @@ function renderFood() {
 
   // rings → goals
   const t = dayTotals(day);
+  const GD = goalOn(day);
   const dt = dayDate(day);
-  document.getElementById('foodRings').innerHTML = '<div class="ring-row"><div class="ring-wrap">' + ringsSvg(124, t, G, 10)
-    + (dayHits(day, G) === 'bom' ? '<div class="crown-mid">' + CROWN_SVG(26) + '</div>' : '') + '</div><div class="ring-legend">' + ringLegend(t, G) + '</div></div>'
-    + '<div class="ring-foot"><span>' + fmtInt(t.kcal) + ' / ' + fmtInt(G.kcal) + ' kcal</span><span class="crowns">' + CROWN_SVG(16)
+  document.getElementById('foodRings').innerHTML = '<div class="ring-row"><div class="ring-wrap">' + ringsSvg(124, t, GD, 10)
+    + (dayHits(day, G) === 'bom' ? '<div class="crown-mid">' + CROWN_SVG(26) + '</div>' : '') + '</div><div class="ring-legend">' + ringLegend(t, GD) + '</div></div>'
+    + '<div class="ring-foot"><span>' + fmtInt(t.kcal) + ' / ' + fmtInt(GD.kcal) + ' kcal</span><span class="crowns">' + CROWN_SVG(16)
     + monthCrowns(dt.getFullYear(), dt.getMonth(), G) + ' kron v ' + dt.toLocaleDateString('sl-SI', { month: 'short' }).replace('.', '') + '. ›</span></div>';
 
   renderMealGroups(day);
@@ -3144,6 +3233,7 @@ function renderVnosNew(body, food) {
     const del = btn('Izbriši obrok', 'danger-btn', null);
     del.addEventListener('click', () => armedDelete(del, () => {
       if (edit.hasPhoto) { photoDelete(edit.id); delete photoUrls[edit.id]; }
+      driveDeletePhoto(edit.photoDriveId);
       meals = meals.filter((x) => x.id !== edit.id);
       persistMeals();
       showFoodView('main');
@@ -3527,7 +3617,9 @@ function storeMealPhoto(id, blob) {
   // The meal is saved already; the photo follows once the device has stored it.
   photoPut(id, blob).then(() => {
     delete photoUrls[id];
-    meals = meals.map((m) => (m.id === id ? Object.assign({}, m, { hasPhoto: true }) : m));
+    const old = meals.find((m) => m.id === id);
+    if (old && old.photoDriveId) driveDeletePhoto(old.photoDriveId);
+    meals = meals.map((m) => (m.id === id ? Object.assign({}, m, { hasPhoto: true, photoDriveId: undefined }) : m));
     persistMeals();
     if (foodView === 'main') renderFood();
   }).catch(() => showError('slike ni bilo mogoče shraniti na napravo — obrok je shranjen brez nje'));
@@ -3538,7 +3630,7 @@ function saveEdit() {
   if (!m) return;
   const r = vn.result;
   Object.assign(m, baseScaled(r.base, vn.portion), { name: r.name.trim() || m.name, type: vn.type, portion: vn.portion });
-  if (vn.photoRemoved && m.hasPhoto && !vn.photo) { photoDelete(m.id); delete photoUrls[m.id]; m.hasPhoto = false; }
+  if (vn.photoRemoved && m.hasPhoto && !vn.photo) { photoDelete(m.id); delete photoUrls[m.id]; m.hasPhoto = false; driveDeletePhoto(m.photoDriveId); delete m.photoDriveId; }
   persistMeals();
   if (vn.photo) storeMealPhoto(m.id, vn.photo.keepBlob);
   toast('Obrok posodobljen');
@@ -3671,15 +3763,17 @@ function renderGoals() {
   const day = calSel || foodDate.value || localDay(new Date());
   const today = localDay(new Date());
   const t = dayTotals(goalTab === 'koledar' ? day : today);
+  const GR = goalTab === 'koledar' ? goalOn(day) : G;
   const rc = document.createElement('section');
   rc.className = 'rings-card';
-  rc.innerHTML = '<div class="ring-wrap">' + ringsSvg(150, t, G, 12) + (dayHits(goalTab === 'koledar' ? day : today, G) === 'bom' ? '<div class="crown-mid">' + CROWN_SVG(30) + '</div>' : '') + '</div>'
-    + '<div class="ring-legend">' + ringLegend(t, G) + '<span class="muted-sm">' + fmtInt(t.kcal) + ' / ' + fmtInt(G.kcal) + ' kcal ' + (goalTab === 'koledar' && day !== today ? shortDay(day) : 'danes') + '</span></div>';
+  rc.innerHTML = '<div class="ring-wrap">' + ringsSvg(150, t, GR, 12) + (dayHits(goalTab === 'koledar' ? day : today, G) === 'bom' ? '<div class="crown-mid">' + CROWN_SVG(30) + '</div>' : '') + '</div>'
+    + '<div class="ring-legend">' + ringLegend(t, GR) + '<span class="muted-sm">' + fmtInt(t.kcal) + ' / ' + fmtInt(GR.kcal) + ' kcal ' + (goalTab === 'koledar' && day !== today ? shortDay(day) : 'danes') + '</span></div>';
   body.appendChild(rc);
   if (goalTab === 'koledar') renderCalendar(body, G); else renderGoalSettings(body, G);
 }
 
-function renderCalendar(body, G) {
+function renderCalendar(body, Gnow) {
+  let G = Gnow;
   const today = localDay(new Date());
   const month = calMonth || (calSel || today).slice(0, 7);
   const [yy, mm] = month.split('-').map(Number);
@@ -3741,6 +3835,7 @@ function renderCalendar(body, G) {
   cal.appendChild(grid);
   const sel = calSel || today;
   const st = dayTotals(sel);
+  G = goalOn(sel);
   const sh = dayHits(sel, G);
   const selBox = document.createElement('div');
   selBox.className = 'cal-sel';
@@ -3918,6 +4013,7 @@ document.getElementById('goalBack').addEventListener('click', () => showFoodView
 document.querySelectorAll('#goalTabs [data-gtab]').forEach((b) => b.addEventListener('click', () => { goalTab = b.dataset.gtab; renderGoals(); }));
 
 function initFood() {
+  recordGoalSnapshot();
   renderAiAccess();
   const lastDrink = [...drinks].sort((a, b) => b.time - a.time)[0];
   if (lastDrink) chooseDrink(lastDrink.name); else chooseDrink('Voda');
@@ -3947,6 +4043,7 @@ document.getElementById('weightSaveBtn').addEventListener('click', () => {
   weights = weights.filter((w) => w.date !== date).concat({ date: date, kg: kg, time: Date.now() });
   weights.sort((a, b) => a.date.localeCompare(b.date));
   persistWeights();
+  recordGoalSnapshot();
   weightKg.value = '';
   renderWeights();
 });
@@ -4020,6 +4117,7 @@ document.getElementById('kgSave').addEventListener('click', () => {
   weights.sort((a, b) => a.date.localeCompare(b.date));
   kgDraft = null;
   persistWeights();
+  recordGoalSnapshot();
   renderWeights();
   if (typeof toast === 'function') toast('Shranjeno: ' + fmtKg(kg) + ' kg (danes)');
 });
@@ -4754,7 +4852,16 @@ function freshFit() {
 let fs = lsGet(LS_FIT_DRAFT, null) || freshFit();
 function saveFit() { lsSet(LS_FIT_DRAFT, fs); }
 /** A new day (or another programme) starts with nothing ticked. */
+function fitProgram() {
+  if (fs.logEdit) return fitnessPrograms.find((x) => x.id === fs.programId) || activeProgram();
+  return activeProgram();
+}
 function syncFitState() {
+  if (fs.logEdit) {
+    const pe = fitProgram();
+    if (pe && pe.id === fs.programId && fitnessLog.some((l) => l.id === fs.confirmedId)) return pe;
+    fs = freshFit(); // the entry or its programme is gone — back to today's session
+  }
   const p = activeProgram();
   const today = localDay(new Date());
   if (!p) return null;
@@ -4784,7 +4891,7 @@ function fitChange(fn) {
   fn();
   if (fs.confirmedId) {
     const i = fitnessLog.findIndex((l) => l.id === fs.confirmedId);
-    const p = activeProgram();
+    const p = fitProgram();
     if (i === -1 || !p) fs.confirmedId = null;
     else { fitnessLog[i] = Object.assign(buildFitEntry(p, fitSession(p)), { id: fitnessLog[i].id, date: fitnessLog[i].date, time: fitnessLog[i].time }); persistFitLog(); renderHistory(); }
   }
@@ -4866,7 +4973,7 @@ function renderFitness() {
   const wk = p.weeks[fs.week] || { mc: '', date: '' };
   const k = fitSKey();
   const sum = fitSummary(p, ses);
-  document.getElementById('fitSub').textContent = shortDay(localDay(new Date())) + ' · ' + ses.name + ' · ' + wk.mc + '. mikrocikel · ' + p.title;
+  document.getElementById('fitSub').textContent = (fs.logEdit ? 'urejaš zapis od ' + shortDay(fs.logDate) : shortDay(localDay(new Date()))) + ' · ' + ses.name + ' · ' + wk.mc + '. mikrocikel · ' + p.title;
 
   // program card
   const card = document.createElement('section');
@@ -4928,7 +5035,13 @@ function renderFitness() {
 
   // confirmed summary
   const confirmed = fs.confirmedId && fitnessLog.find((l) => l.id === fs.confirmedId);
-  if (confirmed) {
+  if (confirmed && fs.logEdit) {
+    const d = document.createElement('section');
+    d.className = 'fit-done';
+    d.innerHTML = '<span class="d">Urejaš zapis od ' + shortDay(fs.logDate) + '</span><span>' + fitSummaryLine(confirmed.summary) + ' · spremembe se shranijo sproti</span>';
+    d.appendChild(btn('Končano', '', () => { fs = freshFit(); saveFit(); renderFitness(); flash('Zapis posodobljen'); }));
+    wrap.appendChild(d);
+  } else if (confirmed) {
     const next = Math.min(fs.week + 1, p.weeks.length - 1);
     const d = document.createElement('section');
     d.className = 'fit-done';
@@ -5105,7 +5218,7 @@ function exerciseCard(p, ex) {
 }
 
 document.getElementById('fitAllBtn').addEventListener('click', () => {
-  const p = activeProgram();
+  const p = fitProgram();
   if (!p) return;
   const ses = fitSession(p);
   const k = fitSKey();
@@ -5117,7 +5230,7 @@ document.getElementById('fitAllBtn').addEventListener('click', () => {
   });
 });
 document.getElementById('fitConfirmBtn').addEventListener('click', () => {
-  const p = activeProgram();
+  const p = fitProgram();
   if (!p || fs.confirmedId) return;
   const ses = fitSession(p);
   if (!fitSummary(p, ses).done) return;
@@ -5150,6 +5263,25 @@ function buildFitEntry(p, ses) {
     summary: { done: sum.done, total: sum.total, vol: Math.round(sum.vol), coreDone: sum.coreDone, coreTotal: sum.coreTotal,
       warmDone: !!fs.warm[k], warmMin: sum.warmMin, stretchDone: !!fs.stretch[k], stretchMin: sum.stretchMin, minutes: sum.minutes }
   };
+}
+
+/** Open a logged session again for editing (from Zgodovina); changes update that entry. */
+function editFitLog(f) {
+  const p = fitnessPrograms.find((x) => x.id === f.programId);
+  if (!p) return;
+  const k = f.sess + '|' + f.week;
+  const actual = {};
+  Object.keys(f.sets || {}).forEach((exId) => { actual[k + '|' + exId] = f.sets[exId].sets.map((x) => Object.assign({}, x)); });
+  fs = {
+    programId: p.id, sess: f.sess, week: f.week, mode: 'danes', editing: null, actual: actual,
+    warm: { [k]: !!(f.warm && f.warm.done) }, stretch: { [k]: !!(f.stretch && f.stretch.done) },
+    warmMin: { [k]: f.warm ? f.warm.min : undefined }, stretchMin: { [k]: f.stretch ? f.stretch.min : undefined },
+    coreDone: { [k]: (f.core || []).slice() }, confirmedId: f.id, date: localDay(new Date()), logEdit: true, logDate: f.date
+  };
+  saveFit();
+  tr.kind = 'fitness';
+  saveDraft();
+  setTab('trening');
 }
 
 // ---------- uvoz programa (PDF / slike) ----------
@@ -5467,11 +5599,13 @@ function fitHistoryItem(f) {
       + ouraBadgesHtml(f.date);
     const acts = document.createElement('div');
     acts.className = 'hist-actions';
-    acts.style.gridTemplateColumns = '1fr';
+    const hasProgram = fitnessPrograms.some((x) => x.id === f.programId);
+    acts.style.gridTemplateColumns = hasProgram ? 'repeat(2, minmax(0, 1fr))' : '1fr';
+    if (hasProgram) acts.appendChild(btn('Uredi', 'e', () => editFitLog(f)));
     const del = btn('Izbriši', 'x', null);
     del.addEventListener('click', () => armedDelete(del, () => {
       fitnessLog = fitnessLog.filter((x) => x.id !== f.id);
-      if (fs.confirmedId === f.id) { fs.confirmedId = null; saveFit(); }
+      if (fs.confirmedId === f.id) { fs = freshFit(); saveFit(); }
       persistFitLog();
       renderHistory();
       renderToday();
