@@ -13,12 +13,13 @@
 <meta name="apple-mobile-web-app-title" content="Kilometrina">
 <meta name="mobile-web-app-capable" content="yes">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- fonts load without blocking the first paint; text shows in the system font until they arrive -->
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap"></noscript>
+<!-- fonts are served from here (subset: latin, č š ž ć đ, app symbols), preloaded; text shows in the system font until they arrive -->
+<link rel="preload" href="fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+  /* Bricolage Grotesque and Figtree, SIL Open Font License 1.1 — see fonts/OFL-*.txt */
+  @font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 500 800; font-stretch: 100%; font-display: swap; src: url(fonts/bricolage.woff2) format('woff2'); }
+  @font-face { font-family: 'Figtree'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(fonts/figtree.woff2) format('woff2'); }
   :root {
     --bg: #09131D;
     --panel: #111E2A;
