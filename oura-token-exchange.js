@@ -137,7 +137,7 @@ Identify what is there, judge the portion size from the visual cues (plate, cutl
 - protein_g, carbs_g, fat_g: grams for the whole portion.
 - confidence: "high" when the food and portion are clear, "low" when you are mostly guessing (hidden ingredients, unclear portion, sauces).
 - notes: one short sentence naming the biggest assumption you made (e.g. "Predpostavljena 1 skodelica kuhanega riža.").
-- items: the recognizable components (at most 8, e.g. "Losos", "Riž", "Solata z olivnim oljem"), each with its own kcal, protein_g, carbs_g and fat_g, named in Slovenian. The item values should add up to the totals.
+- items: the separate dishes or foods, as the user would write them in a food diary (at most 8, e.g. "Pražen riž", "Jota", "Kruh", "Solata z olivnim oljem"), each with its own kcal, protein_g, carbs_g and fat_g, named in Slovenian. Keep one prepared dish as one item — do not break it into raw ingredients. A single dish gives a single item. The item values should add up to the totals.
 
 When a description is given, it overrides what the photo suggests (e.g. stated grams, "brez omake"). If several items are present, sum them into one meal. If there is no food or drink, set is_food to false and use 0 and empty strings for the rest.`;
 

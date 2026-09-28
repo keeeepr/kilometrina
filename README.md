@@ -381,6 +381,17 @@ worker) in varni robovi za iPhone z zarezo (`viewport-fit=cover`, `env(safe-area
 - **Slike obrokov v Drive** — glej razdelek 7.
 - **Fitnes v Zgodovini** — tapni zapis → **Uredi** odpre ta trening v Fitnesu; vsaka sprememba sproti
   posodobi isti zapis (datum ostane). *Končano* te vrne na današnji trening.
+- **Slogi plavanja so bližnjice** — v *Uredi bližnjice* (svinčnik pri vnosu treninga) dodaš, odstraniš ali
+  premakneš gumbe za slog (npr. »prosto«); tipkan set jih prepozna po imenu.
+- **Vsaka jed posebej** — AI (ali ročni vnos) vrne jedi na krožniku kot ločene jedi (npr. »Pražen riž«,
+  »Jota«); vsaka se shrani kot svoj vnos. *Združi v eno jed* jih po potrebi združi, *+ Dodaj jed* doda novo.
+- **Moje jedi** — vse, kar si že jedel. Med pisanjem se pod poljem pokažejo ujemajoče jedi — tap jo doda
+  z isto količino kot zadnjič, brez AI. V *Že jedel* pri jedi *Uredi ime in vrednosti* spremeni ime in
+  kcal/B/OH/M za 1 porcijo (velja za naslednje vnose) ali jo odstrani s seznama.
+  Spremembe so v `kilometrina.dishes` (v Drive kopiji `dishes`).
+- **Dopolnila** — v *Moja dopolnila* *Uredi ime, vrednosti in sestavine*; dopolnilo ima lahko kcal in
+  makrohranila na odmerek (npr. proteinski napitek), ki se prištejejo dnevu. Preimenovanje preimenuje tudi
+  pretekle vnose.
 - Google prijava še vedno velja približno 1 uro (namenoma).
 
 ## Ko boš želel dodati novo funkcijo

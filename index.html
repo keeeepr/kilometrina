@@ -538,7 +538,7 @@
   .chip-btn.soft { background: #173A3A; color: #7FF0DB; border-color: #2F6D66; }
   .chip-btn:disabled { background: transparent; color: #3A4F63; border-color: #1A2B3B; cursor: default; }
   .chip-wrap { display: flex; flex-wrap: wrap; gap: 4px; }
-  .stroke-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+  .stroke-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)); gap: 4px; }
   .stroke-grid .chip-btn { padding: 0 2px; font-size: 12px; }
   .tr-input {
     position: sticky; bottom: calc(var(--nav-h) + var(--safe-b)); z-index: 10;
@@ -795,6 +795,20 @@
   .gate-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .gate-btns button { min-height: 50px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; border: 1px solid #2A3F53; background: transparent; }
   .gate-btns .go { border: 0; background: var(--food); color: #2E1A04; font-weight: 800; }
+
+  .dish-card { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 14px; background: var(--field); border: 1px solid var(--line); }
+  .dish-top { display: flex; gap: 6px; }
+  .dish-top input { flex: 1; min-width: 0; font-weight: 600; background: var(--panel); }
+  .dish-x { width: 44px; flex-shrink: 0; border-radius: 10px; border: 1px solid var(--field-line); background: transparent; color: var(--text-dim); cursor: pointer; }
+  .dish-card .macro-grid input { background: var(--panel); }
+  .dish-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .dish-acts button { min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px dashed #3A4F63; background: transparent; font-size: 13px; font-weight: 700; color: var(--text-soft); cursor: pointer; }
+  .dish-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .dish-chip { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid #4A3B22; background: #1A1710; color: #FFE3C4; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .dish-chip span { color: var(--food); font-weight: 700; margin-left: 4px; }
+  .dish-total { font-size: 13px; font-weight: 700; color: #FFD19A; }
+  .edit-form { display: flex; flex-direction: column; gap: 8px; }
+  .edit-form input { width: 100%; min-width: 0; }
 
   /* Makro cilji */
   .rings-card { display: flex; gap: 16px; align-items: center; padding: 16px; border-radius: 22px; background: var(--panel); border: 1px solid var(--line); }
@@ -1616,7 +1630,7 @@ async function driveSyncNow() {
     const fileIdFirst = localStorage.getItem(LS_DRIVE_FILE_ID);
     // Photos first (only once this device writes to the backup), so their Drive ids go into the JSON.
     if (fileIdFirst || !(await driveLookupFileId())) await drivePushPhotos();
-    const payload = { goalHistory: goalHistory, workouts: sessions, words: quickWords, oura: ouraDays, meals: meals, supplements: supplements, supplementList: supplementList, drinks: drinks, drinkTypes: drinkTypes, weights: weights, shortcuts: shortcuts, templates: templates, weekGoal: weekGoalKm, goals: goals, fitnessPrograms: fitnessPrograms, fitnessLog: fitnessLog, savedAt: Date.now() };
+    const payload = { goalHistory: goalHistory, dishes: dishLib, workouts: sessions, words: quickWords, oura: ouraDays, meals: meals, supplements: supplements, supplementList: supplementList, drinks: drinks, drinkTypes: drinkTypes, weights: weights, shortcuts: shortcuts, templates: templates, weekGoal: weekGoalKm, goals: goals, fitnessPrograms: fitnessPrograms, fitnessLog: fitnessLog, savedAt: Date.now() };
     const fileId = localStorage.getItem(LS_DRIVE_FILE_ID);
     if (!fileId && await driveLookupFileId()) {
       // A backup from another device exists. Never overwrite it with this
@@ -1775,9 +1789,9 @@ function xlsxSheets() {
   const food = [['Datum', 'Ura', 'Obrok', 'Ime', 'Količina ×', 'kcal', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Vir', 'Zanesljivost', 'Opomba', 'Del obroka (%)', 'Stanje']]
     .concat(meals.map((m) => [m.date, hhmm(m.time), mealTypeLabel(m.type), m.name, m.portion || 1, m.calories, m.protein, m.carbs, m.fat,
       SOURCE_LABEL[m.source] || 'ročno', m.confidence, m.notes, m.split ? Math.round(m.split.share * 100) : null, m.pending ? 'ostanek, še ni pojeden' : 'pojedeno']));
-  const supps = [['Datum', 'Ura', 'Dopolnilo', 'Število odmerkov', 'Odmerek', 'Zaužite sestavine']]
+  const supps = [['Datum', 'Ura', 'Dopolnilo', 'Število odmerkov', 'Odmerek', 'Zaužite sestavine', 'kcal']]
     .concat([...supplements].sort((a, b) => a.date.localeCompare(b.date) || a.time - b.time)
-      .map((x) => [x.date, hhmm(x.time), x.name, x.servings || 1, x.serving || '', ingredientsText(takenIngredients(x))]));
+      .map((x) => [x.date, hhmm(x.time), x.name, x.servings || 1, x.serving || '', ingredientsText(takenIngredients(x)), x.calories ? Math.round(x.calories * (x.servings || 1)) : null]));
 
   const drinkRows = [['Datum', 'Ura', 'Pijača', 'ml', 'kcal']]
     .concat([...drinks].sort((a, b) => a.date.localeCompare(b.date) || a.time - b.time).map((x) => [x.date, hhmm(x.time), x.name, x.ml, x.kcal || 0]));
@@ -1794,7 +1808,8 @@ function xlsxSheets() {
       const sd = supplements.filter((x) => x.date === d).map((x) => x.name + (x.servings && x.servings !== 1 ? ' ×' + fmtAmount(x.servings) : '')).join(', ');
       const dd = drinks.filter((x) => x.date === d);
       const ml = dd.reduce((acc, x) => acc + x.ml, 0);
-      const kcal = dm.length || dd.length ? (sum('calories') || 0) + dd.reduce((acc, x) => acc + (x.kcal || 0), 0) : null;
+      const sk = supplements.filter((x) => x.date === d).reduce((acc, x) => acc + (x.calories || 0) * (x.servings || 1), 0);
+      const kcal = dm.length || dd.length || sk ? Math.round((sum('calories') || 0) + dd.reduce((acc, x) => acc + (x.kcal || 0), 0) + sk) : null;
       const w = weights.find((x) => x.date === d);
       return [d, w ? w.kg : null, km || null, kcal, sum('protein'), sum('carbs'), sum('fat'), ml || null, sd,
         o(d).sleep_score, o(d).readiness_score, o(d).avg_hrv_overnight, o(d).lowest_hr_overnight, dayHits(d, GX) === 'bom' ? 'da' : null,
@@ -1977,6 +1992,7 @@ document.getElementById('driveRestoreBtn').addEventListener('click', async () =>
     if (Array.isArray(data.supplements)) { supplements = data.supplements; }
     if (Array.isArray(data.supplementList)) { supplementList = data.supplementList.map(normSupp); }
     if (Array.isArray(data.meals) || Array.isArray(data.supplements)) { persistSupps(); renderFood(); }
+    if (data.dishes && typeof data.dishes === 'object') { dishLib = data.dishes; lsSet(LS_DISHES, dishLib); }
     if (Array.isArray(data.goalHistory) && data.goalHistory.length) { goalHistory = data.goalHistory; lsSet(LS_GOAL_HISTORY, goalHistory); }
     if (data.goals && typeof data.goals === 'object') { goals = Object.assign(cloneJsonSafe(DEFAULT_GOALS), data.goals); persistGoals(); renderFood(); }
     // Oura days are merged, not replaced: both copies came from the same ring.
@@ -2577,7 +2593,8 @@ function logSupplement(item, slot) {
   supplements.push({
     id: newId('s'), date: foodDate.value || localDay(new Date()), time: Date.now(),
     name: item.name, serving: item.serving || '', ingredients: item.ingredients || [],
-    servings: lastServings(item.name), slot: slot || defaultSlot()
+    servings: lastServings(item.name), slot: slot || defaultSlot(),
+    calories: item.calories || 0, protein: item.protein || 0, carbs: item.carbs || 0, fat: item.fat || 0
   });
   persistSupps();
   renderFood();
@@ -2623,6 +2640,38 @@ function wholeMeal(m) {
   const share = m.split && m.split.share > 0 && m.split.share < 1 ? m.split.share : 1;
   if (share === 1) return m;
   return Object.assign({}, m, { calories: Math.round(m.calories / share), protein: Math.round(m.protein / share), carbs: Math.round(m.carbs / share), fat: Math.round(m.fat / share) });
+}
+
+// ---------- Moje jedi: every dish ever eaten, reusable without typing ----------
+// Built from the meals themselves; kilometrina.dishes only stores what was
+// changed by hand: { key: {name, calories, protein, carbs, fat} | {hidden: true} | {renamedTo: key} }.
+const LS_DISHES = 'kilometrina.dishes';
+let dishLib = lsGet(LS_DISHES, {}) || {};
+function persistDishes() { lsSet(LS_DISHES, dishLib); scheduleDriveSync(); }
+const dishKey = (name) => String(name || '').trim().toLowerCase();
+function resolveDish(key) {
+  let o = dishLib[key], guard = 0;
+  while (o && o.renamedTo && guard++ < 10) { key = o.renamedTo; o = dishLib[key]; }
+  return { key: key, o: o };
+}
+/** Values are for one portion; `portion` is how much was eaten last time. */
+function libDishes() {
+  const out = {};
+  pastMeals().forEach((e) => {
+    const r = resolveDish(dishKey(e.last.name));
+    if (r.o && r.o.hidden) return;
+    const p = e.last.portion || 1;
+    const base = r.o && r.o.name ? { calories: r.o.calories, protein: r.o.protein, carbs: r.o.carbs, fat: r.o.fat }
+      : { calories: e.last.calories / p, protein: e.last.protein / p, carbs: e.last.carbs / p, fat: e.last.fat / p };
+    const d = out[r.key];
+    if (d) { d.count += e.count; if (!d.last || e.last.date > d.last.date) { d.last = e.last; d.portion = p; } }
+    else out[r.key] = { key: r.key, name: r.o && r.o.name ? r.o.name : e.last.name, base: base, count: e.count, last: e.last, portion: p };
+  });
+  Object.keys(dishLib).forEach((k) => {
+    const o = dishLib[k];
+    if (o && o.name && !o.hidden && !o.renamedTo && !out[k]) out[k] = { key: k, name: o.name, base: { calories: o.calories, protein: o.protein, carbs: o.carbs, fat: o.fat }, count: 0, last: null, portion: 1 };
+  });
+  return Object.values(out).sort((a, b) => b.count - a.count || ((b.last && b.last.date) || '').localeCompare((a.last && a.last.date) || ''));
 }
 
 /** One entry per distinct meal name: its latest version, most-eaten first. */
@@ -2720,6 +2769,11 @@ function dayTotals(key) {
   const dm = eatenMeals().filter((m) => m.date === key);
   const t = { b: 0, oh: 0, m: 0, kcal: 0, n: dm.length };
   dm.forEach((m) => { t.b += m.protein || 0; t.oh += m.carbs || 0; t.m += m.fat || 0; t.kcal += m.calories || 0; });
+  supplements.filter((x) => x.date === key && (x.calories || x.protein || x.carbs || x.fat)).forEach((x) => {
+    const n = x.servings || 1;
+    t.b += (x.protein || 0) * n; t.oh += (x.carbs || 0) * n; t.m += (x.fat || 0) * n; t.kcal += (x.calories || 0) * n;
+  });
+  t.b = Math.round(t.b); t.oh = Math.round(t.oh); t.m = Math.round(t.m); t.kcal = Math.round(t.kcal);
   t.kcal += drinks.filter((x) => x.date === key).reduce((a, x) => a + (x.kcal || 0), 0);
   return t;
 }
@@ -2945,7 +2999,7 @@ function renderSuppMain(day) {
   log.innerHTML = daySupps.length ? daySupps.map((x) => `
     <div class="supp-row">
       <div>
-        <div><span class="t">${clock(x.time)}${x.slot ? ' · ' + escapeHtml(x.slot.toLowerCase()) : ''}</span>${escapeHtml(x.name)}</div>
+        <div><span class="t">${clock(x.time)}${x.slot ? ' · ' + escapeHtml(x.slot.toLowerCase()) : ''}</span>${escapeHtml(x.name)}${x.calories ? ' <span class="supp-contents" style="display:inline;">' + fmtInt(x.calories * (x.servings || 1)) + ' kcal</span>' : ''}</div>
         ${x.ingredients && x.ingredients.length ? `<div class="supp-contents">${escapeHtml(ingredientsText(takenIngredients(x)))}</div>` : ''}
       </div>
       <div class="item-actions">
@@ -3111,10 +3165,8 @@ function openVnos(opts) {
       const p = m.portion || 1;
       vn.type = m.type;
       vn.portion = p;
-      vn.result = {
-        ai: m.source === 'ai', conf: m.confidence, notes: m.notes || '', name: m.name, items: [],
-        base: { calories: m.calories / p, protein: m.protein / p, carbs: m.carbs / p, fat: m.fat / p }
-      };
+      vn.result = { ai: m.source === 'ai', conf: m.confidence, notes: m.notes || '',
+        dishes: [{ name: m.name, calories: m.calories / p, protein: m.protein / p, carbs: m.carbs / p, fat: m.fat / p }] };
     }
   }
   showFoodView('vnos');
@@ -3125,6 +3177,22 @@ function splitOther() {
   return vn.type === 'vecerja' ? 'kosilo' : 'vecerja';
 }
 const baseScaled = (base, p) => ({ calories: round0(base.calories * p), protein: round0(base.protein * p), carbs: round0(base.carbs * p), fat: round0(base.fat * p) });
+const MACRO_KEYS = ['calories', 'protein', 'carbs', 'fat'];
+/** Sum of all dishes for one portion. */
+function dishesTotal(dishes) {
+  const t = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  (dishes || []).forEach((d) => MACRO_KEYS.forEach((k) => { t[k] += Number(d[k]) || 0; }));
+  return t;
+}
+const usableDishes = (dishes) => (dishes || []).filter((d) => (d.name || '').trim() || d.calories);
+/** Add a dish from Moje jedi to the current entry (as much as last time). */
+function addLibDish(d) {
+  if (!vn.result) { vn.result = { ai: false, dishes: [] }; vn.portion = 1; }
+  const p = (d.portion || 1) / (vn.portion || 1);
+  vn.result.dishes.push({ name: d.name, calories: d.base.calories * p, protein: d.base.protein * p, carbs: d.base.carbs * p, fat: d.base.fat * p, fromLib: true });
+  vn.error = '';
+  renderVnos();
+}
 
 function renderVnos() {
   if (!vn) vn = freshVnos();
@@ -3205,6 +3273,7 @@ function renderVnosNew(body, food) {
     hint.textContent = food ? 'Loči sestavine z vejico. Količine pomagajo AI-ju.' : 'Slika etikete + besedilo da najboljši rezultat.';
     lab.appendChild(hint);
     body.appendChild(lab);
+    if (food) body.appendChild(dishSuggestions());
   }
 
   if (vn.analyzing) {
@@ -3222,9 +3291,10 @@ function renderVnosNew(body, food) {
   if (vn.result) body.appendChild(food ? foodResultCard(edit) : suppResultCard());
   if (!vn.result && !vn.analyzing) body.appendChild(btn('Vpiši ročno, brez AI', 'link-plain', () => {
     const first = vn.text.split(/,|\n/)[0].trim();
+    const typed = vn.text.split(/,|\n/).map((x) => x.trim()).filter(Boolean);
     vn.result = food
-      ? { ai: false, name: first ? first.charAt(0).toUpperCase() + first.slice(1) : '', items: [], base: { calories: 0, protein: 0, carbs: 0, fat: 0 } }
-      : { ai: false, name: first, brand: '', dose: '', ingredients: parseIngredients(vn.text.split(/,|\n/).slice(1).join(',')), manualText: '' };
+      ? { ai: false, dishes: (typed.length ? typed : ['']).map((n) => ({ name: n ? capFirst(n) : '', calories: 0, protein: 0, carbs: 0, fat: 0 })) }
+      : { ai: false, name: first, brand: '', dose: '', ingredients: parseIngredients(vn.text.split(/,|\n/).slice(1).join(',')), manualText: '', calories: 0, protein: 0, carbs: 0, fat: 0 };
     vn.portion = 1;
     vn.error = '';
     renderVnos();
@@ -3241,6 +3311,28 @@ function renderVnosNew(body, food) {
     }));
     body.appendChild(del);
   }
+}
+
+/** Chips of dishes eaten before, filtered by the word being typed; a tap adds the dish (no AI, no typing). */
+function dishSuggestions() {
+  const wrap = document.createElement('div');
+  wrap.className = 'stack';
+  wrap.style.gap = '6px';
+  const all = libDishes();
+  if (!all.length) return wrap;
+  const last = (vn.text.split(/,|\n/).pop() || '').trim().toLowerCase();
+  const list = (last ? all.filter((d) => d.name.toLowerCase().indexOf(last) !== -1) : all).slice(0, 10);
+  wrap.innerHTML = '<span class="cap">Moje jedi — tapni in dodaj brez pisanja</span>';
+  const chips = document.createElement('div');
+  chips.className = 'dish-chips';
+  list.forEach((d) => {
+    const b = btn('', 'dish-chip', () => addLibDish(d), { 'aria-label': 'Dodaj ' + d.name });
+    b.innerHTML = escapeHtml(d.name) + ' <span>' + fmtInt(d.base.calories * d.portion) + '</span>';
+    chips.appendChild(b);
+  });
+  if (!list.length) chips.innerHTML = '<span class="vn-hint">Ni jedi s tem imenom — napiši in uporabi AI ali ročni vnos.</span>';
+  wrap.appendChild(chips);
+  return wrap;
 }
 
 function portionButtons(onPick) {
@@ -3293,64 +3385,83 @@ function foodResultCard(edit) {
   card.className = 'result-card';
   card.setAttribute('aria-label', 'Rezultat');
   const confName = { high: 'visoka', medium: 'srednja', low: 'nizka' }[r.conf];
-  card.innerHTML = '<div class="result-top"><b>' + (edit ? 'Uredi obrok' : r.ai ? 'Ocena AI' : 'Ročni vnos') + '</b><span style="color:' + (r.conf === 'high' ? '#7FF0DB' : '#FFD19A') + '">'
+  card.innerHTML = '<div class="result-top"><b>' + (edit ? 'Uredi jed' : r.ai ? 'Ocena AI' : 'Ročni vnos') + '</b><span style="color:' + (r.conf === 'high' ? '#7FF0DB' : '#FFD19A') + '">'
     + (r.ai && confName ? 'zanesljivost: ' + confName : r.ai ? 'AI' : 'brez AI') + '</span></div>'
-    + (r.notes ? '<span class="vn-hint">' + escapeHtml(r.notes) + '</span>' : '');
-  const nameF = document.createElement('label');
-  nameF.className = 'fld';
-  nameF.innerHTML = '<span class="cap">Ime</span>';
-  const name = document.createElement('input');
-  name.value = r.name; name.placeholder = 'npr. Losos z rižem'; name.maxLength = 60;
-  name.addEventListener('input', () => { r.name = name.value; });
-  nameF.appendChild(name);
-  card.appendChild(nameF);
-
-  if (r.items && r.items.length) {
-    const it = document.createElement('div');
-    it.className = 'stack';
-    it.style.gap = '6px';
-    it.innerHTML = '<span class="cap">Prepoznano</span>';
-    r.items.forEach((item, i) => {
-      const row = document.createElement('div');
-      row.className = 'item-row';
-      row.innerHTML = '<span>' + escapeHtml(item.name) + '</span><small>~' + fmtInt(item.kcal) + ' kcal</small>';
-      // removing an ingredient takes its share off the totals
-      row.appendChild(btn('✕', '', () => {
-        r.base.calories = Math.max(0, r.base.calories - item.kcal);
-        r.base.protein = Math.max(0, r.base.protein - item.protein);
-        r.base.carbs = Math.max(0, r.base.carbs - item.carbs);
-        r.base.fat = Math.max(0, r.base.fat - item.fat);
-        r.items.splice(i, 1);
-        renderVnos();
-      }, { 'aria-label': 'Odstrani ' + item.name }));
-      it.appendChild(row);
+    + (r.notes ? '<span class="vn-hint">' + escapeHtml(r.notes) + '</span>' : '')
+    + (!edit ? '<span class="cap">' + (r.dishes.length > 1 ? 'Jedi — vsaka se shrani posebej' : 'Jed') + '</span>' : '');
+  r.dishes.forEach((d, i) => {
+    const dc = document.createElement('div');
+    dc.className = 'dish-card';
+    const top = document.createElement('div');
+    top.className = 'dish-top';
+    const name = document.createElement('input');
+    name.value = d.name || ''; name.placeholder = 'ime jedi, npr. Pražen riž'; name.maxLength = 60; name.setAttribute('aria-label', 'Ime jedi');
+    name.addEventListener('input', () => { d.name = name.value; renderVnosPrimary(true); });
+    top.appendChild(name);
+    if (!edit && r.dishes.length > 1) top.appendChild(btn('✕', 'dish-x', () => { r.dishes.splice(i, 1); renderVnos(); }, { 'aria-label': 'Odstrani ' + (d.name || 'jed') }));
+    dc.appendChild(top);
+    const grid = document.createElement('div');
+    grid.className = 'macro-grid';
+    [['calories', 'kcal'], ['protein', 'B g'], ['carbs', 'OH g'], ['fat', 'M g']].forEach(([key, label]) => {
+      const f = document.createElement('label');
+      f.className = 'fld';
+      f.innerHTML = '<span class="cap">' + label + '</span>';
+      const inp = document.createElement('input');
+      inp.inputMode = 'numeric'; inp.value = round0((d[key] || 0) * vn.portion) || ''; inp.placeholder = '0';
+      // what is typed is for the chosen amount; stored per one portion
+      inp.addEventListener('input', () => { d[key] = (Number(inp.value.replace(',', '.')) || 0) / vn.portion; renderVnosPrimary(true); });
+      inp.addEventListener('change', () => renderVnos());
+      f.appendChild(inp);
+      grid.appendChild(f);
     });
-    card.appendChild(it);
-  }
-
-  const shown = baseScaled(r.base, vn.portion);
-  const grid = document.createElement('div');
-  grid.className = 'macro-grid';
-  [['calories', 'kcal'], ['protein', 'B g'], ['carbs', 'OH g'], ['fat', 'M g']].forEach(([key, label]) => {
-    const f = document.createElement('label');
-    f.className = 'fld';
-    f.innerHTML = '<span class="cap">' + label + '</span>';
-    const inp = document.createElement('input');
-    inp.inputMode = 'numeric'; inp.value = shown[key] || ''; inp.placeholder = '0';
-    // a number typed by hand redefines the portion-of-1 value
-    inp.addEventListener('input', () => { r.base[key] = (Number(inp.value.replace(',', '.')) || 0) / vn.portion; renderVnosPrimary(true); });
-    inp.addEventListener('change', () => renderVnos());
-    f.appendChild(inp);
-    grid.appendChild(f);
+    dc.appendChild(grid);
+    card.appendChild(dc);
   });
-  card.appendChild(grid);
+  if (!edit) {
+    const acts = document.createElement('div');
+    acts.className = 'dish-acts';
+    acts.appendChild(btn('+ Dodaj jed', '', () => { r.dishes.push({ name: '', calories: 0, protein: 0, carbs: 0, fat: 0 }); renderVnos(); }));
+    if (r.dishes.length > 1) acts.appendChild(btn('Združi v eno jed', '', () => {
+      const t = dishesTotal(r.dishes);
+      r.dishes = [Object.assign({ name: r.dishes.map((x) => x.name).filter(Boolean).join(' + ') }, t)];
+      renderVnos();
+    }));
+    card.appendChild(acts);
+    const lib = libDishes();
+    if (lib.length) {
+      const q = document.createElement('input');
+      q.type = 'search'; q.placeholder = 'Dodaj iz mojih jedi …'; q.setAttribute('aria-label', 'Išči med mojimi jedmi'); q.value = vn.libQ || '';
+      const chips = document.createElement('div');
+      chips.className = 'dish-chips';
+      const draw = () => {
+        const qq = (vn.libQ || '').trim().toLowerCase();
+        chips.innerHTML = '';
+        (qq ? lib.filter((d) => d.name.toLowerCase().indexOf(qq) !== -1) : lib).slice(0, 8).forEach((d) => {
+          const b = btn('', 'dish-chip', () => { vn.libQ = ''; addLibDish(d); });
+          b.innerHTML = escapeHtml(d.name) + ' <span>' + fmtInt(d.base.calories * d.portion) + '</span>';
+          chips.appendChild(b);
+        });
+      };
+      q.addEventListener('input', () => { vn.libQ = q.value; draw(); });
+      draw();
+      card.appendChild(q);
+      card.appendChild(chips);
+    }
+  }
+  const t = baseScaled(dishesTotal(r.dishes), vn.portion);
+  if (r.dishes.length > 1) {
+    const tot = document.createElement('div');
+    tot.className = 'dish-total';
+    tot.textContent = 'Skupaj ' + fmtInt(t.calories) + ' kcal · B ' + t.protein + ' · OH ' + t.carbs + ' · M ' + t.fat;
+    card.appendChild(tot);
+  }
   const pc = document.createElement('div');
   pc.className = 'stack';
   pc.style.gap = '6px';
-  pc.innerHTML = '<span class="cap">Količina</span>';
+  pc.innerHTML = '<span class="cap">Količina' + (r.dishes.length > 1 ? ' (za vse jedi)' : '') + '</span>';
   pc.appendChild(portionButtons((v) => { vn.portion = v; renderVnos(); }));
   card.appendChild(pc);
-  if (!edit) card.appendChild(splitBox(shown.calories));
+  if (!edit) card.appendChild(splitBox(t.calories));
   return card;
 }
 
@@ -3373,6 +3484,23 @@ function suppResultCard() {
     return f;
   };
   card.appendChild(field('Ime', r.name, 'npr. Magnezij citrat', (v) => { r.name = v; renderVnosPrimary(false); }));
+  const mg = document.createElement('div');
+  mg.className = 'macro-grid';
+  [['calories', 'kcal'], ['protein', 'B g'], ['carbs', 'OH g'], ['fat', 'M g']].forEach(([k, l]) => {
+    const f = document.createElement('label');
+    f.className = 'fld';
+    f.innerHTML = '<span class="cap">' + l + '</span>';
+    const i = document.createElement('input');
+    i.inputMode = 'decimal'; i.value = r[k] ? round0(r[k]) : ''; i.placeholder = '0';
+    i.addEventListener('input', () => { r[k] = Math.max(0, Number(i.value.replace(',', '.')) || 0); });
+    f.appendChild(i);
+    mg.appendChild(f);
+  });
+  const mgl = document.createElement('span');
+  mgl.className = 'cap';
+  mgl.textContent = 'Na odmerek (neobvezno, npr. proteinski napitek)';
+  card.appendChild(mgl);
+  card.appendChild(mg);
   if (r.brand) { const s = document.createElement('span'); s.className = 'vn-hint'; s.textContent = r.brand; card.appendChild(s); }
   const two = document.createElement('div');
   two.className = 'macro-grid';
@@ -3444,7 +3572,7 @@ function renderVnosHistList(food) {
   const day = foodDate.value || localDay(new Date());
   const lastLabel = (key) => (key === localDay(new Date()) ? 'danes' : WEEKDAY_SHORT[dayDate(key).getDay()].toLowerCase() + ' ' + shortDay(key));
   const src = food
-    ? pastMeals().filter((e) => !q || e.last.name.toLowerCase().indexOf(q) !== -1).slice(0, 40).map((e) => ({ key: e.last.name.toLowerCase(), e: e }))
+    ? libDishes().filter((d) => !q || d.name.toLowerCase().indexOf(q) !== -1).slice(0, 60).map((d) => ({ key: d.key, d: d }))
     : supplementList.filter((s) => !q || s.name.toLowerCase().indexOf(q) !== -1).map((s) => ({ key: s.name.toLowerCase(), s: s }));
   if (!src.length) {
     list.innerHTML = '<div class="empty-card">' + (food && !meals.length || !food && !supplementList.length ? 'Tu se bodo pojavili vnosi, ko jih enkrat dodaš.' : 'Ni zadetkov.') + ' Poskusi zavihek <b>Novo</b>.</div>';
@@ -3458,32 +3586,39 @@ function renderVnosHistList(food) {
     head.type = 'button';
     head.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (food) {
-      const m = x.e.last;
-      head.innerHTML = '<span class="n"><b>' + escapeHtml(m.name) + '</b><span>B ' + m.protein + ' · OH ' + m.carbs + ' · M ' + m.fat + ' · ' + x.e.count + '× · nazadnje ' + lastLabel(m.date) + '</span></span><span class="r">' + fmtInt(m.calories) + '</span>';
+      const d = x.d;
+      const v = baseScaled(d.base, d.portion);
+      head.innerHTML = '<span class="n"><b>' + escapeHtml(d.name) + '</b><span>B ' + v.protein + ' · OH ' + v.carbs + ' · M ' + v.fat
+        + (d.count ? ' · ' + d.count + '× · nazadnje ' + lastLabel(d.last.date) : ' · shranjena jed') + '</span></span><span class="r">' + fmtInt(v.calories) + '</span>';
     } else {
       const s = x.s;
       const n = supplements.filter((e) => e.name === s.name).length;
       const today = supplements.some((e) => e.name === s.name && e.date === day);
-      head.innerHTML = '<span class="n"><b>' + escapeHtml(s.name) + '</b><span>' + escapeHtml([s.serving, ingredientsText(s.ingredients), n + '×'].filter(Boolean).join(' · ')) + '</span></span><span class="r">' + (today ? '✓ danes' : '') + '</span>';
+      head.innerHTML = '<span class="n"><b>' + escapeHtml(s.name) + '</b><span>' + escapeHtml([s.serving, s.calories ? fmtInt(s.calories) + ' kcal' : '', ingredientsText(s.ingredients), n + '×'].filter(Boolean).join(' · ')) + '</span></span><span class="r">' + (today ? '✓ danes' : '') + '</span>';
     }
     head.addEventListener('click', () => {
       vn.pick = open ? null : x.key;
-      if (food && !open) { vn.portion = x.e.last.portion || 1; vn.split = false; vn.splitType = null; }
+      vn.editDish = null;
+      if (food && !open) { vn.portion = x.d.portion || 1; vn.split = false; vn.splitType = null; }
       renderVnosHistList(food);
     });
     item.appendChild(head);
     if (open) {
       const b = document.createElement('div');
       b.className = 'body';
-      if (food) {
-        const m = x.e.last;
-        const base = { calories: m.calories / (m.portion || 1), protein: m.protein / (m.portion || 1), carbs: m.carbs / (m.portion || 1), fat: m.fat / (m.portion || 1) };
+      if (food && vn.editDish === x.key) {
+        b.appendChild(dishEditor(x.d));
+      } else if (food) {
+        const d = x.d;
         b.appendChild(portionButtons((v) => { vn.portion = v; renderVnosHistList(true); }));
-        const kc = baseScaled(base, vn.portion).calories;
+        const kc = baseScaled(d.base, vn.portion).calories;
         b.appendChild(splitBox(kc));
         b.appendChild(btn(vn.split ? 'Dodaj · ' + splitLabel(kc) : 'Dodaj v ' + mealTypeLabel(vn.type) + ' · ' + fmtInt(kc) + ' kcal', 'big-food-btn', () => {
-          saveFood({ name: m.name, base: base, ai: false, repeatOf: m });
+          saveFood({ dishes: [Object.assign({ name: d.name }, d.base)], ai: false, repeatOf: d.last || true });
         }));
+        b.appendChild(btn('Uredi ime in vrednosti', 'link-plain', () => { vn.editDish = x.key; renderVnosHistList(true); }));
+      } else if (vn.editSupp === x.key) {
+        b.appendChild(suppEditor(x.s));
       } else {
         const slots = document.createElement('div');
         slots.className = 'split-grid';
@@ -3495,11 +3630,134 @@ function renderVnosHistList(food) {
           toast('Zabeleženo: ' + x.s.name + (x.s.serving ? ', ' + x.s.serving : '') + ' (' + vn.slot.toLowerCase() + ')');
           renderVnosHistList(false);
         }));
+        b.appendChild(btn('Uredi ime, vrednosti in sestavine', 'link-plain', () => { vn.editSupp = x.key; renderVnosHistList(false); }));
       }
       item.appendChild(b);
     }
     list.appendChild(item);
   });
+}
+
+/** Small form: name + kcal/B/OH/M for a list item. Values are for one portion / one serving. */
+function valuesForm(title, values, withIngredients) {
+  const f = document.createElement('div');
+  f.className = 'edit-form';
+  f.innerHTML = '<span class="cap">' + title + '</span>';
+  const name = document.createElement('input');
+  name.value = values.name || ''; name.maxLength = 60; name.setAttribute('aria-label', 'Ime');
+  f.appendChild(name);
+  const grid = document.createElement('div');
+  grid.className = 'macro-grid';
+  const inputs = {};
+  [['calories', 'kcal'], ['protein', 'B g'], ['carbs', 'OH g'], ['fat', 'M g']].forEach(([k, l]) => {
+    const lab = document.createElement('label');
+    lab.className = 'fld';
+    lab.innerHTML = '<span class="cap">' + l + '</span>';
+    const inp = document.createElement('input');
+    inp.inputMode = 'decimal'; inp.value = values[k] ? round0(values[k]) : ''; inp.placeholder = '0';
+    lab.appendChild(inp);
+    grid.appendChild(lab);
+    inputs[k] = inp;
+  });
+  f.appendChild(grid);
+  let serving = null, ingr = null;
+  if (withIngredients) {
+    serving = document.createElement('input');
+    serving.value = values.serving || ''; serving.placeholder = 'odmerek, npr. 1 kapsula'; serving.setAttribute('aria-label', 'Odmerek');
+    f.appendChild(serving);
+    ingr = document.createElement('input');
+    ingr.value = (values.ingredients || []).map((i) => i.name + (i.amount ? ' ' + String(i.amount).replace('.', ',') + ' ' + i.unit : '')).join(', ');
+    ingr.placeholder = 'sestavine, npr. Magnezij 300 mg, B6 2 mg'; ingr.setAttribute('aria-label', 'Sestavine na odmerek');
+    f.appendChild(ingr);
+  }
+  const read = () => {
+    const out = { name: name.value.trim() };
+    MACRO_KEYS.forEach((k) => { out[k] = Math.max(0, Number(String(inputs[k].value).replace(',', '.')) || 0); });
+    if (serving) out.serving = serving.value.trim();
+    if (ingr) {
+      // keep %PV of ingredients that are still listed
+      const old = values.ingredients || [];
+      out.ingredients = parseIngredients(ingr.value).map((i) => Object.assign(i, { nrv: (old.find((o) => o.name.toLowerCase() === i.name.toLowerCase()) || {}).nrv || 0 }));
+    }
+    return out;
+  };
+  return { el: f, read: read };
+}
+
+function dishEditor(d) {
+  const wrap = document.createElement('div');
+  wrap.className = 'stack';
+  wrap.style.gap = '8px';
+  const form = valuesForm('Za 1 porcijo', Object.assign({ name: d.name }, d.base), false);
+  wrap.appendChild(form.el);
+  const note = document.createElement('span');
+  note.className = 'vn-hint';
+  note.textContent = 'Velja za naslednje vnose. Že shranjeni obroki ostanejo, kot so bili (vsakega lahko urediš posebej s tapom na Prehrani).';
+  wrap.appendChild(note);
+  const acts = document.createElement('div');
+  acts.className = 'gate-btns';
+  acts.appendChild(btn('Prekliči', '', () => { vn.editDish = null; renderVnosHistList(true); }));
+  acts.appendChild(btn('Shrani jed', 'go', () => {
+    const v = form.read();
+    if (!v.name) return;
+    const newKey = dishKey(v.name);
+    if (newKey !== d.key) {
+      if (dishLib[newKey] && dishLib[newKey].hidden) delete dishLib[newKey];
+      dishLib[d.key] = { renamedTo: newKey };
+      // meals that already pointed here by an older name follow along
+      Object.keys(dishLib).forEach((k) => { if (dishLib[k] && dishLib[k].renamedTo === d.key) dishLib[k] = { renamedTo: newKey }; });
+    }
+    dishLib[newKey] = { name: v.name, calories: v.calories, protein: v.protein, carbs: v.carbs, fat: v.fat };
+    persistDishes();
+    vn.editDish = null; vn.pick = newKey;
+    toast('Jed posodobljena: ' + v.name);
+    renderVnosHistList(true);
+  }));
+  wrap.appendChild(acts);
+  const del = btn('Odstrani s seznama mojih jedi', 'danger-btn', null);
+  del.addEventListener('click', () => armedDelete(del, () => {
+    dishLib[d.key] = { hidden: true };
+    persistDishes();
+    vn.editDish = null; vn.pick = null;
+    toast('Jed odstranjena s seznama (obroki ostanejo)');
+    renderVnosHistList(true);
+  }));
+  wrap.appendChild(del);
+  return wrap;
+}
+
+function suppEditor(s) {
+  const wrap = document.createElement('div');
+  wrap.className = 'stack';
+  wrap.style.gap = '8px';
+  const form = valuesForm('Na odmerek (kcal in makri neobvezno)', s, true);
+  wrap.appendChild(form.el);
+  const acts = document.createElement('div');
+  acts.className = 'gate-btns';
+  acts.appendChild(btn('Prekliči', '', () => { vn.editSupp = null; renderVnosHistList(false); }));
+  acts.appendChild(btn('Shrani', 'go', () => {
+    const v = form.read();
+    if (!v.name) return;
+    const oldName = s.name;
+    Object.assign(s, v);
+    // a renamed supplement keeps its history (and today's ✓)
+    if (v.name !== oldName) supplements.forEach((e) => { if (e.name === oldName) e.name = v.name; });
+    persistSupps();
+    vn.editSupp = null; vn.pick = v.name.toLowerCase();
+    toast('Dopolnilo posodobljeno: ' + v.name);
+    renderVnosHistList(false);
+  }));
+  wrap.appendChild(acts);
+  const del = btn('Odstrani s seznama mojih dopolnil', 'danger-btn', null);
+  del.addEventListener('click', () => armedDelete(del, () => {
+    supplementList = supplementList.filter((x) => x !== s);
+    persistSupps();
+    vn.editSupp = null; vn.pick = null;
+    toast('Odstranjeno s seznama (vnosi ostanejo)');
+    renderVnosHistList(false);
+  }));
+  wrap.appendChild(del);
+  return wrap;
 }
 
 function splitLabel(kcal) {
@@ -3518,9 +3776,11 @@ function renderVnosPrimary(food) {
   if (r) {
     primary.disabled = false;
     if (food) {
-      const kc = baseScaled(r.base, vn.portion).calories;
+      const ds = usableDishes(r.dishes);
+      const kc = baseScaled(dishesTotal(ds), vn.portion).calories;
+      primary.disabled = !ds.length;
       primary.textContent = vn.editId ? 'Shrani spremembe · ' + fmtInt(kc) + ' kcal'
-        : vn.split ? 'Shrani · ' + splitLabel(kc) : 'Shrani v ' + mealTypeLabel(vn.type) + ' · ' + fmtInt(kc) + ' kcal';
+        : vn.split ? 'Shrani · ' + splitLabel(kc) : 'Shrani v ' + mealTypeLabel(vn.type) + (ds.length > 1 ? ' · ' + ds.length + ' jedi' : '') + ' · ' + fmtInt(kc) + ' kcal';
     } else {
       primary.textContent = 'Zabeleži dopolnilo';
       primary.disabled = !r.name.trim();
@@ -3569,9 +3829,10 @@ async function runAnalysis() {
     const data = await aiRequest(food ? '/meal' : '/supplement', { image: vn.photo ? vn.photo.analysisB64 : null, description: vn.text.trim() });
     vn.portion = 1;
     vn.result = food
-      ? { ai: true, conf: data.confidence, notes: data.notes, name: data.name || '', items: data.items || [],
-          base: { calories: data.calories, protein: data.protein, carbs: data.carbs, fat: data.fat } }
-      : { ai: true, conf: data.confidence, notes: data.notes, name: data.name || '', brand: data.brand || '', dose: data.serving || '', ingredients: data.ingredients || [] };
+      ? { ai: true, conf: data.confidence, notes: data.notes,
+          dishes: (data.items && data.items.length ? data.items.map((x) => ({ name: x.name, calories: x.kcal, protein: x.protein, carbs: x.carbs, fat: x.fat }))
+            : [{ name: data.name || '', calories: data.calories, protein: data.protein, carbs: data.carbs, fat: data.fat }]) }
+      : { ai: true, conf: data.confidence, notes: data.notes, name: data.name || '', brand: data.brand || '', dose: data.serving || '', ingredients: data.ingredients || [], calories: 0, protein: 0, carbs: 0, fat: 0 };
   } catch (e) {
     if (e.code === 'bad_passcode') { vn.analyzing = false; openGate(runAnalysis, 'Napačna koda. Poskusi znova.'); renderVnos(); return; }
     vn.error = 'Ocena ni uspela: ' + (e.message || e) + ' — lahko vpišeš ročno.';
@@ -3580,36 +3841,53 @@ async function runAnalysis() {
   renderVnos();
 }
 
-/** Save the current (or a repeated) meal; with "Razdeli" it becomes two linked meals. */
+/**
+ * Save what was eaten: every dish becomes its own meal record (so "Pražen riž"
+ * and "Jota" stay separate and each is reusable). With "Razdeli" every dish is
+ * split into two linked parts, the second possibly a pending leftover.
+ */
 function saveFood(src) {
   const day = foodDate.value || localDay(new Date());
-  const total = baseScaled(src.base, vn.portion);
-  const common = {
-    name: (src.name || '').trim() || mealTypeLabel(vn.type), portion: vn.portion,
-    confidence: src.ai ? src.conf || null : null, notes: src.ai ? src.notes || '' : '',
-    source: src.ai ? 'ai' : src.repeatOf ? 'repeat' : 'manual'
-  };
+  const dishes = usableDishes(src.dishes);
+  if (!dishes.length) return;
   const newPhoto = vn.photo ? vn.photo.keepBlob : null;
   const now = Date.now();
-  let first;
+  let first = null, kcalA = 0, kcalB = 0, n = 0;
+  dishes.forEach((d, di) => {
+    const total = baseScaled(d, vn.portion);
+    const common = {
+      name: (d.name || '').trim() || mealTypeLabel(vn.type), portion: vn.portion,
+      confidence: src.ai && !d.fromLib ? src.conf || null : null, notes: src.ai && !d.fromLib && di === 0 ? src.notes || '' : '',
+      source: d.fromLib || src.repeatOf ? 'repeat' : src.ai ? 'ai' : 'manual'
+    };
+    if (vn.split) {
+      const groupId = newId('g');
+      const a = vn.splitPct / 100;
+      const part = (share) => ({ calories: round0(total.calories * share), protein: round0(total.protein * share), carbs: round0(total.carbs * share), fat: round0(total.fat * share) });
+      const mA = Object.assign({ id: newId('m'), date: day, time: now + di * 2, type: vn.type, hasPhoto: false, split: { groupId: groupId, share: a } }, common, part(a));
+      const mB = Object.assign({ id: newId('m'), date: day, time: now + di * 2 + 1, type: splitOther(), hasPhoto: false, split: { groupId: groupId, share: 1 - a } }, common, part(1 - a));
+      if (vn.later) mB.pending = true;
+      meals.push(mA, mB);
+      kcalA += mA.calories; kcalB += mB.calories;
+      if (!first) first = mA;
+    } else {
+      const m = Object.assign({ id: newId('m'), date: day, time: now + di, type: vn.type, hasPhoto: false }, common, total);
+      meals.push(m);
+      kcalA += m.calories;
+      if (!first) first = m;
+    }
+    n++;
+  });
+  const what = n > 1 ? n + ' jedi' : first.name;
   if (vn.split) {
-    const groupId = newId('g');
-    const a = vn.splitPct / 100;
-    const part = (share) => ({ calories: round0(total.calories * share), protein: round0(total.protein * share), carbs: round0(total.carbs * share), fat: round0(total.fat * share) });
-    first = Object.assign({ id: newId('m'), date: day, time: now, type: vn.type, hasPhoto: false, split: { groupId: groupId, share: a } }, common, part(a));
-    const second = Object.assign({ id: newId('m'), date: day, time: now + 1, type: splitOther(), hasPhoto: false, split: { groupId: groupId, share: 1 - a } }, common, part(1 - a));
-    if (vn.later) second.pending = true;
-    meals.push(first, second);
-    toast(vn.later ? 'Dodano: ' + mealTypeLabel(vn.type) + ' ' + vn.splitPct + ' % · ' + (100 - vn.splitPct) + ' % čaka kot ostanek za ' + mealWord(second.type)
-      : 'Dodano: ' + mealTypeLabel(vn.type) + ' ' + fmtInt(first.calories) + ' + ' + mealTypeLabel(second.type) + ' ' + fmtInt(second.calories) + ' kcal');
+    toast(vn.later ? 'Dodano: ' + what + ' · ' + mealTypeLabel(vn.type) + ' ' + vn.splitPct + ' %, ' + (100 - vn.splitPct) + ' % čaka kot ostanek za ' + mealWord(splitOther())
+      : 'Dodano: ' + what + ' · ' + mealTypeLabel(vn.type) + ' ' + fmtInt(kcalA) + ' + ' + mealTypeLabel(splitOther()) + ' ' + fmtInt(kcalB) + ' kcal');
   } else {
-    first = Object.assign({ id: newId('m'), date: day, time: now, type: vn.type, hasPhoto: false }, common, total);
-    meals.push(first);
-    toast('Dodano v ' + mealTypeLabel(vn.type) + ' · ' + fmtInt(first.calories) + ' kcal' + (src.repeatOf ? ' (brez AI)' : ''));
+    toast('Dodano v ' + mealTypeLabel(vn.type) + ': ' + what + ' · ' + fmtInt(kcalA) + ' kcal' + (src.repeatOf || dishes.every((d) => d.fromLib) ? ' (brez AI)' : ''));
   }
   meals.sort((x, y) => x.date.localeCompare(y.date) || x.time - y.time);
   persistMeals();
-  if (newPhoto) storeMealPhoto(first.id, newPhoto);
+  if (newPhoto && first) storeMealPhoto(first.id, newPhoto);
   showFoodView('main');
 }
 
@@ -3628,8 +3906,8 @@ function storeMealPhoto(id, blob) {
 function saveEdit() {
   const m = meals.find((x) => x.id === vn.editId);
   if (!m) return;
-  const r = vn.result;
-  Object.assign(m, baseScaled(r.base, vn.portion), { name: r.name.trim() || m.name, type: vn.type, portion: vn.portion });
+  const d = vn.result.dishes[0];
+  Object.assign(m, baseScaled(d, vn.portion), { name: (d.name || '').trim() || m.name, type: vn.type, portion: vn.portion });
   if (vn.photoRemoved && m.hasPhoto && !vn.photo) { photoDelete(m.id); delete photoUrls[m.id]; m.hasPhoto = false; driveDeletePhoto(m.photoDriveId); delete m.photoDriveId; }
   persistMeals();
   if (vn.photo) storeMealPhoto(m.id, vn.photo.keepBlob);
@@ -3639,7 +3917,8 @@ function saveEdit() {
 
 function saveSupplementResult() {
   const r = vn.result;
-  const item = { name: r.name.trim() || 'Dopolnilo', brand: r.brand || '', serving: (r.dose || '').trim(), ingredients: r.ingredients || [] };
+  const item = { name: r.name.trim() || 'Dopolnilo', brand: r.brand || '', serving: (r.dose || '').trim(), ingredients: r.ingredients || [],
+    calories: r.calories || 0, protein: r.protein || 0, carbs: r.carbs || 0, fat: r.fat || 0 };
   const at = supplementList.findIndex((x) => x.name.toLowerCase() === item.name.toLowerCase());
   if (at === -1) supplementList.push(item); else supplementList[at] = Object.assign({}, supplementList[at], item); // a new label updates the contents
   logSupplement(item, vn.slot);
@@ -3652,7 +3931,7 @@ document.getElementById('vnPrimary').addEventListener('click', () => {
   if (!vn.result) { runAnalysis(); return; }
   if (vn.kind === 'dopolnilo') saveSupplementResult();
   else if (vn.editId) saveEdit();
-  else saveFood({ name: vn.result.name, base: vn.result.base, ai: vn.result.ai, conf: vn.result.conf, notes: vn.result.notes });
+  else saveFood({ dishes: vn.result.dishes, ai: vn.result.ai, conf: vn.result.conf, notes: vn.result.notes });
 });
 document.getElementById('vnBack').addEventListener('click', () => showFoodView('main'));
 document.querySelectorAll('#vnKinds [data-kind]').forEach((b) => b.addEventListener('click', () => {
@@ -4207,9 +4486,16 @@ document.addEventListener('click', (e) => {
 const LS_SHORTCUTS = 'kilometrina.shortcuts';
 const LS_TEMPLATES = 'kilometrina.templates';
 const LS_TR_DRAFT = 'kilometrina.trainingDraft'; // unsaved training on this device only
-const STROKES = [['kravl', 'Kravl'], ['hrbtno', 'Hrbtno'], ['prsno', 'Prsno'], ['delfin', 'Delfin'], ['mešana', 'Mešana']];
 const STROKE_WORDS = ['kravl', 'hrbtno', 'prsno', 'delfin', 'mešana'];
+const capFirst = (w) => String(w).charAt(0).toUpperCase() + String(w).slice(1);
+/** Stroke buttons come from the (editable) shortcuts; a set may still carry a stroke that was removed since. */
+function strokeList(extra) {
+  const list = (shortcuts.strokes && shortcuts.strokes.length ? shortcuts.strokes : STROKE_WORDS).slice();
+  if (extra && list.indexOf(extra) === -1) list.push(extra);
+  return list.map((k) => [k, capFirst(k)]);
+}
 const DEFAULT_SHORTCUTS = {
+  strokes: ['kravl', 'hrbtno', 'prsno', 'delfin', 'mešana'],
   reps: [1, 2, 4, 6, 8, 10, 12, 16, 20],
   dists: [25, 50, 75, 100, 150, 200, 300, 400, 800],
   tags: ['raz.', 'tempo', 'C.T.', 'max.', 'noge', 'roke', 'šnorkel', 'plavutke', 'DIH', 'tehnika'],
@@ -4239,6 +4525,7 @@ function addWordsAsTags(sc, words) {
 }
 function mergeWordsIntoTags(words) { addWordsAsTags(shortcuts, words); }
 let shortcuts = lsGet(LS_SHORTCUTS, null) || defaultShortcuts();
+if (!Array.isArray(shortcuts.strokes) || !shortcuts.strokes.length) shortcuts.strokes = DEFAULT_SHORTCUTS.strokes.slice(); // saved before strokes were editable
 let templates = lsGet(LS_TEMPLATES, null) || cloneJson(DEFAULT_TEMPLATES);
 function persistShortcuts() { lsSet(LS_SHORTCUTS, shortcuts); scheduleDriveSync(); }
 function persistTemplates() { lsSet(LS_TEMPLATES, templates); scheduleDriveSync(); }
@@ -4287,6 +4574,8 @@ function parseLine(t) {
     if (!n) return;
     const single = { k: 'kravl', h: 'hrbtno', p: 'prsno', d: 'delfin', m: 'mešana' }[n];
     if (single) { stroke = single; return; }
+    const custom = (shortcuts.strokes || []).find((st) => tagNorm(st) === n);
+    if (custom) { stroke = custom; return; }
     const pre = [['hrbt', 'hrbtno'], ['prsn', 'prsno'], ['delf', 'delfin'], ['meš', 'mešana'], ['mes', 'mešana'], ['kravl', 'kravl'], ['prost', 'kravl']].find((p) => n.indexOf(p[0]) === 0);
     if (pre) { stroke = pre[1]; return; }
     const tag = shortcuts.tags.find((k) => tagNorm(k) === n);
@@ -4474,7 +4763,7 @@ function renderSetEditor(s, i) {
     ed.appendChild(dist);
     const strokes = document.createElement('div');
     strokes.className = 'stroke-grid';
-    STROKES.forEach(([k, label]) => strokes.appendChild(btn(label, 'chip-btn' + (s.stroke === k ? ' on' : ''), () => patchSet(s.id, { stroke: k }))));
+    strokeList(s.stroke).forEach(([k, label]) => strokes.appendChild(btn(label, 'chip-btn' + (s.stroke === k ? ' on' : ''), () => patchSet(s.id, { stroke: k }))));
     ed.appendChild(strokes);
     const tags = document.createElement('div');
     tags.className = 'chip-wrap';
@@ -4535,7 +4824,7 @@ function renderTrInput() {
   shortcuts.dists.forEach((d) => dists.appendChild(btn(String(d), 'chip-btn big' + (b.dist === d && okDist(d) ? ' on' : ''), () => setB({ dist: d }), { 'aria-label': d + ' metrov', disabled: !okDist(d) })));
   const strokes = document.getElementById('trStrokeChips');
   strokes.innerHTML = '';
-  STROKES.forEach(([k, label]) => strokes.appendChild(btn(label, 'chip-btn' + (b.stroke === k ? ' on' : ''), () => setB({ stroke: k }))));
+  strokeList().forEach(([k, label]) => strokes.appendChild(btn(label, 'chip-btn' + (b.stroke === k ? ' on' : ''), () => setB({ stroke: k }))));
   const tags = document.getElementById('trTagChips');
   tags.innerHTML = '';
   shortcuts.tags.concat(shortcuts.intervals).forEach((t) => tags.appendChild(btn(t, 'chip-btn round' + (b.tags.indexOf(t) !== -1 ? ' soft' : ''), () => setB({ tags: toggleTag(b.tags, t) }))));
@@ -4703,7 +4992,7 @@ document.getElementById('tplSaveBtn').addEventListener('click', () => {
   flash('Shranjeno kot predloga');
 });
 
-const SC_GROUPS = [['reps', 'Ponovitve', 'npr. 5', 'numeric'], ['dists', 'Razdalje (m)', 'npr. 250', 'numeric'], ['tags', 'Oznake', 'npr. pull buoy', 'text'], ['intervals', 'Intervali', 'npr. 1:15', 'text']];
+const SC_GROUPS = [['strokes', 'Slogi', 'npr. prosto', 'text'], ['reps', 'Ponovitve', 'npr. 5', 'numeric'], ['dists', 'Razdalje (m)', 'npr. 250', 'numeric'], ['tags', 'Oznake', 'npr. pull buoy', 'text'], ['intervals', 'Intervali', 'npr. 1:15', 'text']];
 function addShortcut(key, raw, showErr) {
   raw = String(raw || '').trim();
   if (!raw) return false;
@@ -4712,6 +5001,7 @@ function addShortcut(key, raw, showErr) {
   if (key === 'dists') { val = parseInt(raw, 10); if (!(val >= 25 && val <= 5000) || val % 25 !== 0) return showErr('Razdalja mora biti deljiva s 25 (25–5000)'); }
   if (key === 'intervals') { const m = raw.replace(/^na\s*/i, '').match(/^(\d{1,2})[:.](\d{2})$/); if (!m) return showErr('Oblika m:ss, npr. 1:15'); val = 'na ' + (+m[1]) + ':' + m[2]; }
   if (key === 'tags' && raw.length > 14) return showErr('Največ 14 znakov');
+  if (key === 'strokes') { val = raw.toLowerCase(); if (val.length > 14) return showErr('Največ 14 znakov'); }
   if (shortcuts[key].indexOf(val) !== -1) return showErr('Ta gumb že obstaja');
   let list = shortcuts[key].concat(val);
   if (key === 'reps' || key === 'dists') list = list.sort((a, b) => a - b);
@@ -4734,7 +5024,10 @@ function renderShortcutEditor() {
       it.className = 'sc-item';
       if (!numeric && i > 0) it.appendChild(btn('‹', 'l', () => { const a = shortcuts[key].slice(); a[i] = a[i - 1]; a[i - 1] = v; shortcuts[key] = a; persistShortcuts(); renderShortcutEditor(); }, { 'aria-label': 'Premakni ' + v + ' levo' }));
       const lab = document.createElement('span'); lab.textContent = String(v); it.appendChild(lab);
-      it.appendChild(btn('×', 'x', () => { shortcuts[key] = shortcuts[key].filter((x) => x !== v); persistShortcuts(); renderShortcutEditor(); }, { 'aria-label': 'Odstrani ' + v }));
+      it.appendChild(btn('×', 'x', () => {
+        if (key === 'strokes' && shortcuts.strokes.length <= 1) return; // at least one stroke button
+        shortcuts[key] = shortcuts[key].filter((x) => x !== v); persistShortcuts(); renderShortcutEditor();
+      }, { 'aria-label': 'Odstrani ' + v }));
       items.appendChild(it);
     });
     g.appendChild(items);
