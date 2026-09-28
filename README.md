@@ -305,6 +305,32 @@ Stari treningi ostanejo nespremenjeni: set je še vedno `{ text, meters }`, novi
 urejanju pokažejo kot besedilo (lahko jih pretvoriš v set). Nekdanje besede »Hitro vstavi« so zdaj med
 oznakami. V Drive kopiji so novi ključi `shortcuts`, `templates` in `weekGoal`.
 
+## 10. Prenova (faza 2): prehrana in makro cilji
+
+- **Prehrana** — trak zadnjih 7 dni (tapni *mesec* za starejši dan), trije makro krogi (tapni → Makro
+  cilji), obroki po vrstah (zajtrk, kosilo, prigrizek, večerja; tapni obrok za urejanje ali brisanje),
+  pijača (ploščice = en tap doda zadnjo količino, spodaj *Druga pijača*), dopolnila (tap = zabeleži,
+  tap na ✓ = odstrani ta dan). Gumb **Dodaj hrano** odpre vnos.
+- **Vnos** — *Hrana | Dopolnilo*, zavihka *Novo* in *Že jedel / Moja dopolnila*. Besedilo in/ali slika
+  (kamera ali galerija); pri sliki polje postane »Dopiši, česar ni na sliki« in AI dobi oboje. Rezultat
+  je urejljiv (ime, prepoznane sestavine — ✕ odšteje njihov delež, kcal/B/OH/M, količina ½–2).
+  *Vpiši ročno, brez AI* ostane. Pred prvo AI uporabo se odpre okno za kodo (potrebna je Google prijava;
+  *Pokaži kodo*, *Zapomni si na tej napravi*); ključavnica zgoraj desno kodo pozabi (dva tapa).
+- **Razdeli na dva obroka** — drugi obrok in razmerje v korakih po 10 %. S kljukico »del še ni pojeden«
+  se drugi del pokaže kot *Ostanki* z gumbi **Pojedel / Polovico / Zavrgel**; do potrditve ne šteje v
+  vsote. Model: `split: { groupId, share }`, ostanek še `pending: true`.
+- **Dopolnila** — etiketa in/ali besedilo (AI tudi samo iz besedila), odmerek, *kdaj* (zjutraj / po
+  treningu / zvečer, shrani se kot `slot`).
+- **Makro cilji** — *Samodejno* (Mifflin-St Jeor + vsakdanja aktivnost 1,25 / 1,4 / 1,55 + šport
+  (MET − 1) × kg × ur/teden / 7, ±10 % za cilj; beljakovine g/kg, maščobe % energije, OH ostanek;
+  masa iz zadnjega vnosa mase) ali *Po meri* (g/kg ali g na dan, opomba). **Koledar**: krona, ko so vsi
+  trije makri ≥ 90 % cilja; pike za posamezne makre; število kron, najdaljši niz, % dni; nagrade.
+  Nastavitve so v `kilometrina.goals` in v Drive kopiji (`goals`); v xlsx zavihek *Cilji*, v
+  *Dnevnem pregledu* stolpec *Krona*, v *Prehrani* *Del obroka* in *Stanje*.
+
+Stari obroki in dopolnila delujejo naprej; nova polja (`split`, `pending`, `slot`) so neobvezna.
+Worker (`/meal`) zdaj vrne tudi `items` (prepoznane sestavine), `/supplement` pa sprejme tudi samo opis.
+
 ## Ko boš želel dodati novo funkcijo
 
 Vrni se v ta pogovor s Claude in povej, kaj bi rad spremenil ali dodal. Ko bom

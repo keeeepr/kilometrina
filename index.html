@@ -465,6 +465,11 @@
   .tile .v strong { font-family: 'Bricolage Grotesque', sans-serif; font-size: 26px; font-weight: 800; }
   .tile .v span, .tile .s { font-size: 12px; color: var(--text-dim); }
   .macro-lines { display: flex; flex-direction: column; gap: 5px; }
+  .macro-bars { display: flex; flex-direction: column; gap: 6px; }
+  .mbar { display: flex; align-items: center; gap: 8px; }
+  .mbar span { width: 20px; font-size: 11px; font-weight: 700; color: var(--text-dim); }
+  .mbar i { flex: 1; height: 6px; border-radius: 999px; background: #1E3143; overflow: hidden; }
+  .mbar b { display: block; height: 100%; border-radius: 999px; background: var(--food); }
   .macro-lines div { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); }
   .macro-lines b { color: var(--text); font-weight: 700; }
 
@@ -628,6 +633,246 @@
   .hist-actions .c { background: #253545; color: var(--text-soft); }
   .hist-actions .x { background: #7A2A22; color: #FFE1DC; }
 
+  /* ================= Prenova faza 2: Prehrana ================= */
+  .month-pick { position: relative; display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--field-line); background: var(--panel); font-size: 13px; font-weight: 600; color: var(--text-soft); cursor: pointer; }
+  .month-pick input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; padding: 0; border: 0; cursor: pointer; }
+  .day-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 14px; }
+  .day-strip button { min-height: 56px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; padding: 0; }
+  .day-strip span { font-size: 10px; font-weight: 700; color: var(--text-dim); }
+  .day-strip b { font-size: 15px; font-weight: 700; }
+  .day-strip .crown { width: 12px; height: 12px; }
+  .day-strip button[aria-pressed="true"] { border-color: var(--food); background: var(--food); color: #2E1A04; }
+  .day-strip button[aria-pressed="true"] span { color: #2E1A04; font-weight: 800; }
+  .ring-card { width: 100%; display: flex; flex-direction: column; gap: 14px; padding: 18px; margin-bottom: 14px; border-radius: 22px; background: var(--panel); border: 1px solid var(--line); text-align: left; cursor: pointer; }
+  .ring-row { display: flex; gap: 18px; align-items: center; }
+  .ring-row svg { flex-shrink: 0; }
+  .ring-legend { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .ring-legend .k { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
+  .ring-legend .k i { width: 8px; height: 8px; border-radius: 999px; }
+  .ring-legend .v { font-size: 15px; font-weight: 700; }
+  .ring-legend .v small { font-size: 12px; font-weight: 500; color: var(--text-dim); }
+  .ring-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; color: var(--text-dim); }
+  .ring-foot .crowns { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--amber); }
+  .ring-wrap { position: relative; flex-shrink: 0; }
+  .ring-wrap .crown-mid { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .food-section { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+  .sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .sec-head h2 { margin: 0; font-size: 18px; font-weight: 700; }
+  .sec-head > span { font-size: 13px; color: var(--text-dim); }
+  .meal-group { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .meal-group + .meal-group { margin-top: 12px; }
+  .meal-row { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); text-align: left; cursor: pointer; }
+  .meal-ico { width: 48px; height: 48px; flex-shrink: 0; border-radius: 12px; background: #2A2418; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .meal-ico img { width: 100%; height: 100%; object-fit: cover; }
+  .meal-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .meal-mid b { font-size: 15px; }
+  .meal-mid .m { font-size: 12px; color: var(--text-dim); }
+  .meal-mid .conf-high { color: #7FF0DB; }
+  .meal-mid .conf-mid { color: #FFD19A; }
+  .meal-mid .conf-low { color: var(--coral); }
+  .meal-kcal { font-family: 'Bricolage Grotesque', sans-serif; font-size: 16px; font-weight: 700; white-space: nowrap; }
+  .split-badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; min-height: 22px; padding: 0 8px; border-radius: 999px; background: #1F2A36; font-size: 11px; font-weight: 700; color: var(--text-soft); }
+  .leftover { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 16px; border: 1px dashed #6A5230; background: #1A1710; }
+  .leftover .row { display: flex; align-items: center; gap: 12px; }
+  .leftover .m { color: #C9B98E; }
+  .leftover .meal-kcal { color: #FFD19A; }
+  .leftover-acts { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px; }
+  .leftover-acts button { min-height: 44px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid #4A3B22; background: transparent; color: #FFD19A; }
+  .leftover-acts .eat { border: 0; background: var(--food); color: #2E1A04; font-weight: 800; }
+  .leftover-acts .toss { border-color: #2A3F53; color: var(--text-dim); }
+  .add-dashed { width: 100%; min-height: 44px; border-radius: 16px; border: 1px dashed #3A4F63; background: transparent; font-size: 14px; font-weight: 600; color: var(--text-soft); cursor: pointer; }
+  .drink-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .drink-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px; min-width: 0; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; text-align: left; }
+  .drink-tile span { font-size: 12px; color: var(--text-dim); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .drink-tile b { font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700; }
+  .drink-tile i { font-style: normal; font-size: 12px; font-weight: 700; color: var(--food); }
+  .more { border-radius: 16px; border: 1px solid var(--line); background: var(--panel); padding: 0 14px; }
+  .more summary { min-height: 44px; display: flex; align-items: center; font-size: 13px; font-weight: 700; color: var(--text-soft); cursor: pointer; list-style: none; }
+  .more summary::-webkit-details-marker { display: none; }
+  .more summary::after { content: '›'; margin-left: auto; color: var(--text-dim); }
+  .more[open] { padding-bottom: 14px; }
+  .supp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .supp-chip { min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid #2A3F53; background: transparent; color: var(--text-soft); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .supp-chip[aria-pressed="true"] { border-color: #6A5230; background: #2A2418; color: #FFD19A; font-weight: 700; }
+  .supp-chip.add { border-style: dashed; border-color: #3A4F63; color: var(--food); font-weight: 700; }
+  .fab-food {
+    position: fixed; right: max(20px, calc(50% - 300px)); bottom: calc(var(--nav-h) + var(--safe-b) + 16px); z-index: 15;
+    min-height: 56px; padding: 0 20px 0 16px; border-radius: 18px; border: 0; cursor: pointer;
+    background: var(--food); color: #2E1A04; font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 10px 30px rgba(255, 180, 94, 0.25);
+  }
+  body[data-tab="prehrana"] { padding-bottom: calc(var(--nav-h) + var(--safe-b) + 96px); }
+  .toast {
+    position: fixed; left: 16px; right: 16px; bottom: calc(var(--nav-h) + var(--safe-b) + 84px); z-index: 30; max-width: 608px; margin: 0 auto;
+    display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px;
+    background: #173A3A; border: 1px solid #2F6D66; color: #BFF7EC; font-size: 14px; font-weight: 600;
+  }
+
+  /* Vnos (hrana / dopolnilo) and Cilji share a header with back button and tabs */
+  .vn-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .vn-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .vn-title { flex: 1; font-size: 20px; font-weight: 800; }
+  .icon-btn.big { width: 44px; height: 44px; border-radius: 14px; }
+  .food-seg { flex: 0 1 auto; }
+  .food-seg button { min-height: 36px; padding: 0 16px; font-size: 14px; }
+  .food-seg button[aria-pressed="true"] { background: var(--food); color: #2E1A04; }
+  .vn-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+  .vn-tabs button { min-height: 44px; border: 0; background: transparent; font-size: 14px; font-weight: 700; color: var(--text-dim); cursor: pointer; }
+  .vn-tabs button[aria-selected="true"] { color: var(--food); box-shadow: inset 0 -3px 0 var(--food); }
+  .vn-body { gap: 14px; }
+  .type-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .opt { min-height: 40px; border-radius: 12px; border: 1px solid #2A3F53; background: transparent; color: var(--text-soft); font-size: 13px; font-weight: 700; cursor: pointer; padding: 0 6px; }
+  .opt[aria-pressed="true"] { background: var(--food); color: #2E1A04; border-color: var(--food); }
+  .opt.soft[aria-pressed="true"] { background: #2A2418; color: #FFD19A; border-color: #6A5230; }
+  .photo-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .photo-pick button { min-height: 88px; border-radius: 18px; border: 1px dashed #4A5F73; background: #0E1A25; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .photo-prev { position: relative; height: 170px; border-radius: 18px; overflow: hidden; background: #2A2418; border: 1px solid #4A3B22; }
+  .photo-prev img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-prev button { position: absolute; top: 8px; right: 8px; width: 40px; height: 40px; border-radius: 12px; border: 0; background: rgba(9, 19, 29, 0.8); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .vn-label { font-size: 13px; font-weight: 700; color: var(--text-soft); }
+  .vn-hint { font-size: 12px; color: var(--text-dim); }
+  .vn-text { width: 100%; min-height: 104px; resize: none; border-radius: 16px; background: var(--panel); line-height: 1.45; }
+  .busy-card { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 18px; background: var(--panel); border: 1px solid var(--line); font-size: 14px; font-weight: 600; }
+  .busy-card i { width: 10px; height: 10px; border-radius: 999px; background: var(--food); animation: pulse 1s ease-in-out infinite alternate; }
+  @keyframes pulse { from { opacity: 0.3; } to { opacity: 1; } }
+  .err-card { padding: 12px 14px; border-radius: 14px; background: var(--coral-bg); border: 1px solid #5A2A28; color: var(--coral); font-size: 13px; line-height: 1.5; }
+  .result-card { display: flex; flex-direction: column; gap: 14px; padding: 16px; border-radius: 20px; background: var(--panel); border: 1px solid #4A3B22; }
+  .result-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .result-top b { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #FFD19A; }
+  .result-top span { font-size: 12px; font-weight: 700; text-align: right; }
+  .cap { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); }
+  .fld { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .fld input { width: 100%; min-width: 0; min-height: 44px; font-weight: 600; }
+  .item-row { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 4px 0 12px; border-radius: 12px; background: var(--field); }
+  .item-row span { flex: 1; min-width: 0; font-size: 14px; }
+  .item-row small { font-size: 13px; color: var(--text-dim); white-space: nowrap; }
+  .item-row button { width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--text-dim); font-size: 16px; cursor: pointer; }
+  .macro-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .macro-grid input { text-align: left; font-weight: 700; padding: 0 10px; }
+  .portion-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .split-box { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 14px; background: var(--field); border: 1px solid var(--line); }
+  .split-box.on { border-color: #6A5230; }
+  .check-row { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+  .check-row .box { width: 22px; height: 22px; flex-shrink: 0; border-radius: 7px; border: 2px solid #4A5F73; display: flex; align-items: center; justify-content: center; }
+  .check-row[aria-pressed="true"] .box { border-color: var(--food); background: var(--food); }
+  .check-row .t { display: flex; flex-direction: column; gap: 1px; }
+  .check-row .t b { font-size: 14px; }
+  .check-row .t span { font-size: 12px; color: var(--text-dim); }
+  .split-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .split-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: #2A3F53; }
+  .split-bar div { background: var(--food); }
+  .split-step { display: flex; align-items: center; gap: 8px; }
+  .split-step > button { width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px; border: 1px solid var(--field-line); background: var(--panel); font-size: 18px; cursor: pointer; }
+  .split-step .mid { flex: 1; display: flex; justify-content: space-between; font-size: 13px; }
+  .split-step .mid span { display: flex; flex-direction: column; }
+  .split-step .mid span:last-child { align-items: flex-end; }
+  .split-step .a { font-weight: 800; color: var(--food); }
+  .split-step .b { font-weight: 800; color: var(--text-soft); }
+  .split-step small { color: var(--text-dim); }
+  .link-plain { align-self: center; min-height: 44px; padding: 0 12px; border: 0; background: transparent; font-size: 14px; font-weight: 600; color: var(--text-soft); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .danger-btn { min-height: 44px; border-radius: 12px; border: 1px solid #5A2A28; background: var(--coral-bg); color: var(--coral); font-size: 14px; font-weight: 700; cursor: pointer; }
+  .vn-bottom {
+    position: sticky; bottom: calc(var(--nav-h) + var(--safe-b)); z-index: 10;
+    display: flex; flex-direction: column; gap: 6px; margin: 14px -16px 0; padding: 12px 16px;
+    background: #0E1A25; border-top: 1px solid var(--line);
+  }
+  .vn-primary { min-height: 54px; border: 0; border-radius: 16px; background: var(--food); color: #2E1A04; font-size: 16px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; padding: 0 12px; }
+  .vn-primary:disabled { background: #1E2B37; color: #6F8596; cursor: default; }
+  .vn-note { text-align: center; font-size: 12px; color: var(--text-dim); }
+  .hist-food { border-radius: 16px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+  .hist-food.open { background: #161F28; border-color: #4A3B22; }
+  .hist-food > button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 0; background: transparent; text-align: left; cursor: pointer; }
+  .hist-food .n { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .hist-food .n b { font-size: 15px; }
+  .hist-food .n span { font-size: 12px; color: var(--text-dim); }
+  .hist-food .r { font-family: 'Bricolage Grotesque', sans-serif; font-size: 16px; font-weight: 700; color: #FFD19A; white-space: nowrap; }
+  .hist-food .body { display: flex; flex-direction: column; gap: 10px; padding: 0 14px 14px; }
+  .big-food-btn { min-height: 48px; border: 0; border-radius: 12px; background: var(--food); color: #2E1A04; font-size: 15px; font-weight: 800; cursor: pointer; padding: 0 12px; }
+  .gate-row { display: flex; gap: 12px; align-items: center; }
+  .gate-row .ico { width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; background: #2A2418; display: flex; align-items: center; justify-content: center; }
+  .gate-row .d { font-size: 20px; font-weight: 800; }
+  .gate-input { min-height: 52px; font-size: 20px; letter-spacing: 0.15em; }
+  .gate-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .gate-btns button { min-height: 50px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; border: 1px solid #2A3F53; background: transparent; }
+  .gate-btns .go { border: 0; background: var(--food); color: #2E1A04; font-weight: 800; }
+
+  /* Makro cilji */
+  .rings-card { display: flex; gap: 16px; align-items: center; padding: 16px; border-radius: 22px; background: var(--panel); border: 1px solid var(--line); }
+  .stat3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .stat3 > div { display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); min-width: 0; }
+  .stat3 .gold { background: #1F1A0E; border-color: #4A3B1A; }
+  .stat3 b { font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
+  .stat3 .gold b { color: var(--amber); }
+  .stat3 span { font-size: 12px; color: var(--text-dim); }
+  .cal-card { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 22px; background: var(--panel); border: 1px solid var(--line); }
+  .cal-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .cal-head h2 { margin: 0; font-size: 18px; font-weight: 700; flex: 1; }
+  .cal-head button { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--field-line); background: var(--field); font-size: 18px; cursor: pointer; }
+  .cal-dow, .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .cal-dow span { font-size: 11px; font-weight: 700; color: var(--text-dim); text-align: center; }
+  .cal-cell { min-height: 48px; padding: 0; border-radius: 12px; border: 1px solid transparent; background: var(--field); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; }
+  .cal-cell b { font-size: 13px; font-weight: 700; }
+  .cal-cell.crown { border-color: #4A3B1A; background: #1F1A0E; }
+  .cal-cell.crown b { color: #FFE3A3; }
+  .cal-cell.future { border: 1px dashed var(--field-line); background: transparent; cursor: default; }
+  .cal-cell.future b { color: #4A5F73; }
+  .cal-cell.today { border-color: var(--food); }
+  .cal-cell.sel { border: 2px solid var(--text); }
+  .cal-cell.blank { visibility: hidden; }
+  .dots { display: flex; gap: 2px; }
+  .dots i { width: 5px; height: 5px; border-radius: 999px; background: #2A3F53; }
+  .cal-sel { display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 14px; background: var(--field); }
+  .cal-sel b { font-size: 14px; }
+  .cal-sel span { font-size: 13px; color: var(--text-soft); }
+  .badge-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
+  .badge-row.done { background: #1F1A0E; border-color: #4A3B1A; }
+  .badge-row .ico { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: #1A2B3B; display: flex; align-items: center; justify-content: center; }
+  .badge-row.done .ico { background: #3A2E12; }
+  .badge-row .mid { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .badge-row .mid b { font-size: 14px; }
+  .badge-row.done .mid b { color: #FFE3A3; }
+  .badge-row .bar { height: 5px; border-radius: 999px; background: #1E3143; }
+  .badge-row .bar div { height: 100%; border-radius: 999px; background: var(--amber); }
+  .badge-row small { font-size: 12px; font-weight: 700; color: var(--text-dim); }
+  .g-card { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 22px; background: var(--panel); border: 1px solid var(--line); }
+  .g-card h2 { margin: 0; font-size: 17px; font-weight: 700; }
+  .g-card .hint2 { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+  .seg2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 3px; border-radius: 12px; background: var(--field); border: 1px solid var(--field-line); }
+  .seg2 button { min-height: 38px; border: 0; border-radius: 9px; background: transparent; color: var(--text-dim); font-size: 13px; font-weight: 700; cursor: pointer; }
+  .seg2 button[aria-pressed="true"] { background: var(--food); color: #2E1A04; }
+  .step-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; border-top: 1px solid #1A2B3B; }
+  .step-row:first-of-type { border-top: 0; }
+  .step-row .lab { display: flex; flex-direction: column; min-width: 0; }
+  .step-row .lab b { font-size: 14px; }
+  .step-row .lab span { font-size: 12px; color: var(--text-dim); }
+  .stepper { display: flex; align-items: center; flex-shrink: 0; border-radius: 12px; border: 1px solid var(--field-line); background: var(--field); }
+  .stepper button { width: 44px; height: 44px; border: 0; background: transparent; font-size: 19px; cursor: pointer; }
+  .stepper span { min-width: 72px; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-size: 16px; font-weight: 700; }
+  .opt-list { display: flex; flex-direction: column; gap: 8px; }
+  .opt-big { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border-radius: 12px; border: 1px solid #2A3F53; background: transparent; text-align: left; color: var(--text-soft); cursor: pointer; }
+  .opt-big b { font-size: 14px; }
+  .opt-big span { font-size: 12px; opacity: 0.8; }
+  .opt-big[aria-pressed="true"] { background: #2A2418; color: #FFE3C4; border-color: var(--food); }
+  .sport-row { display: flex; align-items: center; gap: 6px; min-height: 52px; border-top: 1px solid #1A2B3B; }
+  .sport-row .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .sport-row .nm b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sport-row .nm span { font-size: 12px; color: var(--text-dim); }
+  .sport-row .int { flex-shrink: 0; min-height: 34px; padding: 0 8px; border-radius: 999px; border: 1px solid #2A3F53; background: transparent; font-size: 11px; font-weight: 700; cursor: pointer; }
+  .sport-row .pm { width: 38px; height: 40px; flex-shrink: 0; border-radius: 10px; border: 1px solid var(--field-line); background: var(--field); font-size: 17px; cursor: pointer; }
+  .sport-row .h { width: 26px; flex-shrink: 0; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-size: 16px; font-weight: 700; }
+  .sport-row .x { width: 34px; height: 40px; flex-shrink: 0; border: 0; background: transparent; color: var(--coral); font-size: 15px; cursor: pointer; }
+  .sport-add { display: flex; gap: 6px; padding-top: 8px; border-top: 1px solid #1A2B3B; }
+  .sport-add input { flex: 1; min-width: 0; }
+  .calc-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 22px; background: #1F1A0E; border: 1px solid #4A3B1A; }
+  .calc-card .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .calc-card h2 { margin: 0; font-size: 17px; font-weight: 700; }
+  .calc-card .kc { font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 800; color: var(--amber); }
+  .calc-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .calc-grid > div { display: flex; flex-direction: column; gap: 2px; padding: 10px; border-radius: 12px; background: var(--panel); min-width: 0; }
+  .calc-grid b { font-size: 18px; font-weight: 800; }
+  .calc-grid span { font-size: 11px; color: var(--text-dim); }
+  .calc-card p { margin: 0; font-size: 12px; line-height: 1.5; color: #C9B98E; }
+
   @media (max-width: 640px) {
     .meta-row { grid-template-columns: 1fr; }
     .compose-row { grid-template-columns: 1fr; }
@@ -772,125 +1017,86 @@
   <div data-tab="zgodovina" hidden id="historyList" class="stack"></div>
   <p data-tab="zgodovina" hidden class="muted-sm center">Tapni trening za podrobnosti, urejanje, podvajanje ali brisanje. Na iPhonu izvoz CSV odpre okno »Deli« (Google Drive, Datoteke …).</p>
 
-  <header class="screen-head" data-tab="prehrana" hidden><h1>Prehrana</h1></header>
+  <!-- ================= PREHRANA: glavni zaslon ================= -->
+  <header class="screen-head" data-tab="prehrana" data-food-view="main" hidden>
+    <h1>Prehrana</h1>
+    <label class="month-pick"><span id="foodMonth"></span><input type="date" id="foodDate" aria-label="Izberi dan"></label>
+  </header>
+  <div data-tab="prehrana" data-food-view="main" hidden class="day-strip" role="group" aria-label="Izberi dan" id="foodDays"></div>
 
-  <section data-tab="prehrana" hidden class="panel">
-    <div class="table-head">
-      <h2 style="margin:0;">Prehranski dnevnik</h2>
-      <input type="date" id="foodDate" class="date-compact" aria-label="Dan">
-    </div>
-    <div class="stats">
-      <div class="stat"><div class="num" id="foodKcal">0</div><div class="lbl">kcal</div></div>
-      <div class="stat"><div class="num" id="foodProtein">0</div><div class="lbl">beljakovine (g)</div></div>
-      <div class="stat"><div class="num" id="foodCarbs">0</div><div class="lbl">ogljikovi hidrati (g)</div></div>
-      <div class="stat"><div class="num" id="foodFat">0</div><div class="lbl">maščobe (g)</div></div>
-    </div>
-    <div class="hint" id="foodDrinkNote" style="margin-top:12px;"></div>
-  </section>
+  <button type="button" data-tab="prehrana" data-food-view="main" hidden class="ring-card" id="foodRings" aria-label="Makro cilji in koledar"></button>
 
-  <section data-tab="prehrana" hidden class="panel">
-    <h2 id="mealFormTitle">Nov obrok</h2>
-    <div class="photo-row">
-      <label class="export-btn" for="mealPhotoInput">Slikaj ali izberi sliko</label>
-      <input type="file" id="mealPhotoInput" accept="image/*" hidden>
-      <img id="mealPhotoPreview" class="meal-thumb large" alt="Slika obroka" hidden>
-      <button type="button" class="clear-btn" id="mealPhotoRemove" style="padding:8px 12px;" hidden>Odstrani sliko</button>
-    </div>
+  <div data-tab="prehrana" data-food-view="main" hidden id="foodMeals" class="stack"></div>
 
-    <div id="pastMealsBlock" hidden>
-      <div class="past-head">
-        <label for="pastMealSearch">Že jedel — tapni za ponovni vnos</label>
-        <input type="search" id="pastMealSearch" class="date-compact" placeholder="išči …" autocomplete="off">
-      </div>
-      <div class="chips" id="pastMealChips"></div>
-    </div>
-
-    <label style="display:block; margin-bottom:8px;">Obrok</label>
-    <div class="chips" id="mealTypeChips"></div>
-
-    <label for="mealDesc" style="display:block; margin-bottom:6px;">Opis (neobvezno — npr. "200 g riža, brez omake")</label>
-    <textarea id="mealDesc" rows="2" style="width:100%; resize:vertical; font-family:'Space Grotesk', sans-serif;"></textarea>
-    <div class="ai-row">
-      <button type="button" class="add-btn" id="mealAnalyzeBtn">Oceni z AI</button>
-      <div class="ai-status" id="mealAiStatus"></div>
-    </div>
-
-    <div class="meal-fields">
-      <div class="field wide"><label for="mealName">Ime obroka</label><input type="text" id="mealName" placeholder="npr. Losos z rižem" maxlength="60"></div>
-      <div class="field"><label for="mealKcal">kcal</label><input type="number" id="mealKcal" min="0" step="10" inputmode="numeric"></div>
-      <div class="field"><label for="mealProtein">beljakovine g</label><input type="number" id="mealProtein" min="0" inputmode="numeric"></div>
-      <div class="field"><label for="mealCarbs">OH g</label><input type="number" id="mealCarbs" min="0" inputmode="numeric"></div>
-      <div class="field"><label for="mealFat">maščobe g</label><input type="number" id="mealFat" min="0" inputmode="numeric"></div>
-    </div>
-    <div class="portion-row">
-      <label for="mealPortion">Količina</label>
-      <div class="chips" id="portionChips" style="margin:0;"></div>
-      <div class="portion-input"><span>×</span><input type="number" id="mealPortion" min="0.1" step="0.25" value="1" inputmode="decimal" aria-label="Količina (večkratnik)"></div>
-    </div>
-    <div class="hint">Brez AI: vpiši ime in številke, nato shrani. Količina pomnoži številke — 1 je porcija, kot je bila zadnjič (ali kot jo je ocenil AI), 2 je dvojna.</div>
-
-    <div class="save-row">
-      <button type="button" class="save-btn" id="mealSaveBtn">Shrani obrok</button>
-      <button type="button" class="clear-btn" id="mealClearBtn">Počisti</button>
-    </div>
-  </section>
-
-  <section data-tab="prehrana" hidden class="panel">
-    <h2>Obroki</h2>
-    <div id="mealList"></div>
-  </section>
-
-  <section data-tab="prehrana" hidden class="panel">
-    <h2>Pijača</h2>
-    <label style="display:block; margin-bottom:8px;">Kaj</label>
-    <div class="chips" id="drinkTypeChips"></div>
-    <label style="display:block; margin-bottom:8px;">Koliko (ml)</label>
-    <div class="portion-row" style="margin:0 0 14px;">
-      <div class="chips" id="drinkAmountChips" style="margin:0;"></div>
-      <div class="portion-input"><input type="number" id="drinkMl" min="10" max="5000" step="10" inputmode="numeric" aria-label="Količina v ml"><span>ml</span></div>
-    </div>
-    <button type="button" class="add-btn" id="drinkLogBtn">Zabeleži pijačo</button>
-    <div class="supp-add">
-      <label style="display:block; margin-bottom:0;">Nova vrsta pijače</label>
-      <div class="add-word-row" style="margin:0; flex-wrap:wrap;">
-        <input type="text" id="newDrinkName" placeholder="ime, npr. Kombucha" maxlength="30">
-        <input type="number" id="newDrinkKcal" placeholder="kcal / 100 ml" min="0" max="900" inputmode="decimal" style="max-width:130px;">
-        <button type="button" class="export-btn" id="addDrinkBtn">Dodaj</button>
-      </div>
-    </div>
+  <section data-tab="prehrana" data-food-view="main" hidden class="food-section">
+    <div class="sec-head"><h2>Pijača</h2><span id="drinkSummary"></span></div>
+    <div class="drink-tiles" id="drinkTiles"></div>
     <div id="drinkLog"></div>
+    <details class="more" id="drinkMore">
+      <summary>Druga pijača ali količina · nova vrsta</summary>
+      <label style="display:block; margin:12px 0 8px;">Kaj</label>
+      <div class="chips" id="drinkTypeChips"></div>
+      <label style="display:block; margin-bottom:8px;">Koliko (ml)</label>
+      <div class="portion-row" style="margin:0 0 14px;">
+        <div class="chips" id="drinkAmountChips" style="margin:0;"></div>
+        <div class="portion-input"><input type="number" id="drinkMl" min="10" max="5000" step="10" inputmode="numeric" aria-label="Količina v ml"><span>ml</span></div>
+      </div>
+      <button type="button" class="add-btn" id="drinkLogBtn">Zabeleži pijačo</button>
+      <div class="supp-add">
+        <label style="display:block; margin-bottom:0;">Nova vrsta pijače</label>
+        <div class="add-word-row" style="margin:0; flex-wrap:wrap;">
+          <input type="text" id="newDrinkName" placeholder="ime, npr. Kombucha" maxlength="30">
+          <input type="number" id="newDrinkKcal" placeholder="kcal / 100 ml" min="0" max="900" inputmode="decimal" style="max-width:130px;">
+          <button type="button" class="export-btn" id="addDrinkBtn">Dodaj</button>
+        </div>
+      </div>
+    </details>
   </section>
 
-  <section data-tab="prehrana" hidden class="panel">
-    <h2>Prehranska dopolnila</h2>
-    <div class="ai-row" style="margin:0 0 16px;">
-      <label class="export-btn" for="suppPhotoInput">Slikaj etiketo dopolnila</label>
-      <input type="file" id="suppPhotoInput" accept="image/*" hidden>
-      <div class="ai-status" id="suppAiStatus"></div>
-    </div>
-    <div class="supp-scan" id="suppScan" hidden>
-      <div class="field" style="margin-bottom:6px;"><label for="suppScanName">Ime dopolnila</label><input type="text" id="suppScanName" maxlength="60"></div>
-      <div class="supp-contents" id="suppScanMeta" style="margin-bottom:8px;"></div>
-      <div class="history-lines open" id="suppScanList" style="margin-top:0;"></div>
-      <div class="save-row" style="margin-top:12px;">
-        <button type="button" class="add-btn" id="suppScanAddLog">Dodaj in zabeleži zdaj</button>
-        <button type="button" class="export-btn" id="suppScanAdd">Samo dodaj med dopolnila</button>
-        <button type="button" class="clear-btn" id="suppScanCancel">Prekliči</button>
-      </div>
-    </div>
-    <label style="display:block; margin-bottom:8px;">Tapni dopolnilo, da ga zabeležiš za izbrani dan</label>
-    <div class="chips" id="suppChips"></div>
-    <div class="supp-add">
-      <label style="display:block; margin-bottom:6px;">Dodaj z besedilom (brez AI)</label>
-      <input type="text" id="newSuppInput" placeholder="ime, npr. Magnezij" maxlength="60">
-      <input type="text" id="newSuppContents" placeholder="sestavine na odmerek (neobvezno), npr. Magnezij 300 mg, Vitamin B6 2 mg" maxlength="300">
-      <div class="save-row" style="margin-top:0; flex-wrap:wrap;">
-        <button type="button" class="add-btn" id="addSuppLogBtn">Dodaj in zabeleži zdaj</button>
-        <button type="button" class="export-btn" id="addSuppBtn">Samo dodaj med dopolnila</button>
-      </div>
-    </div>
+  <section data-tab="prehrana" data-food-view="main" hidden class="food-section">
+    <div class="sec-head"><h2>Dopolnila</h2><span id="suppSummary"></span></div>
+    <div class="supp-chips" id="suppChips"></div>
     <div id="suppLog"></div>
   </section>
+
+  <!-- ================= PREHRANA: vnos hrane / dopolnila ================= -->
+  <section data-tab="prehrana" data-food-view="vnos" hidden class="vn-head">
+    <div class="vn-top">
+      <button type="button" class="icon-btn big" id="vnBack" aria-label="Nazaj na prehrano"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="seg food-seg" role="group" aria-label="Vrsta vnosa" id="vnKinds">
+        <button type="button" data-kind="hrana">Hrana</button>
+        <button type="button" data-kind="dopolnilo">Dopolnilo</button>
+      </div>
+      <button type="button" class="icon-btn big" id="vnLock"></button>
+    </div>
+    <div class="vn-tabs" role="tablist" id="vnTabs">
+      <button type="button" role="tab" data-vtab="nov">Novo</button>
+      <button type="button" role="tab" data-vtab="zgod" id="vnHistTab">Že jedel</button>
+    </div>
+  </section>
+
+  <div data-tab="prehrana" data-food-view="vnos" hidden id="vnBody" class="stack vn-body"></div>
+
+  <div data-tab="prehrana" data-food-view="vnos" hidden class="vn-bottom" id="vnBottom">
+    <button type="button" class="vn-primary" id="vnPrimary"></button>
+    <span class="vn-note" id="vnNote"></span>
+  </div>
+
+  <input type="file" id="vnCamera" accept="image/*" capture="environment" hidden>
+  <input type="file" id="vnGallery" accept="image/*" hidden>
+
+  <!-- ================= PREHRANA: makro cilji in koledar ================= -->
+  <section data-tab="prehrana" data-food-view="cilji" hidden class="vn-head">
+    <div class="vn-top">
+      <button type="button" class="icon-btn big" id="goalBack" aria-label="Nazaj na prehrano"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <span class="d vn-title">Makro cilji</span>
+    </div>
+    <div class="vn-tabs" role="tablist" id="goalTabs">
+      <button type="button" role="tab" data-gtab="koledar">Koledar</button>
+      <button type="button" role="tab" data-gtab="cilj">Moj cilj</button>
+    </div>
+  </section>
+  <div data-tab="prehrana" data-food-view="cilji" hidden id="goalBody" class="stack"></div>
 
   <header class="screen-head" data-tab="zdravje" hidden><h1>Zdravje</h1></header>
 
@@ -967,6 +1173,18 @@
   <button type="button" data-nav="prehrana"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a2 2 0 0 0 2 2v9M4 3v5M8 3v5M17 3c-2 0-3 3-3 6s1 4 3 4v8"/></svg>Prehrana</button>
   <button type="button" data-nav="zdravje"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>Zdravje</button>
 </nav>
+
+<button type="button" class="fab-food" id="foodFab" data-tab="prehrana" data-food-view="main" hidden>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  Dodaj hrano
+</button>
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="sheet-backdrop" id="gateSheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="AI koda">
+    <div class="sheet-grip"></div>
+    <div class="stack" id="gateBody" style="gap:14px;"></div>
+  </div>
+</div>
 
 <div class="sheet-backdrop" id="tplSheet" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-label="Predloge">
@@ -1112,6 +1330,7 @@ function onDriveSignedIn() {
   setDriveStatus('povezano', 'ok');
   scheduleDriveSync();
   renderAiAccess();
+  if (!document.getElementById('gateSheet').hidden) renderGate('');
 }
 
 /** Google session over (expired or rejected): back to the sign-in button. */
@@ -1176,7 +1395,7 @@ async function driveSyncNow() {
   if (!driveAccessToken) return;
   setDriveStatus('sinhroniziram …', 'syncing');
   try {
-    const payload = { workouts: sessions, words: quickWords, oura: ouraDays, meals: meals, supplements: supplements, supplementList: supplementList, drinks: drinks, drinkTypes: drinkTypes, weights: weights, shortcuts: shortcuts, templates: templates, weekGoal: weekGoalKm, savedAt: Date.now() };
+    const payload = { workouts: sessions, words: quickWords, oura: ouraDays, meals: meals, supplements: supplements, supplementList: supplementList, drinks: drinks, drinkTypes: drinkTypes, weights: weights, shortcuts: shortcuts, templates: templates, weekGoal: weekGoalKm, goals: goals, savedAt: Date.now() };
     const fileId = localStorage.getItem(LS_DRIVE_FILE_ID);
     if (!fileId && await driveLookupFileId()) {
       // A backup from another device exists. Never overwrite it with this
@@ -1280,9 +1499,9 @@ function xlsxSheets() {
     .concat(Object.keys(ouraDays).sort().map((d) => [d].concat(ouraCols.map((c) => ouraDays[d][c[0]]))));
   const hhmm = (t) => new Date(t).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
   const SOURCE_LABEL = { ai: 'AI', repeat: 'ponovljeno', manual: 'ročno' };
-  const food = [['Datum', 'Ura', 'Obrok', 'Ime', 'Količina ×', 'kcal', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Vir', 'Zanesljivost', 'Opomba']]
+  const food = [['Datum', 'Ura', 'Obrok', 'Ime', 'Količina ×', 'kcal', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Vir', 'Zanesljivost', 'Opomba', 'Del obroka (%)', 'Stanje']]
     .concat(meals.map((m) => [m.date, hhmm(m.time), mealTypeLabel(m.type), m.name, m.portion || 1, m.calories, m.protein, m.carbs, m.fat,
-      SOURCE_LABEL[m.source] || 'ročno', m.confidence, m.notes]));
+      SOURCE_LABEL[m.source] || 'ročno', m.confidence, m.notes, m.split ? Math.round(m.split.share * 100) : null, m.pending ? 'ostanek, še ni pojeden' : 'pojedeno']));
   const supps = [['Datum', 'Ura', 'Dopolnilo', 'Število odmerkov', 'Odmerek', 'Zaužite sestavine']]
     .concat([...supplements].sort((a, b) => a.date.localeCompare(b.date) || a.time - b.time)
       .map((x) => [x.date, hhmm(x.time), x.name, x.servings || 1, x.serving || '', ingredientsText(takenIngredients(x))]));
@@ -1293,9 +1512,10 @@ function xlsxSheets() {
 
   const days = [...new Set([].concat(sessions.map((x) => x.date), meals.map((x) => x.date), supplements.map((x) => x.date),
     drinks.map((x) => x.date), weights.map((x) => x.date), Object.keys(ouraDays)))].sort();
-  const daily = [['Datum', 'Masa (kg)', 'Km', 'kcal (hrana + pijača)', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Tekočina (ml)', 'Dopolnila', 'Ocena spanja', 'Pripravljenost', 'HRV (ms)', 'Utrip noč najn.']]
+  const GX = computeGoals();
+  const daily = [['Datum', 'Masa (kg)', 'Km', 'kcal (hrana + pijača)', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Tekočina (ml)', 'Dopolnila', 'Ocena spanja', 'Pripravljenost', 'HRV (ms)', 'Utrip noč najn.', 'Krona (makri ≥ 90 %)']]
     .concat(days.map((d) => {
-      const dm = meals.filter((m) => m.date === d);
+      const dm = eatenMeals().filter((m) => m.date === d);
       const sum = (k) => dm.length ? dm.reduce((acc, m) => acc + (m[k] || 0), 0) : null;
       const km = sessions.filter((x) => x.date === d).reduce((acc, x) => acc + (x.totalMeters || 0), 0) / 1000;
       const sd = supplements.filter((x) => x.date === d).map((x) => x.name + (x.servings && x.servings !== 1 ? ' ×' + fmtAmount(x.servings) : '')).join(', ');
@@ -1304,16 +1524,17 @@ function xlsxSheets() {
       const kcal = dm.length || dd.length ? (sum('calories') || 0) + dd.reduce((acc, x) => acc + (x.kcal || 0), 0) : null;
       const w = weights.find((x) => x.date === d);
       return [d, w ? w.kg : null, km || null, kcal, sum('protein'), sum('carbs'), sum('fat'), ml || null, sd,
-        o(d).sleep_score, o(d).readiness_score, o(d).avg_hrv_overnight, o(d).lowest_hr_overnight];
+        o(d).sleep_score, o(d).readiness_score, o(d).avg_hrv_overnight, o(d).lowest_hr_overnight, dayHits(d, GX) === 'bom' ? 'da' : null];
     }));
   return [
-    { name: 'Dnevni pregled', rows: daily, widths: [12, 9, 7, 12, 10, 8, 10, 10, 30, 10, 10, 9, 10] },
+    { name: 'Dnevni pregled', rows: daily, widths: [12, 9, 7, 12, 10, 8, 10, 10, 30, 10, 10, 9, 10, 12] },
     { name: 'Treningi', rows: workouts, widths: [12, 24, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9] },
     { name: 'Seti', rows: sets, widths: [12, 24, 50, 9] },
-    { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 10, 7, 10, 8, 10, 10, 11, 50] },
+    { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 10, 7, 10, 8, 10, 10, 11, 50, 10, 18] },
     { name: 'Dopolnila', rows: supps, widths: [12, 7, 26, 10, 12, 70] },
     { name: 'Pijača', rows: drinkRows, widths: [12, 7, 16, 8, 7] },
     { name: 'Telesna masa', rows: weightRows, widths: [12, 10] },
+    { name: 'Cilji', rows: [['Nastavitev', 'Vrednost'], ['Način', goals.method === 'custom' ? 'po meri' : 'samodejno'], ['Dnevni cilj (kcal)', GX.kcal], ['Beljakovine (g)', GX.b], ['OH (g)', GX.oh], ['Maščobe (g)', GX.m], ['Masa za izračun (kg)', GX.mass], ['Opomba', goals.note || '']], widths: [22, 16] },
     { name: 'Oura', rows: oura, widths: [12].concat(ouraCols.map((c) => c[0].startsWith('bedtime') ? 26 : 11)) }
   ];
 }
@@ -1457,7 +1678,8 @@ document.getElementById('driveRestoreBtn').addEventListener('click', async () =>
     if (Array.isArray(data.weights)) { weights = data.weights; persistWeights(); renderWeights(); }
     if (Array.isArray(data.supplements)) { supplements = data.supplements; }
     if (Array.isArray(data.supplementList)) { supplementList = data.supplementList.map(normSupp); }
-    if (Array.isArray(data.meals) || Array.isArray(data.supplements)) { persistSupps(); renderSuppChips(); renderFood(); }
+    if (Array.isArray(data.meals) || Array.isArray(data.supplements)) { persistSupps(); renderFood(); }
+    if (data.goals && typeof data.goals === 'object') { goals = Object.assign(cloneJsonSafe(DEFAULT_GOALS), data.goals); persistGoals(); renderFood(); }
     // Oura days are merged, not replaced: both copies came from the same ring.
     if (data.oura && typeof data.oura === 'object') { ouraDays = Object.assign({}, ouraDays, data.oura); persistOura(); renderOuraSummary(); renderHistory(); }
     localStorage.setItem(LS_DRIVE_FILE_ID, fileId); // from now on this device syncs into that file
@@ -1849,13 +2071,11 @@ let supplements = lsGet(LS_SUPPS, []);    // {id, date, time, name, serving?, in
 const normSupp = (x) => (typeof x === 'string' ? { name: x, brand: '', serving: '', ingredients: [] } : x);
 let supplementList = lsGet(LS_SUPP_LIST, []).map(normSupp); // {name, brand, serving, ingredients: [{name, amount, unit, nrv}]}
 
-let mealDraft = null;      // {analysisB64, keepBlob, previewUrl} for a newly picked photo
-let editingMealId = null;
-let mealType = null;
-let mealEstimate = null;   // {confidence, notes} from the last AI answer
-let mealBase = null;       // {calories, protein, carbs, fat} for a portion of 1 — what "Količina" multiplies
-const MACRO_FIELDS = [['calories', 'mealKcal'], ['protein', 'mealProtein'], ['carbs', 'mealCarbs'], ['fat', 'mealFat']];
 const PORTIONS = [[0.5, '½'], [0.75, '¾'], [1, '1'], [1.5, '1½'], [2, '2']];
+const MEAL_ORDER = ['zajtrk', 'kosilo', 'prigrizek', 'vecerja'];
+const SUPP_SLOTS = [['Zjutraj', 'Zj.'], ['Po treningu', 'Po tr.'], ['Zvečer', 'Zv.']];
+const MACRO_COLORS = { b: '#FF8FA3', oh: '#FFC857', m: '#7CC8FF' };
+const CROWN_SVG = (size, fill) => '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="' + (fill || '#FFC857') + '" aria-hidden="true"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>';
 
 const foodDate = document.getElementById('foodDate');
 foodDate.value = localDay(new Date());
@@ -1918,76 +2138,21 @@ function renderJpeg(img, width) {
 }
 const canvasBlob = (canvas, quality) => new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
 
-document.getElementById('mealPhotoInput').addEventListener('change', async (e) => {
-  const file = e.target.files && e.target.files[0];
-  e.target.value = ''; // picking the same photo again should still fire
-  if (!file) return;
-  try {
-    const img = await loadImage(file);
-    const analysis = renderJpeg(img, ANALYSIS_WIDTH);
-    const keep = await canvasBlob(renderJpeg(img, KEEP_WIDTH), KEEP_QUALITY);
-    clearMealDraftPhoto();
-    mealDraft = {
-      analysisB64: analysis.toDataURL('image/jpeg', ANALYSIS_QUALITY).split(',')[1],
-      keepBlob: keep,
-      previewUrl: URL.createObjectURL(keep)
-    };
-    showMealPhoto(mealDraft.previewUrl);
-    // A fresh photo is almost always meant to be analysed — do it straight away.
-    analyzeMeal();
-  } catch (err) {
-    showError('slika: ' + (err.message || err));
-  }
-});
-
-function showMealPhoto(url) {
-  const img = document.getElementById('mealPhotoPreview');
-  img.hidden = !url;
-  if (url) img.src = url; else img.removeAttribute('src');
-  document.getElementById('mealPhotoRemove').hidden = !url;
-}
-function clearMealDraftPhoto() {
-  if (mealDraft && mealDraft.previewUrl) URL.revokeObjectURL(mealDraft.previewUrl);
-  mealDraft = null;
-}
-let mealPhotoRemoved = false; // editing: the saved photo was taken off
-document.getElementById('mealPhotoRemove').addEventListener('click', () => {
-  clearMealDraftPhoto();
-  mealPhotoRemoved = true;
-  showMealPhoto(null);
-});
-
-// ---------- meal type ----------
 function defaultMealType() {
   const h = new Date().getHours() + new Date().getMinutes() / 60;
   return h < 10.5 ? 'zajtrk' : h < 15 ? 'kosilo' : h < 17.5 ? 'prigrizek' : h < 21.5 ? 'vecerja' : 'prigrizek';
 }
-function renderMealTypes() {
-  const wrap = document.getElementById('mealTypeChips');
-  wrap.innerHTML = '';
-  MEAL_TYPES.forEach(([key, label]) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'chip chip-choice' + (key === mealType ? ' selected' : '');
-    b.textContent = label;
-    b.setAttribute('aria-pressed', key === mealType ? 'true' : 'false');
-    b.addEventListener('click', () => { mealType = key; renderMealTypes(); });
-    wrap.appendChild(b);
-  });
-}
 const mealTypeLabel = (key) => (MEAL_TYPES.find((t) => t[0] === key) || [key, key])[1];
-
-// ---------- AI estimate ----------
-function setAiStatus(text, cls) {
-  const el = document.getElementById('mealAiStatus');
-  el.textContent = text;
-  el.className = 'ai-status' + (cls ? ' ' + cls : '');
-}
 
 // ---------- AI access: passcode (typed hidden) + Google sign-in ----------
 const aiPassForm = document.getElementById('aiPassForm');
 const aiPassInput = document.getElementById('aiPassInput');
-const savedPasscode = () => lsGet(LS_AI_PASSCODE, '') || '';
+let sessionPasscode = ''; // "Zapomni si na tej napravi" off: kept only until the app closes
+const savedPasscode = () => lsGet(LS_AI_PASSCODE, '') || sessionPasscode;
+function forgetPasscode() {
+  sessionPasscode = '';
+  try { localStorage.removeItem(LS_AI_PASSCODE); } catch (e) {}
+}
 
 function renderAiAccess(message) {
   const signedIn = !!driveAccessToken;
@@ -2023,7 +2188,7 @@ function showPassForm() {
 }
 document.getElementById('aiPassEditBtn').addEventListener('click', showPassForm);
 document.getElementById('aiPassForgetBtn').addEventListener('click', () => {
-  try { localStorage.removeItem(LS_AI_PASSCODE); } catch (e) {}
+  forgetPasscode();
   renderAiAccess();
 });
 // Hidden by default; visible only while "Pokaži geslo" is ticked.
@@ -2058,8 +2223,9 @@ async function aiRequest(path, payload) {
   const code = savedPasscode();
   if (!code) {
     renderAiAccess();
-    showPassForm();
-    throw new Error('najprej vpiši AI geslo (Zdravje → AI analiza)');
+    const err = new Error('najprej vpiši AI kodo');
+    err.code = 'bad_passcode';
+    throw err;
   }
   const res = await fetch(OURA_WORKER_URL + path, {
     method: 'POST',
@@ -2068,203 +2234,16 @@ async function aiRequest(path, payload) {
   });
   const data = await res.json().catch(() => ({}));
   if (res.status === 401 && data.error === 'bad_passcode') {
-    try { localStorage.removeItem(LS_AI_PASSCODE); } catch (e) {}
+    forgetPasscode();
     renderAiAccess('napačno geslo — vpiši ga znova');
-    showPassForm();
+    const err = new Error(data.error_description || 'Napačno geslo za AI analizo.');
+    err.code = 'bad_passcode';
+    throw err;
   } else if (res.status === 401 && data.error === 'google_required') {
     onDriveSignedOut('Google prijava je potekla — prijavi se znova');
   }
   if (!res.ok) throw new Error(data.error_description || data.error || ('HTTP ' + res.status));
   return data;
-}
-
-async function analyzeMeal() {
-  const description = document.getElementById('mealDesc').value.trim();
-  const image = mealDraft ? mealDraft.analysisB64 : null;
-  if (!image && !description) { setAiStatus('najprej slikaj obrok ali ga opiši', 'low'); return; }
-
-  const btn = document.getElementById('mealAnalyzeBtn');
-  btn.disabled = true;
-  setAiStatus('analiziram …', 'busy');
-  try {
-    const data = await aiRequest('/meal', { image: image, description: description });
-    document.getElementById('mealName').value = data.name || '';
-    setMealBase({ calories: data.calories, protein: data.protein, carbs: data.carbs, fat: data.fat }, 1);
-    mealEstimate = { confidence: data.confidence, notes: data.notes };
-    setAiStatus((CONFIDENCE_TEXT[data.confidence] || '') + (data.notes ? ' · ' + data.notes : ''), data.confidence === 'low' ? 'low' : 'ok');
-  } catch (e) {
-    setAiStatus('ocena ni uspela: ' + (e.message || e) + ' — lahko vpišeš ročno', 'low');
-  } finally {
-    btn.disabled = false;
-  }
-}
-document.getElementById('mealAnalyzeBtn').addEventListener('click', () => analyzeMeal());
-
-// ---------- portion ----------
-function currentPortion() {
-  const p = Number(document.getElementById('mealPortion').value);
-  return p > 0 ? p : 1;
-}
-/** Set the portion-of-1 numbers and show them multiplied by `portion`. */
-function setMealBase(base, portion) {
-  mealBase = base;
-  document.getElementById('mealPortion').value = portion;
-  applyPortion();
-}
-function applyPortion() {
-  const p = currentPortion();
-  if (mealBase) {
-    MACRO_FIELDS.forEach(([key, id]) => { document.getElementById(id).value = Math.round((mealBase[key] || 0) * p); });
-  }
-  renderPortionChips();
-}
-function renderPortionChips() {
-  const wrap = document.getElementById('portionChips');
-  const p = currentPortion();
-  wrap.innerHTML = '';
-  PORTIONS.forEach(([value, label]) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'chip chip-choice' + (Math.abs(value - p) < 0.001 ? ' selected' : '');
-    b.textContent = label;
-    b.addEventListener('click', () => { document.getElementById('mealPortion').value = value; applyPortion(); });
-    wrap.appendChild(b);
-  });
-}
-document.getElementById('mealPortion').addEventListener('input', applyPortion);
-// Typing a number by hand redefines the base for the current portion.
-MACRO_FIELDS.forEach(([key, id]) => {
-  document.getElementById(id).addEventListener('input', () => {
-    mealBase = mealBase || { calories: 0, protein: 0, carbs: 0, fat: 0 };
-    mealBase[key] = (Number(document.getElementById(id).value) || 0) / currentPortion();
-  });
-});
-
-// ---------- meals eaten before ----------
-/** One entry per distinct meal name: its latest version, most-eaten first. */
-function pastMeals() {
-  const byName = {};
-  meals.forEach((m) => {
-    const key = m.name.trim().toLowerCase();
-    const e = byName[key] || (byName[key] = { count: 0, last: m });
-    e.count++;
-    if (m.date > e.last.date || (m.date === e.last.date && m.time > e.last.time)) e.last = m;
-  });
-  return Object.values(byName).sort((a, b) => b.count - a.count || (b.last.date + b.last.time).localeCompare(a.last.date + a.last.time));
-}
-
-function renderPastMeals() {
-  const all = pastMeals();
-  document.getElementById('pastMealsBlock').hidden = !all.length;
-  const q = document.getElementById('pastMealSearch').value.trim().toLowerCase();
-  const shown = (q ? all.filter((e) => e.last.name.toLowerCase().includes(q)) : all).slice(0, q ? 30 : 12);
-  const wrap = document.getElementById('pastMealChips');
-  wrap.innerHTML = shown.length ? '' : '<div class="empty" style="padding:0;">Ni zadetkov.</div>';
-  shown.forEach((e) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'chip chip-choice past-chip';
-    b.innerHTML = escapeHtml(e.last.name) + '<span class="kc">' + e.last.calories + '</span>';
-    b.title = e.last.calories + ' kcal · B ' + e.last.protein + ' · OH ' + e.last.carbs + ' · M ' + e.last.fat;
-    b.addEventListener('click', () => repeatMeal(e.last));
-    wrap.appendChild(b);
-  });
-}
-document.getElementById('pastMealSearch').addEventListener('input', renderPastMeals);
-
-/** Fill the form from an earlier meal, with the same amounts as that time. */
-function repeatMeal(m) {
-  resetMealForm();
-  document.getElementById('mealName').value = m.name;
-  // Same portion as last time by default; the base stays the original portion
-  // of 1, so ×2 always means "twice the original", not twice the last amount.
-  const p = m.portion || 1;
-  setMealBase({ calories: m.calories / p, protein: m.protein / p, carbs: m.carbs / p, fat: m.fat / p }, p);
-  mealRepeatOf = m;
-  const when = new Date(m.date + 'T00:00:00').toLocaleDateString('sl-SI', { day: 'numeric', month: 'numeric' });
-  setAiStatus('enaka količina kot ' + when + ' — spremeni jo, če si pojedel več ali manj, nato shrani', 'ok');
-}
-let mealRepeatOf = null;
-
-// ---------- save / edit / delete ----------
-function resetMealForm() {
-  clearMealDraftPhoto();
-  editingMealId = null;
-  mealEstimate = null;
-  mealPhotoRemoved = false;
-  mealRepeatOf = null;
-  mealBase = null;
-  mealType = defaultMealType();
-  ['mealDesc', 'mealName', 'mealKcal', 'mealProtein', 'mealCarbs', 'mealFat'].forEach((id) => { document.getElementById(id).value = ''; });
-  document.getElementById('mealPortion').value = 1;
-  renderPortionChips();
-  document.getElementById('mealFormTitle').textContent = 'Nov obrok';
-  document.getElementById('mealSaveBtn').textContent = 'Shrani obrok';
-  showMealPhoto(null);
-  setAiStatus('');
-  renderMealTypes();
-}
-document.getElementById('mealClearBtn').addEventListener('click', resetMealForm);
-
-const numVal = (id) => Math.max(0, Math.round(Number(document.getElementById(id).value) || 0));
-
-document.getElementById('mealSaveBtn').addEventListener('click', () => {
-  const name = document.getElementById('mealName').value.trim();
-  const calories = numVal('mealKcal');
-  if (!name && !calories) { setAiStatus('vpiši vsaj ime ali kalorije (ali uporabi AI oceno)', 'low'); return; }
-  const existing = editingMealId ? meals.find((m) => m.id === editingMealId) : null;
-  const id = existing ? existing.id : newId('m');
-  let hasPhoto = existing ? !!existing.hasPhoto : false;
-  const newPhoto = mealDraft ? mealDraft.keepBlob : null;
-  if (!newPhoto && existing && mealPhotoRemoved && hasPhoto) {
-    photoDelete(id); delete photoUrls[id]; hasPhoto = false;
-  }
-  const meal = {
-    id: id,
-    date: existing ? existing.date : (foodDate.value || localDay(new Date())),
-    time: existing ? existing.time : Date.now(),
-    type: mealType,
-    name: name || mealTypeLabel(mealType),
-    calories: calories,
-    protein: numVal('mealProtein'),
-    carbs: numVal('mealCarbs'),
-    fat: numVal('mealFat'),
-    portion: currentPortion(),
-    confidence: mealEstimate ? mealEstimate.confidence : (existing ? existing.confidence : null),
-    notes: mealEstimate ? mealEstimate.notes : (existing ? existing.notes : ''),
-    source: mealEstimate ? 'ai' : mealRepeatOf ? 'repeat' : (existing ? existing.source : 'manual'),
-    hasPhoto: hasPhoto
-  };
-  meals = existing ? meals.map((m) => (m.id === id ? meal : m)) : meals.concat(meal);
-  meals.sort((a, b) => a.date.localeCompare(b.date) || a.time - b.time);
-  persistMeals();
-  resetMealForm();
-  renderFood();
-  // The meal is saved already; the photo follows once the device has stored it.
-  if (newPhoto) {
-    photoPut(id, newPhoto).then(() => {
-      delete photoUrls[id];
-      meals = meals.map((m) => (m.id === id ? Object.assign({}, m, { hasPhoto: true }) : m));
-      persistMeals();
-      renderFood();
-    }).catch(() => showError('slike ni bilo mogoče shraniti na napravo — obrok je shranjen brez nje'));
-  }
-});
-
-function editMeal(id) {
-  const m = meals.find((x) => x.id === id);
-  if (!m) return;
-  resetMealForm();
-  editingMealId = id;
-  mealType = m.type;
-  document.getElementById('mealName').value = m.name;
-  const p = m.portion || 1;
-  setMealBase({ calories: m.calories / p, protein: m.protein / p, carbs: m.carbs / p, fat: m.fat / p }, p);
-  document.getElementById('mealFormTitle').textContent = 'Uredi obrok';
-  document.getElementById('mealSaveBtn').textContent = 'Shrani spremembe';
-  if (m.hasPhoto) photoUrl(m.id).then((url) => { if (editingMealId === id) showMealPhoto(url); });
-  renderMealTypes();
-  document.getElementById('mealFormTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function armedDelete(btn, onConfirm) {
@@ -2278,47 +2257,17 @@ function armedDelete(btn, onConfirm) {
   onConfirm();
 }
 
-// ---------- supplements ----------
-function renderSuppChips() {
-  const wrap = document.getElementById('suppChips');
-  wrap.innerHTML = '';
-  if (!supplementList.length) {
-    wrap.innerHTML = '<div class="empty" style="padding:0;">Dodaj svoja dopolnila spodaj — potem jih vneseš z enim dotikom.</div>';
-    return;
-  }
-  supplementList.forEach((item, i) => {
-    const name = item.name;
-    const chip = document.createElement('span');
-    chip.className = 'chip';
-    const label = document.createElement('button');
-    label.type = 'button';
-    label.className = 'chip-label';
-    label.textContent = '+ ' + name;
-    label.title = ingredientsText(item.ingredients) || name;
-    label.addEventListener('click', () => logSupplement(item));
-    const del = document.createElement('button');
-    del.type = 'button';
-    del.className = 'chip-del';
-    del.textContent = '✕';
-    del.setAttribute('aria-label', 'Odstrani ' + name + ' s seznama');
-    del.addEventListener('click', () => { supplementList.splice(i, 1); persistSupps(); renderSuppChips(); });
-    chip.appendChild(label);
-    chip.appendChild(del);
-    wrap.appendChild(chip);
-  });
-}
-
 /** Servings taken last time for this supplement — the default for the next entry. */
 function lastServings(name) {
   const prev = supplements.filter((x) => x.name === name).sort((a, b) => b.time - a.time)[0];
   return prev && prev.servings ? prev.servings : 1;
 }
 
-function logSupplement(item) {
+function logSupplement(item, slot) {
   supplements.push({
     id: newId('s'), date: foodDate.value || localDay(new Date()), time: Date.now(),
     name: item.name, serving: item.serving || '', ingredients: item.ingredients || [],
-    servings: lastServings(item.name)
+    servings: lastServings(item.name), slot: slot || defaultSlot()
   });
   persistSupps();
   renderFood();
@@ -2333,34 +2282,6 @@ function parseIngredients(text) {
   });
 }
 
-const newSuppInput = document.getElementById('newSuppInput');
-const newSuppContents = document.getElementById('newSuppContents');
-function addTypedSupplement(logNow) {
-  const name = newSuppInput.value.trim();
-  if (!name) { newSuppInput.focus(); return; }
-  const ingredients = parseIngredients(newSuppContents.value);
-  const at = supplementList.findIndex((x) => x.name.toLowerCase() === name.toLowerCase());
-  let item;
-  if (at === -1) {
-    item = { name: name, brand: '', serving: '', ingredients: ingredients };
-    supplementList.push(item);
-  } else {
-    item = supplementList[at];
-    if (ingredients.length) item.ingredients = ingredients; // typing contents again updates them
-  }
-  newSuppInput.value = '';
-  newSuppContents.value = '';
-  persistSupps();
-  renderSuppChips();
-  if (logNow) logSupplement(item);
-}
-document.getElementById('addSuppBtn').addEventListener('click', () => addTypedSupplement(false));
-document.getElementById('addSuppLogBtn').addEventListener('click', () => addTypedSupplement(true));
-[newSuppInput, newSuppContents].forEach((el) => el.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { e.preventDefault(); addTypedSupplement(true); }
-}));
-
-// ---------- supplement label scan ----------
 const fmtAmount = (n) => (Math.round(n * 100) / 100).toLocaleString('sl-SI');
 function ingredientsText(list) {
   return (list || []).map((i) => i.name + (i.amount ? ' ' + fmtAmount(i.amount) + ' ' + i.unit : '')).join(' · ');
@@ -2379,113 +2300,309 @@ function ingredientTotals(entries) {
   return Object.values(acc).sort((a, b) => a.name.localeCompare(b.name, 'sl'));
 }
 
-let suppScan = null; // the last label read, waiting to be saved
-function setSuppStatus(text, cls) {
-  const el = document.getElementById('suppAiStatus');
-  el.textContent = text;
-  el.className = 'ai-status' + (cls ? ' ' + cls : '');
-}
-
-function renderSuppScan() {
-  const box = document.getElementById('suppScan');
-  box.hidden = !suppScan;
-  if (!suppScan) return;
-  document.getElementById('suppScanName').value = suppScan.name;
-  document.getElementById('suppScanMeta').textContent =
-    [suppScan.brand, suppScan.serving ? 'na odmerek: ' + suppScan.serving : ''].filter(Boolean).join(' · ');
-  document.getElementById('suppScanList').innerHTML = suppScan.ingredients.length
-    ? suppScan.ingredients.map((i) => `
-      <div class="hl"><span>${escapeHtml(i.name)}</span><span class="m">${i.amount ? fmtAmount(i.amount) + ' ' + escapeHtml(i.unit) : '—'}${i.nrv ? ' · ' + fmtAmount(i.nrv) + ' % PV' : ''}</span></div>`).join('')
-    : '<div class="empty" style="padding:4px 0;">Sestavin ni bilo mogoče prebrati.</div>';
-}
-
-document.getElementById('suppPhotoInput').addEventListener('change', async (e) => {
-  const file = e.target.files && e.target.files[0];
-  e.target.value = '';
-  if (!file) return;
-  suppScan = null;
-  renderSuppScan();
-  setSuppStatus('berem etiketo …', 'busy');
-  try {
-    const img = await loadImage(file);
-    // Labels have small print: send a larger image than for meals.
-    const image = renderJpeg(img, 1568).toDataURL('image/jpeg', 0.8).split(',')[1];
-    const data = await aiRequest('/supplement', { image: image });
-    suppScan = data;
-    renderSuppScan();
-    setSuppStatus((CONFIDENCE_TEXT[data.confidence] || '') + (data.notes ? ' · ' + data.notes : ''), data.confidence === 'low' ? 'low' : 'ok');
-  } catch (err) {
-    setSuppStatus('branje ni uspelo: ' + (err.message || err), 'low');
-  }
-});
-
-function saveScannedSupplement(logNow) {
-  if (!suppScan) return;
-  const item = {
-    name: document.getElementById('suppScanName').value.trim() || suppScan.name || 'Dopolnilo',
-    brand: suppScan.brand, serving: suppScan.serving, ingredients: suppScan.ingredients
-  };
-  const at = supplementList.findIndex((x) => x.name === item.name);
-  if (at === -1) supplementList.push(item); else supplementList[at] = item; // a re-scan updates the contents
-  persistSupps();
-  renderSuppChips();
-  if (logNow) logSupplement(item);
-  suppScan = null;
-  renderSuppScan();
-  setSuppStatus(logNow ? 'dodano in zabeleženo' : 'dodano med tvoja dopolnila', 'ok');
-}
-document.getElementById('suppScanAdd').addEventListener('click', () => saveScannedSupplement(false));
-document.getElementById('suppScanAddLog').addEventListener('click', () => saveScannedSupplement(true));
-document.getElementById('suppScanCancel').addEventListener('click', () => { suppScan = null; renderSuppScan(); setSuppStatus(''); });
-
-// ---------- rendering ----------
 const clock = (t) => new Date(t).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
 
-function renderFood() {
-  const day = foodDate.value;
-  const dayMeals = meals.filter((m) => m.date === day);
-  const sum = (k) => dayMeals.reduce((s, m) => s + (m[k] || 0), 0);
-  const drunk = renderDrinks(day);
-  document.getElementById('foodKcal').textContent = sum('calories') + drunk.kcal;
-  document.getElementById('foodDrinkNote').textContent = drunk.ml
-    ? 'tekočina: ' + fmtLitres(drunk.ml) + (drunk.kcal ? ' · od tega kalorij iz pijače: ' + drunk.kcal + ' kcal' : '')
-    : '';
-  document.getElementById('foodProtein').textContent = sum('protein');
-  document.getElementById('foodCarbs').textContent = sum('carbs');
-  document.getElementById('foodFat').textContent = sum('fat');
+// Leftovers waiting for "Pojedel / Polovico / Zavrgel" don't count anywhere yet.
+const eatenMeals = () => meals.filter((m) => !m.pending);
+const round0 = (v) => Math.max(0, Math.round(Number(v) || 0));
+const defaultSlot = () => { const h = new Date().getHours(); return h < 12 ? 'Zjutraj' : h >= 18 ? 'Zvečer' : 'Po treningu'; };
+const mealWord = (key) => mealTypeLabel(key).toLowerCase();
 
-  const list = document.getElementById('mealList');
-  if (!dayMeals.length) {
-    list.innerHTML = '<div class="empty">Za ta dan še ni obrokov.</div>';
+/** A shared meal's part scaled back up to the whole meal, so repeating it starts from the full plate. */
+function wholeMeal(m) {
+  const share = m.split && m.split.share > 0 && m.split.share < 1 ? m.split.share : 1;
+  if (share === 1) return m;
+  return Object.assign({}, m, { calories: Math.round(m.calories / share), protein: Math.round(m.protein / share), carbs: Math.round(m.carbs / share), fat: Math.round(m.fat / share) });
+}
+
+/** One entry per distinct meal name: its latest version, most-eaten first. */
+function pastMeals() {
+  const byName = {};
+  eatenMeals().map(wholeMeal).forEach((m) => {
+    const key = m.name.trim().toLowerCase();
+    const e = byName[key] || (byName[key] = { count: 0, last: m });
+    e.count++;
+    if (m.date > e.last.date || (m.date === e.last.date && m.time > e.last.time)) e.last = m;
+  });
+  return Object.values(byName).sort((a, b) => b.count - a.count || (b.last.date + b.last.time).localeCompare(a.last.date + a.last.time));
+}
+
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 3500);
+}
+
+// ============================================================
+// MAKRO CILJI — Mifflin-St Jeor + everyday activity + sport, or custom numbers
+// ============================================================
+const LS_GOALS = 'kilometrina.goals';
+const DEFAULT_GOALS = {
+  method: 'auto', sex: 'M', height: 180, age: 25, massFallback: 70,
+  daily: 'zmerno', goal: 'vzdrzevanje', pKg: null, fatPct: 25,
+  unit: 'kg', custom: { b: 2.0, oh: 5.0, m: 1.0 }, note: '',
+  sports: [
+    { id: 'plavanje', name: 'Plavanje', met: 8.3, h: 8 },
+    { id: 'fitnes', name: 'Fitnes', met: 5, h: 2 },
+    { id: 'tek', name: 'Tek', met: 9.8, h: 0 },
+    { id: 'kolo', name: 'Kolesarjenje', met: 7.5, h: 0 },
+    { id: 'ekipni', name: 'Ekipni šport', met: 7, h: 0 },
+    { id: 'joga', name: 'Joga / raztezanje', met: 2.5, h: 0 }
+  ]
+};
+let goals = Object.assign(cloneJsonSafe(DEFAULT_GOALS), lsGet(LS_GOALS, {}) || {});
+function cloneJsonSafe(x) { return JSON.parse(JSON.stringify(x)); }
+function persistGoals() { lsSet(LS_GOALS, goals); scheduleDriveSync(); }
+const DAILY_FACTOR = { sedece: 1.25, zmerno: 1.4, veliko: 1.55 };
+const goalMass = () => (weights.length ? weights[weights.length - 1].kg : goals.massFallback);
+
+function computeGoals() {
+  const g = goals, mass = goalMass();
+  const bmr = 10 * mass + 6.25 * g.height - 5 * g.age + (g.sex === 'M' ? 5 : -161);
+  const neat = bmr * (DAILY_FACTOR[g.daily] || 1.4);
+  const sportK = g.sports.reduce((a, s) => a + (s.met - 1) * mass * s.h / 7, 0);
+  const adj = g.goal === 'hujsanje' ? 0.9 : g.goal === 'masa' ? 1.1 : 1;
+  const fit = (g.sports.find((s) => s.id === 'fitnes') || { h: 0 }).h;
+  const autoP = g.goal === 'hujsanje' ? 2.0 : (fit >= 3 || g.goal === 'masa' ? 1.8 : 1.6);
+  const custom = g.method === 'custom';
+  const pKg = custom ? g.custom.b : (g.pKg != null ? g.pKg : autoP);
+  let b, oh, m, kcal;
+  if (custom) {
+    b = Math.round(g.custom.b * mass); oh = Math.round(g.custom.oh * mass); m = Math.round(g.custom.m * mass);
+    kcal = b * 4 + oh * 4 + m * 9;
   } else {
-    list.innerHTML = dayMeals.map((m) => `
-      <div class="meal-item">
-        ${m.hasPhoto ? `<img class="meal-thumb" data-photo="${m.id}" alt="">` : ''}
-        <div class="info">
-          <div class="title">${escapeHtml(m.name)}</div>
-          <div class="meta">${mealTypeLabel(m.type)} · ${clock(m.time)}${m.portion && m.portion !== 1 ? ' · ×' + fmtAmount(m.portion) : ''}${m.source === 'ai' ? ' · AI' : ''}</div>
-          <div class="macros">${m.calories} kcal · B ${m.protein} · OH ${m.carbs} · M ${m.fat}</div>
-        </div>
-        <div class="item-actions">
-          <button type="button" data-edit="${m.id}">Uredi</button>
-          <button type="button" class="danger" data-del="${m.id}" aria-label="Izbriši obrok">✕</button>
-        </div>
-      </div>`).join('');
-    list.querySelectorAll('[data-photo]').forEach((img) => {
-      photoUrl(img.dataset.photo).then((url) => { if (url) img.src = url; else img.remove(); });
-    });
-    list.querySelectorAll('[data-edit]').forEach((b) => b.addEventListener('click', () => editMeal(b.dataset.edit)));
-    list.querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', () => armedDelete(b, () => {
-      const m = meals.find((x) => x.id === b.dataset.del);
-      if (m && m.hasPhoto) { photoDelete(m.id); delete photoUrls[m.id]; }
-      meals = meals.filter((x) => x.id !== b.dataset.del);
-      if (editingMealId === b.dataset.del) resetMealForm();
-      persistMeals();
-      renderFood();
-    })));
+    kcal = Math.round((neat + sportK) * adj);
+    b = Math.round(pKg * mass);
+    m = Math.max(Math.round(kcal * g.fatPct / 100 / 9), Math.round(0.8 * mass));
+    oh = Math.max(0, Math.round((kcal - b * 4 - m * 9) / 4));
+  }
+  return { kcal, b, oh, m, bmr, neat, sportK, adj, pKg, mass, custom, autoP };
+}
+
+/** What was eaten on a day (confirmed meals; drinks add kcal only). */
+function dayTotals(key) {
+  const dm = eatenMeals().filter((m) => m.date === key);
+  const t = { b: 0, oh: 0, m: 0, kcal: 0, n: dm.length };
+  dm.forEach((m) => { t.b += m.protein || 0; t.oh += m.carbs || 0; t.m += m.fat || 0; t.kcal += m.calories || 0; });
+  t.kcal += drinks.filter((x) => x.date === key).reduce((a, x) => a + (x.kcal || 0), 0);
+  return t;
+}
+/** Which macros reached 90 % of the goal: 'b', 'o', 'm' letters; all three = crown. */
+function dayHits(key, G) {
+  const t = dayTotals(key);
+  if (!t.n) return '';
+  return (t.b >= 0.9 * G.b ? 'b' : '') + (t.oh >= 0.9 * G.oh ? 'o' : '') + (t.m >= 0.9 * G.m ? 'm' : '');
+}
+
+function ringsSvg(size, t, G, stroke) {
+  const c = size / 2, w = stroke || 10;
+  const radii = [c - w / 2 - 2, c - w * 1.8 - 2, c - w * 3.1 - 2];
+  const part = (r, val, goal, color, track) => {
+    const len = 2 * Math.PI * r;
+    const p = Math.min(1, goal ? val / goal : 0);
+    return '<circle cx="' + c + '" cy="' + c + '" r="' + r + '" fill="none" stroke="' + track + '" stroke-width="' + w + '"/>'
+      + (p > 0 ? '<circle cx="' + c + '" cy="' + c + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + w + '" stroke-linecap="round" stroke-dasharray="' + (len * p).toFixed(1) + ' ' + len.toFixed(1) + '" transform="rotate(-90 ' + c + ' ' + c + ')"/>' : '');
+  };
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '" aria-hidden="true">'
+    + part(radii[0], t.b, G.b, MACRO_COLORS.b, '#3A1F29') + part(radii[1], t.oh, G.oh, MACRO_COLORS.oh, '#3A3017') + part(radii[2], t.m, G.m, MACRO_COLORS.m, '#1A3144') + '</svg>';
+}
+function ringLegend(t, G) {
+  const row = (name, color, val, goal) => '<div><div class="k" style="color:' + color + '"><i style="background:' + color + '"></i>' + name + (goal && val >= 0.9 * goal ? ' ✓' : '') + '</div>'
+    + '<div class="v">' + fmtInt(val) + ' <small>/ ' + fmtInt(goal) + ' g</small></div></div>';
+  return row('Beljakovine', MACRO_COLORS.b, t.b, G.b) + row('Ogljikovi h.', MACRO_COLORS.oh, t.oh, G.oh) + row('Maščobe', MACRO_COLORS.m, t.m, G.m);
+}
+function monthCrowns(year, month, G) {
+  const today = localDay(new Date());
+  let n = 0;
+  for (let d = 1; d <= 31; d++) {
+    const key = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    if (dayDate(key).getMonth() !== month || key > today) break;
+    if (dayHits(key, G) === 'bom') n++;
+  }
+  return n;
+}
+
+// ============================================================
+// PREHRANA — glavni zaslon
+// ============================================================
+let foodView = 'main';
+const FOOD_ICON = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFB45E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a8 8 0 0 1-8 8h-2a8 8 0 0 1-8-8zM7 7c0-1.5 1-2 1-3M12 7c0-1.5 1-2 1-3M17 7c0-1.5 1-2 1-3"/></svg>';
+const LEFTOVER_ICON = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFB45E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16v3a8 8 0 0 1-16 0zM7 10V7h10v3"/></svg>';
+
+function showFoodView(v) {
+  foodView = v;
+  const onFood = document.body.dataset.tab === 'prehrana';
+  document.querySelectorAll('[data-food-view]').forEach((el) => { el.hidden = !onFood || el.dataset.foodView !== v; });
+  window.scrollTo(0, 0);
+  if (v === 'main') renderFood();
+  if (v === 'vnos') renderVnos();
+  if (v === 'cilji') renderGoals();
+}
+
+function renderFood() {
+  const day = foodDate.value || localDay(new Date());
+  const today = localDay(new Date());
+  document.getElementById('foodMonth').textContent = dayDate(day).toLocaleDateString('sl-SI', { month: 'long' }) + (day === today ? '' : ' · ' + shortDay(day));
+  const G = computeGoals();
+
+  // 7-day strip ending today (or the chosen day if it's further back)
+  const end = day > addDays(today, -7) ? today : day;
+  const strip = document.getElementById('foodDays');
+  strip.innerHTML = '';
+  for (let i = 6; i >= 0; i--) {
+    const k = addDays(end, -i);
+    const d = dayDate(k);
+    const b = btn('', '', () => { foodDate.value = k; renderFood(); }, { 'aria-pressed': k === day ? 'true' : 'false', 'aria-label': d.toLocaleDateString('sl-SI', { weekday: 'long', day: 'numeric', month: 'numeric' }) });
+    b.innerHTML = '<span>' + WEEKDAY_SHORT[d.getDay()] + '</span><b>' + d.getDate() + '</b>' + (dayHits(k, G) === 'bom' ? CROWN_SVG(12) : '');
+    strip.appendChild(b);
   }
 
-  renderPastMeals();
+  // rings → goals
+  const t = dayTotals(day);
+  const dt = dayDate(day);
+  document.getElementById('foodRings').innerHTML = '<div class="ring-row"><div class="ring-wrap">' + ringsSvg(124, t, G, 10)
+    + (dayHits(day, G) === 'bom' ? '<div class="crown-mid">' + CROWN_SVG(26) + '</div>' : '') + '</div><div class="ring-legend">' + ringLegend(t, G) + '</div></div>'
+    + '<div class="ring-foot"><span>' + fmtInt(t.kcal) + ' / ' + fmtInt(G.kcal) + ' kcal</span><span class="crowns">' + CROWN_SVG(16)
+    + monthCrowns(dt.getFullYear(), dt.getMonth(), G) + ' kron v ' + dt.toLocaleDateString('sl-SI', { month: 'short' }).replace('.', '') + '. ›</span></div>';
+
+  renderMealGroups(day);
+
+  // drinks
+  const drunk = renderDrinks(day);
+  document.getElementById('drinkSummary').textContent = drunk.ml ? fmtLitres(drunk.ml).replace(' L', ' l') + (drunk.kcal ? ' · ' + drunk.kcal + ' kcal' : '') : '';
+  renderDrinkTiles(day);
+
+  renderSuppMain(day);
+  if (document.body.dataset.tab === 'danes') renderToday();
+}
+
+function mealMeta(m) {
+  const conf = { high: ['visoka', 'conf-high'], medium: ['srednja', 'conf-mid'], low: ['nizka', 'conf-low'] }[m.confidence];
+  const src = m.source === 'ai' && conf ? '<span class="' + conf[1] + '">AI · ' + conf[0] + '</span>'
+    : m.source === 'repeat' ? 'ponovljeno · × ' + fmtAmount(m.portion || 1) : m.source === 'ai' ? 'AI' : 'ročni vnos';
+  return 'B ' + m.protein + ' · OH ' + m.carbs + ' · M ' + m.fat + ' · ' + src;
+}
+function mealIcon(m) {
+  const ico = document.createElement('div');
+  ico.className = 'meal-ico';
+  ico.innerHTML = m.pending ? LEFTOVER_ICON : FOOD_ICON;
+  if (m.hasPhoto) photoUrl(m.id).then((url) => { if (url) ico.innerHTML = '<img alt="" src="' + url + '">'; });
+  return ico;
+}
+
+function renderMealGroups(day) {
+  const wrap = document.getElementById('foodMeals');
+  wrap.innerHTML = '';
+  const dayMeals = meals.filter((m) => m.date === day).sort((a, b) => a.time - b.time);
+  MEAL_ORDER.forEach((type) => {
+    const list = dayMeals.filter((m) => m.type === type);
+    const eaten = list.filter((m) => !m.pending);
+    const kcal = eaten.reduce((a, m) => a + (m.calories || 0), 0);
+    const g = document.createElement('section');
+    g.className = 'meal-group';
+    g.innerHTML = '<div class="sec-head"><h2>' + mealTypeLabel(type) + '</h2><span>' + (kcal ? fmtInt(kcal) + ' kcal' : list.length ? 'ostanki čakajo' : '') + '</span></div>';
+    list.forEach((m) => g.appendChild(m.pending ? leftoverCard(m) : mealRow(m, dayMeals)));
+    g.appendChild(btn('+ Dodaj k ' + (type === 'prigrizek' ? 'prigrizku' : type === 'vecerja' ? 'večerji' : type === 'kosilo' ? 'kosilu' : 'zajtrku'), 'add-dashed', () => openVnos({ kind: 'hrana', type: type })));
+    wrap.appendChild(g);
+  });
+}
+
+function mealRow(m, dayMeals) {
+  const row = document.createElement('button');
+  row.type = 'button';
+  row.className = 'meal-row';
+  row.appendChild(mealIcon(m));
+  const mid = document.createElement('div');
+  mid.className = 'meal-mid';
+  let badge = '';
+  if (m.split && m.split.share < 1) {
+    const partner = meals.find((x) => x !== m && x.split && x.split.groupId === m.split.groupId);
+    badge = '<span class="split-badge">' + Math.round(m.split.share * 100) + ' %' + (partner ? (partner.pending ? ' · ostanek za ' + mealWord(partner.type) : ' · del obroka') : '') + '</span>';
+  }
+  mid.innerHTML = '<b>' + escapeHtml(m.name) + '</b><span class="m">' + mealMeta(m) + '</span>' + badge;
+  row.appendChild(mid);
+  const k = document.createElement('span');
+  k.className = 'meal-kcal';
+  k.textContent = fmtInt(m.calories);
+  row.appendChild(k);
+  row.addEventListener('click', () => openVnos({ kind: 'hrana', editId: m.id }));
+  return row;
+}
+
+function leftoverCard(m) {
+  const card = document.createElement('div');
+  card.className = 'leftover';
+  const from = meals.find((x) => x !== m && x.split && x.split.groupId === m.split.groupId);
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.appendChild(mealIcon(m));
+  const mid = document.createElement('div');
+  mid.className = 'meal-mid';
+  mid.innerHTML = '<b>Ostanki: ' + escapeHtml(m.name) + '</b><span class="m">' + Math.round((m.split.share || 0) * 100) + ' %' + (from ? ' od ' + (from.type === 'kosilo' ? 'kosila' : from.type === 'vecerja' ? 'večerje' : from.type === 'zajtrk' ? 'zajtrka' : 'prigrizka') : '')
+    + ' · B ' + m.protein + ' · OH ' + m.carbs + ' · M ' + m.fat + '</span>';
+  row.appendChild(mid);
+  const k = document.createElement('span'); k.className = 'meal-kcal'; k.textContent = fmtInt(m.calories);
+  row.appendChild(k);
+  card.appendChild(row);
+  const acts = document.createElement('div');
+  acts.className = 'leftover-acts';
+  acts.appendChild(btn('Pojedel ✓', 'eat', () => { m.pending = false; m.time = Date.now(); persistMeals(); renderFood(); toast('Ostanki zabeleženi: ' + fmtInt(m.calories) + ' kcal'); }));
+  acts.appendChild(btn('Polovico', '', () => {
+    ['calories', 'protein', 'carbs', 'fat'].forEach((f) => { m[f] = Math.round(m[f] / 2); });
+    m.split.share = m.split.share / 2;
+    m.pending = false; m.time = Date.now();
+    persistMeals(); renderFood(); toast('Pol ostankov zabeleženo');
+  }));
+  acts.appendChild(btn('Zavrgel', 'toss', () => { meals = meals.filter((x) => x !== m); persistMeals(); renderFood(); toast('Ostanki zavrženi — ne štejejo'); }));
+  card.appendChild(acts);
+  return card;
+}
+
+/** Quick "+ amount" tiles: the drinks you use most, plus today's amount. */
+function renderDrinkTiles(day) {
+  const counts = {};
+  drinks.forEach((x) => { counts[x.name] = (counts[x.name] || 0) + 1; });
+  const names = drinkTypes.map((t) => t.name).sort((a, b) => (counts[b] || 0) - (counts[a] || 0)).slice(0, 3);
+  const wrap = document.getElementById('drinkTiles');
+  wrap.innerHTML = '';
+  names.forEach((name) => {
+    const ml = drinks.filter((x) => x.date === day && x.name === name).reduce((a, x) => a + x.ml, 0);
+    const add = lastDrinkMl(name);
+    const b = btn('', 'drink-tile', () => {
+      const type = drinkTypes.find((t) => t.name === name) || { kcal100: 0 };
+      drinks.push({ id: newId('d'), date: day, time: Date.now(), name: name, ml: add, kcal: Math.round((type.kcal100 || 0) * add / 100) });
+      persistDrinks();
+      renderFood();
+      toast(name + ' + ' + add + ' ml');
+    }, { 'aria-label': name + ': dodaj ' + add + ' ml' });
+    b.innerHTML = '<span>' + escapeHtml(name) + '</span><b>' + fmtInt(ml) + ' ml</b><i>+ ' + add + '</i>';
+    wrap.appendChild(b);
+  });
+}
+
+/** Supplement chips: ✓ when taken on the chosen day; tap logs it, tap a ✓ removes that day's latest entry. */
+function renderSuppMain(day) {
+  const wrap = document.getElementById('suppChips');
+  wrap.innerHTML = '';
+  const takenNames = new Set(supplements.filter((x) => x.date === day).map((x) => x.name));
+  supplementList.forEach((item) => {
+    const on = takenNames.has(item.name);
+    wrap.appendChild(btn((on ? '✓ ' : '') + item.name, 'supp-chip', () => {
+      if (on) {
+        const last = supplements.filter((x) => x.date === day && x.name === item.name).sort((a, b) => b.time - a.time)[0];
+        supplements = supplements.filter((x) => x !== last);
+        persistSupps(); renderFood(); toast('Odstranjeno: ' + item.name);
+      } else {
+        logSupplement(item, defaultSlot());
+        toast('Zabeleženo: ' + item.name);
+      }
+    }, { 'aria-pressed': on ? 'true' : 'false', title: ingredientsText(item.ingredients) || item.name }));
+  });
+  wrap.appendChild(btn('+ Novo / slikaj etiketo', 'supp-chip add', () => openVnos({ kind: 'dopolnilo' })));
+  document.getElementById('suppSummary').textContent = supplementList.length ? takenNames.size + ' / ' + supplementList.length : '';
 
   const daySupps = supplements.filter((x) => x.date === day).sort((a, b) => a.time - b.time);
   const log = document.getElementById('suppLog');
@@ -2493,7 +2610,7 @@ function renderFood() {
   log.innerHTML = daySupps.length ? daySupps.map((x) => `
     <div class="supp-row">
       <div>
-        <div><span class="t">${clock(x.time)}</span>${escapeHtml(x.name)}</div>
+        <div><span class="t">${clock(x.time)}${x.slot ? ' · ' + escapeHtml(x.slot.toLowerCase()) : ''}</span>${escapeHtml(x.name)}</div>
         ${x.ingredients && x.ingredients.length ? `<div class="supp-contents">${escapeHtml(ingredientsText(takenIngredients(x)))}</div>` : ''}
       </div>
       <div class="item-actions">
@@ -2503,8 +2620,7 @@ function renderFood() {
         <button type="button" class="danger" data-sdel="${x.id}" aria-label="Izbriši vnos">✕</button>
       </div>
     </div>`).join('') + (totals.length ? `
-    <div class="supp-total"><span class="lbl">skupaj ta dan</span>${escapeHtml(ingredientsText(totals))}</div>` : '')
-    : '<div class="empty">Za ta dan ni zabeleženih dopolnil.</div>';
+    <div class="supp-total"><span class="lbl">skupaj ta dan</span>${escapeHtml(ingredientsText(totals))}</div>` : '') : '';
   log.querySelectorAll('[data-sstep]').forEach((b) => b.addEventListener('click', () => {
     const x = supplements.find((e) => e.id === b.dataset.sid);
     if (!x) return;
@@ -2519,7 +2635,10 @@ function renderFood() {
     renderFood();
   })));
 }
-foodDate.addEventListener('change', renderFood);
+
+foodDate.addEventListener('change', () => { if (!foodDate.value) foodDate.value = localDay(new Date()); renderFood(); });
+document.getElementById('foodRings').addEventListener('click', () => { goalTab = 'koledar'; calMonth = null; calSel = foodDate.value; showFoodView('cilji'); });
+document.getElementById('foodFab').addEventListener('click', () => openVnos({ kind: 'hrana' }));
 
 // ---------- drinks ----------
 const LS_DRINKS = 'kilometrina.drinks';
@@ -2635,14 +2754,930 @@ function renderDrinks(day) {
   return { ml: totalMl, kcal: dayDrinks.reduce((acc, x) => acc + (x.kcal || 0), 0) };
 }
 
+// ============================================================
+// VNOS — hrana ali dopolnilo; Novo (AI / ročno) ali že jedel / moja dopolnila
+// ============================================================
+let vn = null;
+function freshVnos(opts) {
+  return Object.assign({
+    kind: 'hrana', tab: 'nov', type: defaultMealType(), photo: null, text: '',
+    analyzing: false, error: '', result: null, portion: 1,
+    split: false, splitType: null, splitPct: 60, later: true,
+    slot: defaultSlot(), q: '', pick: null, editId: null, repeatOf: null, photoRemoved: false
+  }, opts || {});
+}
+
+function openVnos(opts) {
+  if (vn && vn.photo && vn.photo.previewUrl) URL.revokeObjectURL(vn.photo.previewUrl);
+  vn = freshVnos(opts);
+  if (vn.editId) {
+    const m = meals.find((x) => x.id === vn.editId);
+    if (!m) { vn.editId = null; } else {
+      const p = m.portion || 1;
+      vn.type = m.type;
+      vn.portion = p;
+      vn.result = {
+        ai: m.source === 'ai', conf: m.confidence, notes: m.notes || '', name: m.name, items: [],
+        base: { calories: m.calories / p, protein: m.protein / p, carbs: m.carbs / p, fat: m.fat / p }
+      };
+    }
+  }
+  showFoodView('vnos');
+}
+
+function splitOther() {
+  if (vn.splitType && vn.splitType !== vn.type) return vn.splitType;
+  return vn.type === 'vecerja' ? 'kosilo' : 'vecerja';
+}
+const baseScaled = (base, p) => ({ calories: round0(base.calories * p), protein: round0(base.protein * p), carbs: round0(base.carbs * p), fat: round0(base.fat * p) });
+
+function renderVnos() {
+  if (!vn) vn = freshVnos();
+  const food = vn.kind === 'hrana';
+  document.querySelectorAll('#vnKinds [data-kind]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.kind === vn.kind ? 'true' : 'false'));
+  document.querySelectorAll('#vnTabs [data-vtab]').forEach((b) => b.setAttribute('aria-selected', b.dataset.vtab === vn.tab ? 'true' : 'false'));
+  document.getElementById('vnHistTab').textContent = food ? 'Že jedel' : 'Moja dopolnila';
+  document.getElementById('vnTabs').hidden = !!vn.editId;
+  const unlocked = !!savedPasscode();
+  const lock = document.getElementById('vnLock');
+  lock.innerHTML = unlocked
+    ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7FF0DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg>'
+    : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8EA2B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+  lock.setAttribute('aria-label', unlocked ? 'AI odklenjen — tapni dvakrat, da pozabiš kodo' : 'AI zaklenjen — vpiši kodo');
+
+  const body = document.getElementById('vnBody');
+  body.innerHTML = '';
+  if (food) body.appendChild(typeChooser());
+  if (vn.tab === 'nov' || vn.editId) renderVnosNew(body, food); else renderVnosHist(body, food);
+  renderVnosPrimary(food);
+}
+
+function typeChooser() {
+  const grid = document.createElement('div');
+  grid.className = 'type-grid';
+  grid.setAttribute('role', 'group');
+  grid.setAttribute('aria-label', 'Obrok');
+  MEAL_TYPES.forEach(([k, label]) => grid.appendChild(btn(k === 'prigrizek' ? 'Prigriz.' : label, 'opt', () => { vn.type = k; renderVnos(); }, { 'aria-pressed': vn.type === k ? 'true' : 'false', 'aria-label': label })));
+  return grid;
+}
+
+function renderVnosNew(body, food) {
+  const edit = vn.editId ? meals.find((x) => x.id === vn.editId) : null;
+  // photo
+  const hasPhoto = vn.photo || (edit && edit.hasPhoto && !vn.photoRemoved);
+  if (hasPhoto) {
+    const prev = document.createElement('div');
+    prev.className = 'photo-prev';
+    const img = document.createElement('img');
+    img.alt = food ? 'Slika obroka' : 'Slika etikete';
+    if (vn.photo) img.src = vn.photo.previewUrl; else photoUrl(edit.id).then((u) => { if (u) img.src = u; });
+    prev.appendChild(img);
+    const x = btn('', '', () => {
+      if (vn.photo && vn.photo.previewUrl) URL.revokeObjectURL(vn.photo.previewUrl);
+      vn.photo = null;
+      if (edit) vn.photoRemoved = true;
+      renderVnos();
+    }, { 'aria-label': 'Odstrani sliko' });
+    x.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ECF1F4" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    prev.appendChild(x);
+    body.appendChild(prev);
+  } else {
+    const pick = document.createElement('div');
+    pick.className = 'photo-pick';
+    const cam = btn('', '', () => document.getElementById('vnCamera').click());
+    cam.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFB45E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>' + (food ? 'Slikaj obrok' : 'Slikaj etiketo');
+    const gal = btn('', '', () => document.getElementById('vnGallery').click());
+    gal.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFB45E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>Iz galerije';
+    pick.appendChild(cam); pick.appendChild(gal);
+    body.appendChild(pick);
+  }
+
+  // text
+  if (!edit) {
+    const lab = document.createElement('label');
+    lab.className = 'fld';
+    lab.innerHTML = '<span class="vn-label">' + (hasPhoto ? (food ? 'Dopiši, česar ni na sliki' : 'Dopiši, česar ni na etiketi') : (food ? 'Kaj si jedel?' : 'Katero dopolnilo?')) + '</span>';
+    const ta = document.createElement('textarea');
+    ta.className = 'vn-text';
+    ta.rows = 4;
+    ta.placeholder = hasPhoto ? (food ? 'npr. žlica olivnega olja, 2 kosa kruha zraven, pol porcije riža sem pustil' : 'npr. vzel sem 2 kapsuli namesto 1')
+      : (food ? 'npr. 200 g piščanca, riž, solata z olivnim oljem' : 'npr. Magnezij citrat, 300 mg, 1 kapsula');
+    ta.value = vn.text;
+    ta.addEventListener('input', () => { vn.text = ta.value; renderVnosPrimary(food); });
+    lab.appendChild(ta);
+    const hint = document.createElement('span');
+    hint.className = 'vn-hint';
+    hint.textContent = food ? 'Loči sestavine z vejico. Količine pomagajo AI-ju.' : 'Slika etikete + besedilo da najboljši rezultat.';
+    lab.appendChild(hint);
+    body.appendChild(lab);
+  }
+
+  if (vn.analyzing) {
+    const b = document.createElement('div');
+    b.className = 'busy-card';
+    b.innerHTML = '<i></i>AI analizira ' + (vn.photo && vn.text.trim() ? 'sliko in opis' : vn.photo ? 'sliko' : 'opis') + ' …';
+    body.appendChild(b);
+  }
+  if (vn.error) {
+    const e = document.createElement('div');
+    e.className = 'err-card';
+    e.textContent = vn.error;
+    body.appendChild(e);
+  }
+  if (vn.result) body.appendChild(food ? foodResultCard(edit) : suppResultCard());
+  if (!vn.result && !vn.analyzing) body.appendChild(btn('Vpiši ročno, brez AI', 'link-plain', () => {
+    const first = vn.text.split(/,|\n/)[0].trim();
+    vn.result = food
+      ? { ai: false, name: first ? first.charAt(0).toUpperCase() + first.slice(1) : '', items: [], base: { calories: 0, protein: 0, carbs: 0, fat: 0 } }
+      : { ai: false, name: first, brand: '', dose: '', ingredients: parseIngredients(vn.text.split(/,|\n/).slice(1).join(',')), manualText: '' };
+    vn.portion = 1;
+    vn.error = '';
+    renderVnos();
+  }));
+  if (edit) {
+    const del = btn('Izbriši obrok', 'danger-btn', null);
+    del.addEventListener('click', () => armedDelete(del, () => {
+      if (edit.hasPhoto) { photoDelete(edit.id); delete photoUrls[edit.id]; }
+      meals = meals.filter((x) => x.id !== edit.id);
+      persistMeals();
+      showFoodView('main');
+      toast('Obrok izbrisan');
+    }));
+    body.appendChild(del);
+  }
+}
+
+function portionButtons(onPick) {
+  const grid = document.createElement('div');
+  grid.className = 'portion-grid';
+  PORTIONS.forEach(([v, label]) => grid.appendChild(btn('× ' + label, 'opt', () => onPick(v), { 'aria-pressed': Math.abs(vn.portion - v) < 0.001 ? 'true' : 'false' })));
+  return grid;
+}
+
+/** The "Razdeli na dva obroka" box, for a total of `kcal` kcal. */
+function splitBox(kcal) {
+  const box = document.createElement('div');
+  box.className = 'split-box' + (vn.split ? ' on' : '');
+  const check = (on, title, sub, onClick) => {
+    const b = btn('', 'check-row', onClick, { 'aria-pressed': on ? 'true' : 'false' });
+    b.innerHTML = '<span class="box">' + (on ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2E1A04" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>' : '')
+      + '</span><span class="t"><b>' + title + '</b><span>' + sub + '</span></span>';
+    return b;
+  };
+  box.appendChild(check(vn.split, 'Razdeli na dva obroka', 'npr. del za kosilo, ostanki za večerjo — vpišeš samo enkrat', () => { vn.split = !vn.split; renderVnos(); }));
+  if (vn.split) {
+    const other = splitOther();
+    const grid = document.createElement('div');
+    grid.className = 'split-grid';
+    MEAL_TYPES.filter(([k]) => k !== vn.type).forEach(([k, label]) => grid.appendChild(btn('+ ' + (k === 'prigrizek' ? 'Prigriz.' : label), 'opt soft', () => { vn.splitType = k; renderVnos(); }, { 'aria-pressed': other === k ? 'true' : 'false', 'aria-label': 'Drugi del: ' + label })));
+    box.appendChild(grid);
+    const bar = document.createElement('div');
+    bar.className = 'split-bar';
+    bar.innerHTML = '<div style="width:' + vn.splitPct + '%"></div>';
+    box.appendChild(bar);
+    const kA = Math.round(kcal * vn.splitPct / 100);
+    const step = document.createElement('div');
+    step.className = 'split-step';
+    step.appendChild(btn('−', '', () => { vn.splitPct = Math.max(10, vn.splitPct - 10); renderVnos(); }, { 'aria-label': 'Manj za prvi obrok' }));
+    const mid = document.createElement('div');
+    mid.className = 'mid';
+    mid.innerHTML = '<span><span class="a">' + mealTypeLabel(vn.type) + ' ' + vn.splitPct + ' %</span><small>' + fmtInt(kA) + ' kcal</small></span>'
+      + '<span><span class="b">' + mealTypeLabel(other) + ' ' + (100 - vn.splitPct) + ' %</span><small>' + fmtInt(kcal - kA) + ' kcal</small></span>';
+    step.appendChild(mid);
+    step.appendChild(btn('+', '', () => { vn.splitPct = Math.min(90, vn.splitPct + 10); renderVnos(); }, { 'aria-label': 'Več za prvi obrok' }));
+    box.appendChild(step);
+    box.appendChild(check(vn.later, 'Del za ' + mealWord(other) + ' še ni pojeden — potrdim pozneje', 'Pri obroku se pokaže kot ostanek — tapneš »Pojedel«, »Polovico« ali »Zavrgel«.', () => { vn.later = !vn.later; renderVnos(); }));
+  }
+  return box;
+}
+
+function foodResultCard(edit) {
+  const r = vn.result;
+  const card = document.createElement('section');
+  card.className = 'result-card';
+  card.setAttribute('aria-label', 'Rezultat');
+  const confName = { high: 'visoka', medium: 'srednja', low: 'nizka' }[r.conf];
+  card.innerHTML = '<div class="result-top"><b>' + (edit ? 'Uredi obrok' : r.ai ? 'Ocena AI' : 'Ročni vnos') + '</b><span style="color:' + (r.conf === 'high' ? '#7FF0DB' : '#FFD19A') + '">'
+    + (r.ai && confName ? 'zanesljivost: ' + confName : r.ai ? 'AI' : 'brez AI') + '</span></div>'
+    + (r.notes ? '<span class="vn-hint">' + escapeHtml(r.notes) + '</span>' : '');
+  const nameF = document.createElement('label');
+  nameF.className = 'fld';
+  nameF.innerHTML = '<span class="cap">Ime</span>';
+  const name = document.createElement('input');
+  name.value = r.name; name.placeholder = 'npr. Losos z rižem'; name.maxLength = 60;
+  name.addEventListener('input', () => { r.name = name.value; });
+  nameF.appendChild(name);
+  card.appendChild(nameF);
+
+  if (r.items && r.items.length) {
+    const it = document.createElement('div');
+    it.className = 'stack';
+    it.style.gap = '6px';
+    it.innerHTML = '<span class="cap">Prepoznano</span>';
+    r.items.forEach((item, i) => {
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = '<span>' + escapeHtml(item.name) + '</span><small>~' + fmtInt(item.kcal) + ' kcal</small>';
+      // removing an ingredient takes its share off the totals
+      row.appendChild(btn('✕', '', () => {
+        r.base.calories = Math.max(0, r.base.calories - item.kcal);
+        r.base.protein = Math.max(0, r.base.protein - item.protein);
+        r.base.carbs = Math.max(0, r.base.carbs - item.carbs);
+        r.base.fat = Math.max(0, r.base.fat - item.fat);
+        r.items.splice(i, 1);
+        renderVnos();
+      }, { 'aria-label': 'Odstrani ' + item.name }));
+      it.appendChild(row);
+    });
+    card.appendChild(it);
+  }
+
+  const shown = baseScaled(r.base, vn.portion);
+  const grid = document.createElement('div');
+  grid.className = 'macro-grid';
+  [['calories', 'kcal'], ['protein', 'B g'], ['carbs', 'OH g'], ['fat', 'M g']].forEach(([key, label]) => {
+    const f = document.createElement('label');
+    f.className = 'fld';
+    f.innerHTML = '<span class="cap">' + label + '</span>';
+    const inp = document.createElement('input');
+    inp.inputMode = 'numeric'; inp.value = shown[key] || ''; inp.placeholder = '0';
+    // a number typed by hand redefines the portion-of-1 value
+    inp.addEventListener('input', () => { r.base[key] = (Number(inp.value.replace(',', '.')) || 0) / vn.portion; renderVnosPrimary(true); });
+    inp.addEventListener('change', () => renderVnos());
+    f.appendChild(inp);
+    grid.appendChild(f);
+  });
+  card.appendChild(grid);
+  const pc = document.createElement('div');
+  pc.className = 'stack';
+  pc.style.gap = '6px';
+  pc.innerHTML = '<span class="cap">Količina</span>';
+  pc.appendChild(portionButtons((v) => { vn.portion = v; renderVnos(); }));
+  card.appendChild(pc);
+  if (!edit) card.appendChild(splitBox(shown.calories));
+  return card;
+}
+
+function suppResultCard() {
+  const r = vn.result;
+  const card = document.createElement('section');
+  card.className = 'result-card';
+  const confName = { high: 'visoka', medium: 'srednja', low: 'nizka' }[r.conf];
+  card.innerHTML = '<div class="result-top"><b>' + (r.ai ? 'Ocena AI' : 'Ročni vnos') + '</b><span style="color:' + (r.conf === 'high' ? '#7FF0DB' : '#FFD19A') + '">'
+    + (r.ai && confName ? 'zanesljivost: ' + confName : r.ai ? 'AI' : 'brez AI') + '</span></div>'
+    + (r.notes ? '<span class="vn-hint">' + escapeHtml(r.notes) + '</span>' : '');
+  const field = (label, value, ph, onInput) => {
+    const f = document.createElement('label');
+    f.className = 'fld';
+    f.innerHTML = '<span class="cap">' + label + '</span>';
+    const i = document.createElement('input');
+    i.value = value || ''; i.placeholder = ph;
+    i.addEventListener('input', () => onInput(i.value));
+    f.appendChild(i);
+    return f;
+  };
+  card.appendChild(field('Ime', r.name, 'npr. Magnezij citrat', (v) => { r.name = v; renderVnosPrimary(false); }));
+  if (r.brand) { const s = document.createElement('span'); s.className = 'vn-hint'; s.textContent = r.brand; card.appendChild(s); }
+  const two = document.createElement('div');
+  two.className = 'macro-grid';
+  two.style.gridTemplateColumns = 'repeat(2, minmax(0, 1fr))';
+  two.appendChild(field('Odmerek', r.dose, 'npr. 1 kapsula', (v) => { r.dose = v; }));
+  const when = document.createElement('div');
+  when.className = 'fld';
+  when.innerHTML = '<span class="cap">Kdaj</span>';
+  const slots = document.createElement('div');
+  slots.style.display = 'flex'; slots.style.gap = '4px';
+  SUPP_SLOTS.forEach(([full, short]) => {
+    const b = btn(short, 'opt', () => { vn.slot = full; renderVnos(); }, { 'aria-pressed': vn.slot === full ? 'true' : 'false', 'aria-label': full });
+    b.style.flex = '1';
+    slots.appendChild(b);
+  });
+  when.appendChild(slots);
+  two.appendChild(when);
+  card.appendChild(two);
+  const list = document.createElement('div');
+  list.className = 'stack';
+  list.style.gap = '6px';
+  list.innerHTML = '<span class="cap">Sestavine na odmerek</span>';
+  (r.ingredients || []).forEach((ing, i) => {
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = '<span>' + escapeHtml(ing.name) + '</span><small>' + (ing.amount ? fmtAmount(ing.amount) + ' ' + escapeHtml(ing.unit) : '') + (ing.nrv ? ' · ' + fmtAmount(ing.nrv) + ' % PV' : '') + '</small>';
+    row.appendChild(btn('✕', '', () => { r.ingredients.splice(i, 1); renderVnos(); }, { 'aria-label': 'Odstrani ' + ing.name }));
+    list.appendChild(row);
+  });
+  const add = document.createElement('div');
+  add.className = 'sc-add';
+  const inp = document.createElement('input');
+  inp.placeholder = 'dodaj, npr. Vitamin B6 2 mg';
+  const doAdd = () => { const more = parseIngredients(inp.value); if (!more.length) return; r.ingredients = (r.ingredients || []).concat(more); renderVnos(); };
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doAdd(); } });
+  add.appendChild(inp);
+  add.appendChild(btn('Dodaj', 'add-btn', doAdd));
+  list.appendChild(add);
+  card.appendChild(list);
+  return card;
+}
+
+function renderVnosHist(body, food) {
+  const lab = document.createElement('label');
+  lab.className = 'search-box';
+  lab.style.margin = '0';
+  lab.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8EA2B2" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
+  const q = document.createElement('input');
+  q.type = 'search'; q.value = vn.q; q.placeholder = food ? 'Išči med jedmi, ki si jih že jedel …' : 'Išči med dopolnili …'; q.setAttribute('aria-label', 'Išči');
+  q.addEventListener('input', () => { vn.q = q.value; vn.pick = null; renderVnosHistList(food); });
+  lab.appendChild(q);
+  body.appendChild(lab);
+  const hint = document.createElement('span');
+  hint.className = 'vn-hint';
+  hint.textContent = food ? 'Tapni jed, izberi količino in dodaj — brez AI, brez kode.' : 'Tapni dopolnilo, izberi kdaj in zabeleži — brez AI.';
+  body.appendChild(hint);
+  const list = document.createElement('div');
+  list.className = 'stack';
+  list.id = 'vnHistList';
+  body.appendChild(list);
+  renderVnosHistList(food);
+}
+
+function renderVnosHistList(food) {
+  const list = document.getElementById('vnHistList');
+  if (!list) return;
+  list.innerHTML = '';
+  const q = vn.q.trim().toLowerCase();
+  const day = foodDate.value || localDay(new Date());
+  const lastLabel = (key) => (key === localDay(new Date()) ? 'danes' : WEEKDAY_SHORT[dayDate(key).getDay()].toLowerCase() + ' ' + shortDay(key));
+  const src = food
+    ? pastMeals().filter((e) => !q || e.last.name.toLowerCase().indexOf(q) !== -1).slice(0, 40).map((e) => ({ key: e.last.name.toLowerCase(), e: e }))
+    : supplementList.filter((s) => !q || s.name.toLowerCase().indexOf(q) !== -1).map((s) => ({ key: s.name.toLowerCase(), s: s }));
+  if (!src.length) {
+    list.innerHTML = '<div class="empty-card">' + (food && !meals.length || !food && !supplementList.length ? 'Tu se bodo pojavili vnosi, ko jih enkrat dodaš.' : 'Ni zadetkov.') + ' Poskusi zavihek <b>Novo</b>.</div>';
+    return;
+  }
+  src.forEach((x) => {
+    const open = vn.pick === x.key;
+    const item = document.createElement('div');
+    item.className = 'hist-food' + (open ? ' open' : '');
+    const head = document.createElement('button');
+    head.type = 'button';
+    head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (food) {
+      const m = x.e.last;
+      head.innerHTML = '<span class="n"><b>' + escapeHtml(m.name) + '</b><span>B ' + m.protein + ' · OH ' + m.carbs + ' · M ' + m.fat + ' · ' + x.e.count + '× · nazadnje ' + lastLabel(m.date) + '</span></span><span class="r">' + fmtInt(m.calories) + '</span>';
+    } else {
+      const s = x.s;
+      const n = supplements.filter((e) => e.name === s.name).length;
+      const today = supplements.some((e) => e.name === s.name && e.date === day);
+      head.innerHTML = '<span class="n"><b>' + escapeHtml(s.name) + '</b><span>' + escapeHtml([s.serving, ingredientsText(s.ingredients), n + '×'].filter(Boolean).join(' · ')) + '</span></span><span class="r">' + (today ? '✓ danes' : '') + '</span>';
+    }
+    head.addEventListener('click', () => {
+      vn.pick = open ? null : x.key;
+      if (food && !open) { vn.portion = x.e.last.portion || 1; vn.split = false; vn.splitType = null; }
+      renderVnosHistList(food);
+    });
+    item.appendChild(head);
+    if (open) {
+      const b = document.createElement('div');
+      b.className = 'body';
+      if (food) {
+        const m = x.e.last;
+        const base = { calories: m.calories / (m.portion || 1), protein: m.protein / (m.portion || 1), carbs: m.carbs / (m.portion || 1), fat: m.fat / (m.portion || 1) };
+        b.appendChild(portionButtons((v) => { vn.portion = v; renderVnosHistList(true); }));
+        const kc = baseScaled(base, vn.portion).calories;
+        b.appendChild(splitBox(kc));
+        b.appendChild(btn(vn.split ? 'Dodaj · ' + splitLabel(kc) : 'Dodaj v ' + mealTypeLabel(vn.type) + ' · ' + fmtInt(kc) + ' kcal', 'big-food-btn', () => {
+          saveFood({ name: m.name, base: base, ai: false, repeatOf: m });
+        }));
+      } else {
+        const slots = document.createElement('div');
+        slots.className = 'split-grid';
+        SUPP_SLOTS.forEach(([full]) => slots.appendChild(btn(full, 'opt', () => { vn.slot = full; renderVnosHistList(false); }, { 'aria-pressed': vn.slot === full ? 'true' : 'false' })));
+        b.appendChild(slots);
+        b.appendChild(btn('Zabeleži za ' + (day === localDay(new Date()) ? 'danes' : shortDay(day)) + ' · ' + vn.slot.toLowerCase(), 'big-food-btn', () => {
+          logSupplement(x.s, vn.slot);
+          vn.pick = null;
+          toast('Zabeleženo: ' + x.s.name + (x.s.serving ? ', ' + x.s.serving : '') + ' (' + vn.slot.toLowerCase() + ')');
+          renderVnosHistList(false);
+        }));
+      }
+      item.appendChild(b);
+    }
+    list.appendChild(item);
+  });
+}
+
+function splitLabel(kcal) {
+  const kA = Math.round(kcal * vn.splitPct / 100);
+  return mealTypeLabel(vn.type) + ' ' + fmtInt(kA) + (vn.later ? ' kcal (+ ostanek)' : ' + ' + mealTypeLabel(splitOther()) + ' ' + fmtInt(kcal - kA) + ' kcal');
+}
+
+function renderVnosPrimary(food) {
+  const bottom = document.getElementById('vnBottom');
+  const primary = document.getElementById('vnPrimary');
+  const note = document.getElementById('vnNote');
+  const showBottom = vn.tab === 'nov' || vn.editId;
+  bottom.hidden = !showBottom || document.body.dataset.tab !== 'prehrana' || foodView !== 'vnos';
+  if (!showBottom) return;
+  const r = vn.result;
+  if (r) {
+    primary.disabled = false;
+    if (food) {
+      const kc = baseScaled(r.base, vn.portion).calories;
+      primary.textContent = vn.editId ? 'Shrani spremembe · ' + fmtInt(kc) + ' kcal'
+        : vn.split ? 'Shrani · ' + splitLabel(kc) : 'Shrani v ' + mealTypeLabel(vn.type) + ' · ' + fmtInt(kc) + ' kcal';
+    } else {
+      primary.textContent = 'Zabeleži dopolnilo';
+      primary.disabled = !r.name.trim();
+    }
+    note.textContent = vn.editId ? 'Spremembe se sinhronizirajo z Drive.' : 'Popravi številke, če AI ni zadel — shrani se tudi v zgodovino.';
+  } else {
+    const can = !!(vn.text.trim() || vn.photo);
+    primary.disabled = !can || vn.analyzing;
+    primary.innerHTML = (vn.analyzing ? '' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>')
+      + (vn.analyzing ? 'Analiziram …' : 'Analiziraj z AI');
+    note.textContent = savedPasscode() ? 'AI odklenjen na tej napravi' : 'Za AI potrebuješ svojo kodo';
+  }
+}
+
+/** Photo picked (camera or gallery): keep a small copy for the meal, send a larger one to AI. */
+async function onVnPhoto(e) {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = ''; // picking the same photo again should still fire
+  if (!file) return;
+  try {
+    const img = await loadImage(file);
+    const food = vn.kind === 'hrana';
+    // Labels have small print: send a larger image than for meals.
+    const analysis = renderJpeg(img, food ? ANALYSIS_WIDTH : 1568);
+    const keep = await canvasBlob(renderJpeg(img, KEEP_WIDTH), KEEP_QUALITY);
+    if (vn.photo && vn.photo.previewUrl) URL.revokeObjectURL(vn.photo.previewUrl);
+    vn.photo = { analysisB64: analysis.toDataURL('image/jpeg', food ? ANALYSIS_QUALITY : 0.8).split(',')[1], keepBlob: keep, previewUrl: URL.createObjectURL(keep) };
+    if (!vn.editId) vn.result = null;
+    vn.error = '';
+    renderVnos();
+  } catch (err) {
+    vn.error = 'Slike ni bilo mogoče prebrati: ' + (err.message || err);
+    renderVnos();
+  }
+}
+document.getElementById('vnCamera').addEventListener('change', onVnPhoto);
+document.getElementById('vnGallery').addEventListener('change', onVnPhoto);
+
+async function runAnalysis() {
+  if (!(vn.text.trim() || vn.photo)) return;
+  if (!driveAccessToken || !savedPasscode()) { openGate(runAnalysis); return; }
+  const food = vn.kind === 'hrana';
+  vn.analyzing = true; vn.error = ''; vn.result = null;
+  renderVnos();
+  try {
+    const data = await aiRequest(food ? '/meal' : '/supplement', { image: vn.photo ? vn.photo.analysisB64 : null, description: vn.text.trim() });
+    vn.portion = 1;
+    vn.result = food
+      ? { ai: true, conf: data.confidence, notes: data.notes, name: data.name || '', items: data.items || [],
+          base: { calories: data.calories, protein: data.protein, carbs: data.carbs, fat: data.fat } }
+      : { ai: true, conf: data.confidence, notes: data.notes, name: data.name || '', brand: data.brand || '', dose: data.serving || '', ingredients: data.ingredients || [] };
+  } catch (e) {
+    if (e.code === 'bad_passcode') { vn.analyzing = false; openGate(runAnalysis, 'Napačna koda. Poskusi znova.'); renderVnos(); return; }
+    vn.error = 'Ocena ni uspela: ' + (e.message || e) + ' — lahko vpišeš ročno.';
+  }
+  vn.analyzing = false;
+  renderVnos();
+}
+
+/** Save the current (or a repeated) meal; with "Razdeli" it becomes two linked meals. */
+function saveFood(src) {
+  const day = foodDate.value || localDay(new Date());
+  const total = baseScaled(src.base, vn.portion);
+  const common = {
+    name: (src.name || '').trim() || mealTypeLabel(vn.type), portion: vn.portion,
+    confidence: src.ai ? src.conf || null : null, notes: src.ai ? src.notes || '' : '',
+    source: src.ai ? 'ai' : src.repeatOf ? 'repeat' : 'manual'
+  };
+  const newPhoto = vn.photo ? vn.photo.keepBlob : null;
+  const now = Date.now();
+  let first;
+  if (vn.split) {
+    const groupId = newId('g');
+    const a = vn.splitPct / 100;
+    const part = (share) => ({ calories: round0(total.calories * share), protein: round0(total.protein * share), carbs: round0(total.carbs * share), fat: round0(total.fat * share) });
+    first = Object.assign({ id: newId('m'), date: day, time: now, type: vn.type, hasPhoto: false, split: { groupId: groupId, share: a } }, common, part(a));
+    const second = Object.assign({ id: newId('m'), date: day, time: now + 1, type: splitOther(), hasPhoto: false, split: { groupId: groupId, share: 1 - a } }, common, part(1 - a));
+    if (vn.later) second.pending = true;
+    meals.push(first, second);
+    toast(vn.later ? 'Dodano: ' + mealTypeLabel(vn.type) + ' ' + vn.splitPct + ' % · ' + (100 - vn.splitPct) + ' % čaka kot ostanek za ' + mealWord(second.type)
+      : 'Dodano: ' + mealTypeLabel(vn.type) + ' ' + fmtInt(first.calories) + ' + ' + mealTypeLabel(second.type) + ' ' + fmtInt(second.calories) + ' kcal');
+  } else {
+    first = Object.assign({ id: newId('m'), date: day, time: now, type: vn.type, hasPhoto: false }, common, total);
+    meals.push(first);
+    toast('Dodano v ' + mealTypeLabel(vn.type) + ' · ' + fmtInt(first.calories) + ' kcal' + (src.repeatOf ? ' (brez AI)' : ''));
+  }
+  meals.sort((x, y) => x.date.localeCompare(y.date) || x.time - y.time);
+  persistMeals();
+  if (newPhoto) storeMealPhoto(first.id, newPhoto);
+  showFoodView('main');
+}
+
+function storeMealPhoto(id, blob) {
+  // The meal is saved already; the photo follows once the device has stored it.
+  photoPut(id, blob).then(() => {
+    delete photoUrls[id];
+    meals = meals.map((m) => (m.id === id ? Object.assign({}, m, { hasPhoto: true }) : m));
+    persistMeals();
+    if (foodView === 'main') renderFood();
+  }).catch(() => showError('slike ni bilo mogoče shraniti na napravo — obrok je shranjen brez nje'));
+}
+
+function saveEdit() {
+  const m = meals.find((x) => x.id === vn.editId);
+  if (!m) return;
+  const r = vn.result;
+  Object.assign(m, baseScaled(r.base, vn.portion), { name: r.name.trim() || m.name, type: vn.type, portion: vn.portion });
+  if (vn.photoRemoved && m.hasPhoto && !vn.photo) { photoDelete(m.id); delete photoUrls[m.id]; m.hasPhoto = false; }
+  persistMeals();
+  if (vn.photo) storeMealPhoto(m.id, vn.photo.keepBlob);
+  toast('Obrok posodobljen');
+  showFoodView('main');
+}
+
+function saveSupplementResult() {
+  const r = vn.result;
+  const item = { name: r.name.trim() || 'Dopolnilo', brand: r.brand || '', serving: (r.dose || '').trim(), ingredients: r.ingredients || [] };
+  const at = supplementList.findIndex((x) => x.name.toLowerCase() === item.name.toLowerCase());
+  if (at === -1) supplementList.push(item); else supplementList[at] = Object.assign({}, supplementList[at], item); // a new label updates the contents
+  logSupplement(item, vn.slot);
+  toast('Zabeleženo: ' + item.name + ' (' + vn.slot.toLowerCase() + ') — dodano med tvoja dopolnila');
+  showFoodView('main');
+}
+
+document.getElementById('vnPrimary').addEventListener('click', () => {
+  if (!vn) return;
+  if (!vn.result) { runAnalysis(); return; }
+  if (vn.kind === 'dopolnilo') saveSupplementResult();
+  else if (vn.editId) saveEdit();
+  else saveFood({ name: vn.result.name, base: vn.result.base, ai: vn.result.ai, conf: vn.result.conf, notes: vn.result.notes });
+});
+document.getElementById('vnBack').addEventListener('click', () => showFoodView('main'));
+document.querySelectorAll('#vnKinds [data-kind]').forEach((b) => b.addEventListener('click', () => {
+  if (vn.editId) return;
+  openVnos({ kind: b.dataset.kind, tab: vn.tab, type: vn.type });
+}));
+document.querySelectorAll('#vnTabs [data-vtab]').forEach((b) => b.addEventListener('click', () => { vn.tab = b.dataset.vtab; vn.pick = null; vn.error = ''; renderVnos(); }));
+document.getElementById('vnLock').addEventListener('click', (e) => {
+  if (!savedPasscode()) { openGate(null); return; }
+  const lock = e.currentTarget;
+  if (lock.dataset.armed !== 'true') {
+    lock.dataset.armed = 'true';
+    toast('Tapni še enkrat, da pozabiš AI kodo na tej napravi');
+    setTimeout(() => { lock.dataset.armed = 'false'; }, 3000);
+    return;
+  }
+  lock.dataset.armed = 'false';
+  forgetPasscode();
+  toast('Koda pozabljena na tej napravi');
+  renderVnos();
+  renderAiAccess();
+});
+
+// ---------- AI koda (gate) ----------
+let gateAfter = null;
+function openGate(after, error) {
+  gateAfter = after;
+  renderGate(error || '');
+  document.getElementById('gateSheet').hidden = false;
+}
+function closeGate() { document.getElementById('gateSheet').hidden = true; gateAfter = null; }
+function renderGate(error) {
+  const box = document.getElementById('gateBody');
+  box.innerHTML = '';
+  const head = document.createElement('div');
+  head.className = 'gate-row';
+  head.innerHTML = '<div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFB45E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>'
+    + '<div class="stack" style="gap:2px;"><span class="d">' + (driveAccessToken ? 'Vpiši AI kodo' : 'Najprej se prijavi v Google') + '</span><span class="muted-sm">'
+    + (driveAccessToken ? 'Brez nje AI ne deluje — tvojega API ključa ne more uporabiti nihče drug.' : 'Worker preveri, da si to ti, šele nato uporabi AI ključ. Prijava velja približno 1 uro.') + '</span></div>';
+  box.appendChild(head);
+  if (!driveAccessToken) {
+    const g = document.createElement('div');
+    g.className = 'gate-btns';
+    g.appendChild(btn('Prekliči', '', closeGate));
+    g.appendChild(btn('Prijava v Google', 'go', () => {
+      if (driveTokenClient) driveTokenClient.requestAccessToken({ prompt: '' });
+      else showError('Google prijava še ni pripravljena — poskusi čez trenutek');
+    }));
+    box.appendChild(g);
+    return;
+  }
+  const inp = document.createElement('input');
+  inp.type = 'password'; inp.className = 'gate-input'; inp.placeholder = '••••••'; inp.autocomplete = 'off';
+  inp.setAttribute('autocapitalize', 'off'); inp.spellcheck = false; inp.setAttribute('aria-label', 'AI koda');
+  box.appendChild(inp);
+  const hint = document.createElement('span');
+  hint.className = 'muted-sm';
+  hint.style.color = error ? 'var(--coral)' : '';
+  hint.textContent = error || 'Koda se preveri na tvojem Workerju, preden gre karkoli do API-ja.';
+  box.appendChild(hint);
+  let show = false, remember = true;
+  const checkBtn = (label, get, set) => {
+    const b = btn('', 'check-row', null);
+    const draw = () => {
+      b.setAttribute('aria-pressed', get() ? 'true' : 'false');
+      b.innerHTML = '<span class="box">' + (get() ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2E1A04" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>' : '') + '</span><span class="t"><b>' + label + '</b></span>';
+    };
+    b.addEventListener('click', () => { set(!get()); draw(); });
+    draw();
+    return b;
+  };
+  // hidden by default; visible only while "Pokaži kodo" is ticked
+  box.appendChild(checkBtn('Pokaži kodo', () => show, (v) => { show = v; inp.type = v ? 'text' : 'password'; }));
+  box.appendChild(checkBtn('Zapomni si na tej napravi', () => remember, (v) => { remember = v; }));
+  const unlock = () => {
+    const code = inp.value.trim();
+    if (!code) { inp.focus(); return; }
+    if (remember) lsSet(LS_AI_PASSCODE, code); else sessionPasscode = code;
+    const after = gateAfter;
+    closeGate();
+    renderAiAccess();
+    if (vn && foodView === 'vnos') renderVnos();
+    if (after) after();
+  };
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); unlock(); } });
+  const g = document.createElement('div');
+  g.className = 'gate-btns';
+  g.appendChild(btn('Prekliči', '', closeGate));
+  g.appendChild(btn(gateAfter ? 'Odkleni in analiziraj' : 'Odkleni', 'go', unlock));
+  box.appendChild(g);
+  setTimeout(() => inp.focus(), 50);
+}
+document.getElementById('gateSheet').addEventListener('click', (e) => { if (e.target.id === 'gateSheet') closeGate(); });
+
+// ============================================================
+// MAKRO CILJI — zaslon
+// ============================================================
+let goalTab = 'koledar';
+let calMonth = null; // 'YYYY-MM'
+let calSel = null;
+const dec1 = (n) => (Math.round(n * 10) / 10).toLocaleString('sl-SI', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+function renderGoals() {
+  document.querySelectorAll('#goalTabs [data-gtab]').forEach((b) => b.setAttribute('aria-selected', b.dataset.gtab === goalTab ? 'true' : 'false'));
+  const body = document.getElementById('goalBody');
+  body.innerHTML = '';
+  const G = computeGoals();
+  const day = calSel || foodDate.value || localDay(new Date());
+  const today = localDay(new Date());
+  const t = dayTotals(goalTab === 'koledar' ? day : today);
+  const rc = document.createElement('section');
+  rc.className = 'rings-card';
+  rc.innerHTML = '<div class="ring-wrap">' + ringsSvg(150, t, G, 12) + (dayHits(goalTab === 'koledar' ? day : today, G) === 'bom' ? '<div class="crown-mid">' + CROWN_SVG(30) + '</div>' : '') + '</div>'
+    + '<div class="ring-legend">' + ringLegend(t, G) + '<span class="muted-sm">' + fmtInt(t.kcal) + ' / ' + fmtInt(G.kcal) + ' kcal ' + (goalTab === 'koledar' && day !== today ? shortDay(day) : 'danes') + '</span></div>';
+  body.appendChild(rc);
+  if (goalTab === 'koledar') renderCalendar(body, G); else renderGoalSettings(body, G);
+}
+
+function renderCalendar(body, G) {
+  const today = localDay(new Date());
+  const month = calMonth || (calSel || today).slice(0, 7);
+  const [yy, mm] = month.split('-').map(Number);
+  const first = new Date(yy, mm - 1, 1);
+  const daysIn = new Date(yy, mm, 0).getDate();
+  const hits = {};
+  let crowns = 0, best = 0, run = 0, elapsed = 0;
+  for (let d = 1; d <= daysIn; d++) {
+    const key = month + '-' + String(d).padStart(2, '0');
+    if (key > today) { run = 0; continue; }
+    elapsed++;
+    hits[d] = dayHits(key, G);
+    if (hits[d] === 'bom') { crowns++; run++; best = Math.max(best, run); } else run = 0;
+  }
+  const monthName = first.toLocaleDateString('sl-SI', { month: 'long' });
+  const s3 = document.createElement('div');
+  s3.className = 'stat3';
+  s3.innerHTML = '<div class="gold"><b>' + CROWN_SVG(18) + crowns + '</b><span>kron v ' + monthName.slice(0, 3) + '.</span></div>'
+    + '<div><b>' + best + ' dni</b><span>najdaljši niz</span></div>'
+    + '<div><b>' + (elapsed ? Math.round(crowns / elapsed * 100) : 0) + ' %</b><span>dni v cilju</span></div>';
+  body.appendChild(s3);
+
+  const cal = document.createElement('section');
+  cal.className = 'cal-card';
+  cal.setAttribute('aria-label', 'Koledar ' + monthName + ' ' + yy);
+  const head = document.createElement('div');
+  head.className = 'cal-head';
+  const shift = (n) => { const d = new Date(yy, mm - 1 + n, 1); calMonth = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); renderGoals(); };
+  head.appendChild(btn('‹', '', () => shift(-1), { 'aria-label': 'Prejšnji mesec' }));
+  const h = document.createElement('h2');
+  h.className = 'd';
+  h.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1) + ' ' + yy;
+  head.appendChild(h);
+  head.appendChild(btn('›', '', () => shift(1), { 'aria-label': 'Naslednji mesec', disabled: month >= today.slice(0, 7) }));
+  cal.appendChild(head);
+  const note = document.createElement('span');
+  note.className = 'muted-sm';
+  note.textContent = 'krona = vsi trije makri vsaj 90 % cilja';
+  cal.appendChild(note);
+  const dow = document.createElement('div');
+  dow.className = 'cal-dow';
+  dow.innerHTML = '<span>P</span><span>T</span><span>S</span><span>Č</span><span>P</span><span>S</span><span>N</span>';
+  cal.appendChild(dow);
+  const grid = document.createElement('div');
+  grid.className = 'cal-grid';
+  const lead = (first.getDay() + 6) % 7;
+  for (let i = 0; i < lead; i++) { const b = document.createElement('span'); b.className = 'cal-cell blank'; grid.appendChild(b); }
+  for (let d = 1; d <= daysIn; d++) {
+    const key = month + '-' + String(d).padStart(2, '0');
+    const future = key > today;
+    const hh = hits[d] || '';
+    const crown = hh === 'bom';
+    const cls = 'cal-cell' + (crown ? ' crown' : '') + (future ? ' future' : '') + (key === today ? ' today' : '') + (key === (calSel || today) ? ' sel' : '');
+    const b = btn('', cls, future ? null : () => { calSel = key; renderGoals(); }, { 'aria-label': d + '. ' + mm + '.' + (crown ? ', krona' : ''), disabled: future });
+    b.innerHTML = (crown ? CROWN_SVG(14) : '') + '<b>' + d + '</b>'
+      + (!future && !crown ? '<span class="dots"><i style="background:' + (hh.indexOf('b') !== -1 ? MACRO_COLORS.b : '#2A3F53') + '"></i><i style="background:' + (hh.indexOf('o') !== -1 ? MACRO_COLORS.oh : '#2A3F53') + '"></i><i style="background:' + (hh.indexOf('m') !== -1 ? MACRO_COLORS.m : '#2A3F53') + '"></i></span>' : '');
+    grid.appendChild(b);
+  }
+  cal.appendChild(grid);
+  const sel = calSel || today;
+  const st = dayTotals(sel);
+  const sh = dayHits(sel, G);
+  const selBox = document.createElement('div');
+  selBox.className = 'cal-sel';
+  const selName = sel === today ? 'Danes' : dayDate(sel).toLocaleDateString('sl-SI', { weekday: 'long' }).replace(/^./, (c) => c.toUpperCase()) + ', ' + shortDay(sel);
+  const mark = (k, n) => n + ' ' + (sh.indexOf(k) !== -1 ? '✓' : '✗');
+  selBox.innerHTML = '<b>' + selName + (sh === 'bom' ? ' — krona osvojena' : '') + '</b><span>'
+    + (!st.n ? 'Za ta dan ni vnesene hrane.'
+      : sel === today && sh !== 'bom' ? 'Še manjka: ' + [['b', 'B', G.b, st.b], ['o', 'OH', G.oh, st.oh], ['m', 'M', G.m, st.m]]
+        .filter((x) => sh.indexOf(x[0]) === -1).map((x) => x[1] + ' ' + Math.max(0, Math.ceil(0.9 * x[2] - x[3])) + ' g').join(' · ') + ' — potem je krona tvoja.'
+      : mark('b', 'Beljakovine') + ' · ' + mark('o', 'OH') + ' · ' + mark('m', 'Maščobe'))
+    + '</span>';
+  cal.appendChild(selBox);
+  body.appendChild(cal);
+
+  const bs = document.createElement('section');
+  bs.className = 'stack';
+  bs.innerHTML = '<h2 class="d" style="margin:6px 0 0; font-size:18px;">Nagrade</h2>';
+  [['Prva krona', crowns, 1], ['5 dni zapored', best, 5], ['7 dni zapored', best, 7], ['20 kron v mesecu', crowns, 20]].forEach(([title, cur, need]) => {
+    const done = cur >= need;
+    const row = document.createElement('div');
+    row.className = 'badge-row' + (done ? ' done' : '');
+    row.innerHTML = '<div class="ico">' + CROWN_SVG(20, done ? '#FFC857' : '#3A4F63') + '</div><div class="mid"><b>' + title + '</b><div class="bar"><div style="width:' + Math.round(Math.min(1, cur / need) * 100) + '%"></div></div></div><small>' + (done ? 'osvojeno' : Math.min(cur, need) + ' / ' + need) + '</small>';
+    bs.appendChild(row);
+  });
+  body.appendChild(bs);
+}
+
+function stepRow(label, hint, value, dec, inc, color) {
+  const row = document.createElement('div');
+  row.className = 'step-row';
+  row.innerHTML = '<span class="lab"><b' + (color ? ' style="color:' + color + '"' : '') + '>' + label + '</b>' + (hint ? '<span>' + hint + '</span>' : '') + '</span>';
+  const st = document.createElement('div');
+  st.className = 'stepper';
+  st.appendChild(btn('−', '', dec, { 'aria-label': label + ' manj' }));
+  const v = document.createElement('span'); v.textContent = value; st.appendChild(v);
+  st.appendChild(btn('+', '', inc, { 'aria-label': label + ' več' }));
+  row.appendChild(st);
+  return row;
+}
+function gCard(title) {
+  const c = document.createElement('section');
+  c.className = 'g-card';
+  if (title) c.innerHTML = '<h2 class="d">' + title + '</h2>';
+  return c;
+}
+const clampNum = (v, a, z) => Math.min(z, Math.max(a, v));
+function setGoal(patch) { Object.assign(goals, patch); persistGoals(); renderGoals(); }
+
+function renderGoalSettings(body, G) {
+  const me = gCard('O meni');
+  const sex = document.createElement('div');
+  sex.className = 'seg2';
+  [['M', 'Moški'], ['Z', 'Ženska']].forEach(([k, l]) => sex.appendChild(btn(l, '', () => setGoal({ sex: k }), { 'aria-pressed': goals.sex === k ? 'true' : 'false' })));
+  me.appendChild(sex);
+  if (weights.length) {
+    const r = document.createElement('div');
+    r.className = 'step-row';
+    r.innerHTML = '<span class="lab"><b>Telesna masa</b><span>iz zadnjega vnosa (' + shortDay(weights[weights.length - 1].date) + ') — spremeniš jo v Zdravju</span></span><span class="d" style="font-size:17px;font-weight:700;">' + fmtKg(G.mass) + ' kg</span>';
+    me.appendChild(r);
+  } else {
+    me.appendChild(stepRow('Telesna masa', 'dokler ne vpišeš mase v Zdravju', dec1(goals.massFallback) + ' kg',
+      () => setGoal({ massFallback: Math.round(clampNum(goals.massFallback - 0.5, 35, 200) * 10) / 10 }), () => setGoal({ massFallback: Math.round(clampNum(goals.massFallback + 0.5, 35, 200) * 10) / 10 })));
+  }
+  me.appendChild(stepRow('Višina', '', goals.height + ' cm', () => setGoal({ height: clampNum(goals.height - 1, 120, 230) }), () => setGoal({ height: clampNum(goals.height + 1, 120, 230) })));
+  me.appendChild(stepRow('Starost', '', goals.age + ' let', () => setGoal({ age: clampNum(goals.age - 1, 14, 99) }), () => setGoal({ age: clampNum(goals.age + 1, 14, 99) })));
+  body.appendChild(me);
+
+  const how = gCard('Kako izračunam cilj');
+  const mt = document.createElement('div');
+  mt.className = 'seg2';
+  [['auto', 'Samodejno'], ['custom', 'Po meri']].forEach(([k, l]) => mt.appendChild(btn(l, '', () => setGoal({ method: k }), { 'aria-pressed': goals.method === k ? 'true' : 'false' })));
+  how.appendChild(mt);
+  const hh = document.createElement('span');
+  hh.className = 'hint2';
+  hh.textContent = G.custom ? 'Vpišeš številke, ki ti jih da nutricionist. Šport in aktivnost se takrat ne upoštevata.' : 'Iz mase, višine, starosti, vsakdanje aktivnosti in športa. Formulo lahko spodaj prilagodiš.';
+  how.appendChild(hh);
+  body.appendChild(how);
+
+  if (!G.custom) {
+    const daily = gCard('Vsakdan (brez treninga)');
+    const ol = document.createElement('div');
+    ol.className = 'opt-list';
+    [['sedece', 'Večinoma sedim', 'predavanja, učenje, računalnik'], ['zmerno', 'Zmerno', 'veliko hodim, kolo v šolo, laboratorij'], ['veliko', 'Veliko na nogah', 'fizično delo, cel dan v gibanju']].forEach(([k, l, d]) => {
+      const b = btn('', 'opt-big', () => setGoal({ daily: k }), { 'aria-pressed': goals.daily === k ? 'true' : 'false' });
+      b.innerHTML = '<b>' + l + '</b><span>' + d + '</span>';
+      ol.appendChild(b);
+    });
+    daily.appendChild(ol);
+    body.appendChild(daily);
+
+    const sp = gCard(null);
+    sp.innerHTML = '<div class="sec-head"><h2 class="d">Šport</h2><span>ur na teden</span></div>';
+    goals.sports.forEach((s) => {
+      const row = document.createElement('div');
+      row.className = 'sport-row';
+      const intName = s.met <= 4.5 ? 'lahko' : s.met <= 8.5 ? 'zmerno' : 'intenzivno';
+      const intColor = s.met <= 4.5 ? '#8FD3FF' : s.met <= 8.5 ? '#FFD19A' : '#FF9A8A';
+      const upd = (patch) => { Object.assign(s, patch); persistGoals(); renderGoals(); };
+      row.innerHTML = '<span class="nm"><b style="color:' + (s.h ? 'var(--text)' : 'var(--text-dim)') + '">' + escapeHtml(s.name) + '</b><span>' + (s.h ? '+' + fmtInt((s.met - 1) * G.mass * s.h / 7) + ' kcal na dan' : 'ne treniram') + '</span></span>';
+      const ib = btn(intName, 'int', () => upd({ met: s.met <= 4.5 ? 7 : s.met <= 8.5 ? 10 : 3.5 }), { 'aria-label': 'Intenzivnost: ' + intName });
+      ib.style.color = intColor;
+      row.appendChild(ib);
+      row.appendChild(btn('−', 'pm', () => upd({ h: Math.max(0, s.h - 1) }), { 'aria-label': s.name + ' manj ur' }));
+      const hv = document.createElement('span'); hv.className = 'h'; hv.textContent = s.h; row.appendChild(hv);
+      row.appendChild(btn('+', 'pm', () => upd({ h: Math.min(40, s.h + 1) }), { 'aria-label': s.name + ' več ur' }));
+      const x = btn('✕', 'x', null, { 'aria-label': 'Odstrani ' + s.name });
+      x.addEventListener('click', () => armedDelete(x, () => { goals.sports = goals.sports.filter((y) => y !== s); persistGoals(); renderGoals(); }));
+      row.appendChild(x);
+      sp.appendChild(row);
+    });
+    const add = document.createElement('div');
+    add.className = 'sport-add';
+    const inp = document.createElement('input');
+    inp.placeholder = 'Dodaj šport, npr. vaterpolo'; inp.setAttribute('aria-label', 'Nov šport');
+    const doAdd = () => { const n = inp.value.trim(); if (!n) return; goals.sports.push({ id: newId('sp'), name: n, met: 7, h: 1 }); persistGoals(); renderGoals(); };
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doAdd(); } });
+    add.appendChild(inp);
+    add.appendChild(btn('Dodaj', 'add-btn', doAdd));
+    sp.appendChild(add);
+    const ih = document.createElement('span'); ih.className = 'hint2'; ih.textContent = 'Tapni intenzivnost (lahko / zmerno / intenzivno), da jo spremeniš.';
+    sp.appendChild(ih);
+    body.appendChild(sp);
+
+    const want = gCard('Kaj želim');
+    const wg = document.createElement('div');
+    wg.className = 'split-grid';
+    [['hujsanje', 'Hujšanje'], ['vzdrzevanje', 'Vzdrževanje'], ['masa', 'Več mase']].forEach(([k, l]) => wg.appendChild(btn(l, 'opt', () => setGoal({ goal: k }), { 'aria-pressed': goals.goal === k ? 'true' : 'false' })));
+    want.appendChild(wg);
+    body.appendChild(want);
+
+    const f = gCard('Nastavitve formule');
+    f.appendChild(stepRow('Beljakovine', goals.pKg != null ? 'nastavil si sam' : 'predlog glede na cilj in fitnes', dec1(G.pKg) + ' g/kg',
+      () => setGoal({ pKg: Math.max(0.8, Math.round((G.pKg - 0.1) * 10) / 10) }), () => setGoal({ pKg: Math.min(3.5, Math.round((G.pKg + 0.1) * 10) / 10) })));
+    f.appendChild(stepRow('Maščobe', 'delež vse energije', goals.fatPct + ' %', () => setGoal({ fatPct: Math.max(15, goals.fatPct - 1) }), () => setGoal({ fatPct: Math.min(45, goals.fatPct + 1) })));
+    if (goals.pKg != null) f.appendChild(btn('Beljakovine nazaj na predlog', 'link-plain', () => setGoal({ pKg: null })));
+    body.appendChild(f);
+  } else {
+    const c = gCard('Po navodilih nutricionista');
+    const u = document.createElement('div');
+    u.className = 'seg2';
+    [['kg', 'g na kg mase'], ['g', 'grami na dan']].forEach(([k, l]) => u.appendChild(btn(l, '', () => setGoal({ unit: k }), { 'aria-pressed': goals.unit === k ? 'true' : 'false' })));
+    c.appendChild(u);
+    [['b', 'Beljakovine', MACRO_COLORS.b, 0.1], ['oh', 'Ogljikovi hidrati', MACRO_COLORS.oh, 0.5], ['m', 'Maščobe', MACRO_COLORS.m, 0.1]].forEach(([k, l, color, stepKg]) => {
+      const perKg = goals.custom[k];
+      const grams = Math.round(perKg * G.mass);
+      const step = goals.unit === 'kg' ? stepKg : 5 / G.mass;
+      const setV = (v) => { goals.custom = Object.assign({}, goals.custom, { [k]: Math.max(0, Math.round(v * 100) / 100) }); persistGoals(); renderGoals(); };
+      c.appendChild(stepRow(l, goals.unit === 'kg' ? '= ' + grams + ' g na dan' : '= ' + dec1(perKg) + ' g/kg', goals.unit === 'kg' ? dec1(perKg) + ' g/kg' : grams + ' g',
+        () => setV(perKg - step), () => setV(perKg + step), color));
+    });
+    const nl = document.createElement('label');
+    nl.className = 'fld';
+    nl.innerHTML = '<span class="cap">Opomba</span>';
+    const ni = document.createElement('input');
+    ni.value = goals.note || ''; ni.placeholder = 'npr. nutricionist OKS, velja od 1. 10.';
+    ni.addEventListener('change', () => { goals.note = ni.value.trim(); persistGoals(); });
+    nl.appendChild(ni);
+    c.appendChild(nl);
+    body.appendChild(c);
+  }
+
+  const calc = document.createElement('section');
+  calc.className = 'calc-card';
+  calc.innerHTML = '<div class="top"><h2 class="d">Dnevni cilj</h2><span class="kc">' + fmtInt(G.kcal) + ' kcal</span></div>'
+    + '<div class="calc-grid">' + [['Beljakovine', MACRO_COLORS.b, G.b], ['Ogljikovi h.', MACRO_COLORS.oh, G.oh], ['Maščobe', MACRO_COLORS.m, G.m]].map(([n, c, g]) =>
+      '<div><span style="color:' + c + ';font-weight:700;">' + n + '</span><b>' + fmtInt(g) + ' g</b><span>' + dec1(g / G.mass) + ' g/kg</span></div>').join('') + '</div>'
+    + '<p>' + (G.custom
+      ? 'Cilj po meri' + (goals.note ? ' (' + escapeHtml(goals.note) + ')' : '') + ': energija je vsota makrov — ' + G.b + ' g × 4 + ' + G.oh + ' g × 4 + ' + G.m + ' g × 9. Ob novi masi se g/kg samodejno preračuna.'
+      : 'Bazalna poraba ' + fmtInt(G.bmr) + ' kcal · vsakdan +' + fmtInt(G.neat - G.bmr) + ' · šport +' + fmtInt(G.sportK) + (G.adj !== 1 ? ' · ' + (G.adj < 1 ? '−10 %' : '+10 %') : '')
+        + '. Beljakovine ' + dec1(G.pKg) + ' g/kg, maščobe ' + goals.fatPct + ' % energije, ostalo ogljikovi hidrati. Cilj se sam posodobi, ko vpišeš novo maso.') + '</p>';
+  body.appendChild(calc);
+}
+
+document.getElementById('goalBack').addEventListener('click', () => showFoodView('main'));
+document.querySelectorAll('#goalTabs [data-gtab]').forEach((b) => b.addEventListener('click', () => { goalTab = b.dataset.gtab; renderGoals(); }));
+
 function initFood() {
   renderAiAccess();
   const lastDrink = [...drinks].sort((a, b) => b.time - a.time)[0];
   if (lastDrink) chooseDrink(lastDrink.name); else chooseDrink('Voda');
-  resetMealForm();
-  renderSuppChips();
-  renderFood();
+  vn = freshVnos();
 }
+
 // ============================================================
 
 // ============================================================
@@ -2747,11 +3782,12 @@ const TABS = ['danes', 'trening', 'zgodovina', 'prehrana', 'zdravje'];
 function setTab(tab) {
   if (TABS.indexOf(tab) === -1) tab = 'danes';
   document.body.dataset.tab = tab;
-  document.querySelectorAll('[data-tab]').forEach((el) => { el.hidden = el.dataset.tab !== tab; });
+  document.querySelectorAll('[data-tab]').forEach((el) => { el.hidden = el.dataset.tab !== tab || (el.dataset.foodView && el.dataset.foodView !== foodView); });
   document.querySelectorAll('[data-nav]').forEach((b) => {
     if (b.dataset.nav === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
   lsSet(LS_TAB, tab);
+  if (tab === 'prehrana') showFoodView(foodView);
   if (tab === 'danes') renderToday();
   if (tab === 'trening') renderTraining();
   window.scrollTo(0, 0);
@@ -2764,7 +3800,11 @@ function initialTab() {
 }
 document.addEventListener('click', (e) => {
   const nav = e.target.closest('[data-nav]');
-  if (nav) { setTab(nav.dataset.nav); return; }
+  if (nav) {
+    if (nav.dataset.nav === 'prehrana' && document.body.dataset.tab === 'prehrana') foodView = 'main';
+    setTab(nav.dataset.nav);
+    return;
+  }
   const go = e.target.closest('[data-go]');
   if (go) setTab(go.dataset.go);
 });
@@ -3534,12 +4574,12 @@ function renderToday() {
   });
 
   // food today (meals + drinks)
-  const dm = meals.filter((m) => m.date === today);
-  const kcal = dm.reduce((a, m) => a + (m.calories || 0), 0) + drinks.filter((x) => x.date === today).reduce((a, x) => a + (x.kcal || 0), 0);
-  const g = (k) => dm.reduce((a, m) => a + (m[k] || 0), 0);
+  const G = computeGoals();
+  const ft = dayTotals(today);
+  const bar = (label, v, goal) => '<div class="mbar"><span>' + label + '</span><i><b style="width:' + Math.min(100, Math.round(goal ? v / goal * 100 : 0)) + '%"></b></i></div>';
   document.getElementById('todayFood').innerHTML = '<span class="k food">Prehrana</span>'
-    + '<span class="v"><strong>' + fmtInt(kcal) + '</strong><span>kcal danes</span></span>'
-    + '<span class="macro-lines"><div>Beljakovine <b>' + g('protein') + ' g</b></div><div>OH <b>' + g('carbs') + ' g</b></div><div>Maščobe <b>' + g('fat') + ' g</b></div></span>';
+    + '<span class="v"><strong>' + fmtInt(ft.kcal) + '</strong><span>/ ' + fmtInt(G.kcal) + ' kcal</span></span>'
+    + '<span class="macro-bars">' + bar('B', ft.b, G.b) + bar('OH', ft.oh, G.oh) + bar('M', ft.m, G.m) + '</span>';
 
   // weight: latest + 7-day trend
   const wt = document.getElementById('todayWeight');

@@ -135,6 +135,7 @@ Identify what is there, judge the portion size from the visual cues (plate, cutl
 - protein_g, carbs_g, fat_g: grams for the whole portion.
 - confidence: "high" when the food and portion are clear, "low" when you are mostly guessing (hidden ingredients, unclear portion, sauces).
 - notes: one short sentence naming the biggest assumption you made (e.g. "Predpostavljena 1 skodelica kuhanega riža.").
+- items: the recognizable components (at most 8, e.g. "Losos", "Riž", "Solata z olivnim oljem"), each with its own kcal, protein_g, carbs_g and fat_g, named in Slovenian. The item values should add up to the totals.
 
 When a description is given, it overrides what the photo suggests (e.g. stated grams, "brez omake"). If several items are present, sum them into one meal. If there is no food or drink, set is_food to false and use 0 and empty strings for the rest.`;
 
@@ -149,9 +150,24 @@ const MEAL_SCHEMA = {
     carbs_g: { type: 'number' },
     fat_g: { type: 'number' },
     confidence: { type: 'string', enum: ['low', 'medium', 'high'] },
-    notes: { type: 'string' }
+    notes: { type: 'string' },
+    items: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          kcal: { type: 'integer' },
+          protein_g: { type: 'number' },
+          carbs_g: { type: 'number' },
+          fat_g: { type: 'number' }
+        },
+        required: ['name', 'kcal', 'protein_g', 'carbs_g', 'fat_g'],
+        additionalProperties: false
+      }
+    }
   },
-  required: ['is_food', 'name', 'calories', 'protein_g', 'carbs_g', 'fat_g', 'confidence', 'notes'],
+  required: ['is_food', 'name', 'calories', 'protein_g', 'carbs_g', 'fat_g', 'confidence', 'notes', 'items'],
   additionalProperties: false
 };
 
@@ -292,13 +308,20 @@ async function estimateMeal(request, env, origin) {
     carbs: wholeNumber(estimate.carbs_g),
     fat: wholeNumber(estimate.fat_g),
     confidence: ['low', 'medium', 'high'].indexOf(estimate.confidence) !== -1 ? estimate.confidence : 'medium',
-    notes: String(estimate.notes || '').trim()
+    notes: String(estimate.notes || '').trim(),
+    items: (Array.isArray(estimate.items) ? estimate.items : []).slice(0, 8).map((i) => ({
+      name: String(i.name || '').trim().slice(0, 40),
+      kcal: wholeNumber(i.kcal),
+      protein: wholeNumber(i.protein_g),
+      carbs: wholeNumber(i.carbs_g),
+      fat: wholeNumber(i.fat_g)
+    })).filter((i) => i.name)
   }, 200, origin);
 }
 
 // ---------- POST /supplement: label photo → product and ingredients per serving ----------
 
-const SUPPLEMENT_SYSTEM_PROMPT = `You read dietary supplement labels for a personal supplement log. The user sends a photo of a supplement package, bottle or label (possibly only part of it), and sometimes a short note. The user is Slovenian: write "name", "serving", ingredient names and "notes" in Slovenian (keep the brand as printed).
+const SUPPLEMENT_SYSTEM_PROMPT = `You read dietary supplement labels for a personal supplement log. The user sends a photo of a supplement package, bottle or label (possibly only part of it), a short description, or both. The user is Slovenian: write "name", "serving", ingredient names and "notes" in Slovenian (keep the brand as printed).
 
 Read what the label states — do not guess amounts that are not printed:
 - name: the product name as a short title (e.g. "Magnezij B6", "Vitamin D3 2000 IE", "Omega-3 ribje olje").
@@ -308,7 +331,8 @@ Read what the label states — do not guess amounts that are not printed:
 - confidence: "high" when the facts table is clearly readable, "low" when parts are cut off, blurry, or you had to infer.
 - notes: one short sentence about anything important (e.g. "Tabela je delno zakrita — preveri količine." or the recommended daily dose if printed).
 
-If the photo shows no supplement or its label, set is_supplement to false and use empty values for the rest.`;
+Without a photo, take the product and amounts from the description; if the user names a common product without amounts, use typical label values for it and set confidence to "low".
+If there is no supplement in the photo or the description, set is_supplement to false and use empty values for the rest.`;
 
 const SUPPLEMENT_SCHEMA = {
   type: 'object',
@@ -343,16 +367,18 @@ async function readSupplement(request, env, origin) {
   if (denied) return denied;
   const input = await readAiBody(request, origin);
   if (input.error) return input.error;
-  if (!input.image) {
-    return jsonResponse({ error: 'missing_parameters', error_description: 'Pošlji sliko etikete.' }, 400, origin);
+  if (!input.image && !input.description) {
+    return jsonResponse({ error: 'missing_parameters', error_description: 'Pošlji sliko etikete ali opis dopolnila.' }, 400, origin);
   }
 
-  const content = [imageBlock(input.image), {
+  const content = [];
+  if (input.image) content.push(imageBlock(input.image));
+  content.push({
     type: 'text',
-    text: input.description
-      ? 'Read this supplement label. Note from the user: ' + input.description
-      : 'Read this supplement label.'
-  }];
+    text: input.image
+      ? (input.description ? 'Read this supplement label. Note from the user: ' + input.description : 'Read this supplement label.')
+      : 'Identify this supplement from the description: ' + input.description
+  });
   const result = await askClaudeJson(env, origin, SUPPLEMENT_SYSTEM_PROMPT, SUPPLEMENT_SCHEMA, content);
   if (result.error) return result.error;
   const label = result.data;
