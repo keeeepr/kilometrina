@@ -1819,7 +1819,7 @@ function xlsxSheets() {
   ];
   const oura = [['Datum'].concat(ouraCols.map((c) => c[1]))]
     .concat(Object.keys(ouraDays).sort().map((d) => [d].concat(ouraCols.map((c) => ouraDays[d][c[0]]))));
-  const hhmm = (t) => new Date(t).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
+  const hhmm = hhmmOf;
   const SOURCE_LABEL = { ai: 'AI', repeat: 'ponovljeno', manual: 'ročno' };
   const food = [['Datum', 'Ura', 'Obrok', 'Ime', 'Količina ×', 'kcal', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Vir', 'Zanesljivost', 'Opomba', 'Del obroka (%)', 'Stanje']]
     .concat(meals.map((m) => [m.date, hhmm(m.time), mealTypeLabel(m.type), m.name, m.portion || 1, m.calories, m.protein, m.carbs, m.fat,
@@ -1835,22 +1835,33 @@ function xlsxSheets() {
   const days = [...new Set([].concat(sessions.map((x) => x.date), meals.map((x) => x.date), supplements.map((x) => x.date),
     drinks.map((x) => x.date), weights.map((x) => x.date), fitnessLog.map((x) => x.date), Object.keys(ouraDays)))].sort();
   const GX = computeGoals();
-  const daily = [['Datum', 'Masa (kg)', 'Km', 'Km v 25 m bazenu', 'Km v 50 m bazenu', 'kcal (hrana + pijača)', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Tekočina (ml)', 'Dopolnila', 'Ocena spanja', 'Pripravljenost', 'HRV (ms)', 'Utrip noč najn.', 'Krona (makri ≥ 90 %)', 'Fitnes']]
+  dayIndex = { meals: groupByDate(eatenMeals()), supps: groupByDate(supplements), drinks: groupByDate(drinks) };
+  const sessBy = groupByDate(sessions), fitBy = groupByDate(fitnessLog);
+  const wBy = new Map();
+  weights.forEach((w) => { if (!wBy.has(w.date)) wBy.set(w.date, w); }); // first one, like find()
+  let daily;
+  try {
+  daily = [['Datum', 'Masa (kg)', 'Km', 'Km v 25 m bazenu', 'Km v 50 m bazenu', 'kcal (hrana + pijača)', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Tekočina (ml)', 'Dopolnila', 'Ocena spanja', 'Pripravljenost', 'HRV (ms)', 'Utrip noč najn.', 'Krona (makri ≥ 90 %)', 'Fitnes']]
     .concat(days.map((d) => {
-      const dm = eatenMeals().filter((m) => m.date === d);
+      const dm = dayIndex.meals.get(d) || [];
       const sum = (k) => dm.length ? dm.reduce((acc, m) => acc + (m[k] || 0), 0) : null;
-      const km = sessions.filter((x) => x.date === d).reduce((acc, x) => acc + (x.totalMeters || 0), 0) / 1000;
-      const kmIn = (p) => sessions.filter((x) => x.date === d && x.pool === p).reduce((acc, x) => acc + (x.totalMeters || 0), 0) / 1000 || null;
-      const sd = supplements.filter((x) => x.date === d).map((x) => x.name + (x.servings && x.servings !== 1 ? ' ×' + fmtAmount(x.servings) : '')).join(', ');
-      const dd = drinks.filter((x) => x.date === d);
+      const ds = sessBy.get(d) || [];
+      const km = ds.reduce((acc, x) => acc + (x.totalMeters || 0), 0) / 1000;
+      const kmIn = (p) => ds.filter((x) => x.pool === p).reduce((acc, x) => acc + (x.totalMeters || 0), 0) / 1000 || null;
+      const dsu = dayIndex.supps.get(d) || [];
+      const sd = dsu.map((x) => x.name + (x.servings && x.servings !== 1 ? ' ×' + fmtAmount(x.servings) : '')).join(', ');
+      const dd = dayIndex.drinks.get(d) || [];
       const ml = dd.reduce((acc, x) => acc + x.ml, 0);
-      const sk = supplements.filter((x) => x.date === d).reduce((acc, x) => acc + (x.calories || 0) * (x.servings || 1), 0);
+      const sk = dsu.reduce((acc, x) => acc + (x.calories || 0) * (x.servings || 1), 0);
       const kcal = dm.length || dd.length || sk ? Math.round((sum('calories') || 0) + dd.reduce((acc, x) => acc + (x.kcal || 0), 0) + sk) : null;
-      const w = weights.find((x) => x.date === d);
+      const w = wBy.get(d);
       return [d, w ? w.kg : null, km || null, kmIn(25), kmIn(50), kcal, sum('protein'), sum('carbs'), sum('fat'), ml || null, sd,
         o(d).sleep_score, o(d).readiness_score, o(d).avg_hrv_overnight, o(d).lowest_hr_overnight, dayHits(d, GX) === 'bom' ? 'da' : null,
-        fitnessLog.filter((f) => f.date === d).map((f) => f.sessName + (f.mc ? ' (' + f.mc + '. MC)' : '')).join(', ') || null];
+        (fitBy.get(d) || []).map((f) => f.sessName + (f.mc ? ' (' + f.mc + '. MC)' : '')).join(', ') || null];
     }));
+  } finally {
+    dayIndex = null;
+  }
   return [
     { name: 'Dnevni pregled', rows: daily, widths: [12, 9, 7, 10, 10, 12, 10, 8, 10, 10, 30, 10, 10, 9, 10, 12, 22] },
     { name: 'Treningi', rows: workouts, widths: [12, 24, 8, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9] },
@@ -1869,7 +1880,7 @@ function xlsxSheets() {
 function fitLogRows() {
   const rows = [['Datum', 'Ura', 'Program', 'Trening', 'MC', 'Vaja', 'Set', '%', 'kg', 'Ponovitve', 'Sekunde', 'Opravljeno']];
   [...fitnessLog].sort((a, b) => a.date.localeCompare(b.date) || a.time - b.time).forEach((f) => {
-    const hhmm = new Date(f.time).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
+    const hhmm = hhmmOf(f.time);
     Object.values(f.sets || {}).forEach((x) => x.sets.forEach((y, i) => rows.push([f.date, hhmm, f.programTitle, f.sessName, f.mc || null, x.name, i + 1,
       y.p || null, x.type === 'kg' ? y.kg : null, x.type === 'sec' ? null : y.r, x.type === 'sec' ? y.s : null, y.done ? 'da' : 'ne'])));
     const s = f.summary || {};
@@ -2688,7 +2699,12 @@ function parseIngredients(text) {
   });
 }
 
-const fmtAmount = (n) => (Math.round(n * 100) / 100).toLocaleString('sl-SI');
+// One formatter each, reused: toLocale*String builds a new one on every call, which is slow over thousands of rows.
+const NUM_SL = new Intl.NumberFormat('sl-SI');
+const NUM_SL_1 = new Intl.NumberFormat('sl-SI', { maximumFractionDigits: 1, useGrouping: false });
+const HHMM_SL = new Intl.DateTimeFormat('sl-SI', { hour: '2-digit', minute: '2-digit' });
+const hhmmOf = (t) => HHMM_SL.format(new Date(t));
+const fmtAmount = (n) => NUM_SL.format(Math.round(n * 100) / 100);
 function ingredientsText(list) {
   return (list || []).map((i) => i.name + (i.amount ? ' ' + fmtAmount(i.amount) + ' ' + i.unit : '')).join(' · ');
 }
@@ -2706,14 +2722,14 @@ function ingredientTotals(entries) {
   return Object.values(acc).sort((a, b) => a.name.localeCompare(b.name, 'sl'));
 }
 
-const clock = (t) => new Date(t).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
+const clock = hhmmOf;
 
 // Leftovers waiting for "Pojedel / Polovico / Zavrgel" don't count anywhere yet.
 const eatenMeals = () => meals.filter((m) => !m.pending);
 const round0 = (v) => Math.max(0, Math.round(Number(v) || 0));
 // kcal and macros keep one decimal (e.g. 2,5 g fat); shown with a decimal comma
 const roundDec = (v) => Math.max(0, Math.round((Number(v) || 0) * 10) / 10);
-const fmt1 = (v) => roundDec(v).toLocaleString('sl-SI', { maximumFractionDigits: 1, useGrouping: false });
+const fmt1 = (v) => NUM_SL_1.format(roundDec(v));
 const defaultSlot = () => { const h = new Date().getHours(); return h < 12 ? 'Zjutraj' : h >= 18 ? 'Zvečer' : 'Po treningu'; };
 const mealWord = (key) => mealTypeLabel(key).toLowerCase();
 
@@ -2847,16 +2863,24 @@ function computeGoals() {
 }
 
 /** What was eaten on a day (confirmed meals; drinks add kcal only). */
+/** Entries grouped by date, original order kept — so per-day sums don't rescan every list. */
+function groupByDate(list) {
+  const map = new Map();
+  list.forEach((x) => { const a = map.get(x.date); if (a) a.push(x); else map.set(x.date, [x]); });
+  return map;
+}
+let dayIndex = null; // set only while the whole history is summed (xlsx), cleared afterwards
 function dayTotals(key) {
-  const dm = eatenMeals().filter((m) => m.date === key);
+  const ix = dayIndex;
+  const dm = ix ? ix.meals.get(key) || [] : eatenMeals().filter((m) => m.date === key);
   const t = { b: 0, oh: 0, m: 0, kcal: 0, n: dm.length };
   dm.forEach((m) => { t.b += m.protein || 0; t.oh += m.carbs || 0; t.m += m.fat || 0; t.kcal += m.calories || 0; });
-  supplements.filter((x) => x.date === key && (x.calories || x.protein || x.carbs || x.fat)).forEach((x) => {
+  (ix ? ix.supps.get(key) || [] : supplements.filter((x) => x.date === key)).filter((x) => x.calories || x.protein || x.carbs || x.fat).forEach((x) => {
     const n = x.servings || 1;
     t.b += (x.protein || 0) * n; t.oh += (x.carbs || 0) * n; t.m += (x.fat || 0) * n; t.kcal += (x.calories || 0) * n;
   });
   t.b = Math.round(t.b); t.oh = Math.round(t.oh); t.m = Math.round(t.m); t.kcal = Math.round(t.kcal);
-  t.kcal += drinks.filter((x) => x.date === key).reduce((a, x) => a + (x.kcal || 0), 0);
+  t.kcal += (ix ? ix.drinks.get(key) || [] : drinks.filter((x) => x.date === key)).reduce((a, x) => a + (x.kcal || 0), 0);
   return t;
 }
 /** Which macros reached 90 % of the goal: 'b', 'o', 'm' letters; all three = crown. */
