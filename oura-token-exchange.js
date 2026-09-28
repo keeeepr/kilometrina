@@ -14,7 +14,9 @@
  *
  * POST /meal sends a meal photo (and/or a description) to Claude and returns
  * calories and macros; POST /supplement reads a supplement label photo into
- * product name, serving and ingredients per serving. The Anthropic API key
+ * product name, serving and ingredients per serving; POST /fitness reads a
+ * coach's monthly fitness programme (PDF or photos) into structured JSON.
+ * The Anthropic API key
  * lives here as a secret; because that key costs money, the AI routes need
  * both APP_PASSCODE and a live Google sign-in of ALLOWED_EMAIL (checked with
  * Google, and only for tokens issued to this app's GOOGLE_CLIENT_ID).
@@ -232,15 +234,16 @@ async function readAiBody(request, origin) {
  * One structured-output request to Claude. Resolves to { data } with the
  * parsed JSON, or { error } holding a Response ready to send to the page.
  */
-async function askClaudeJson(env, origin, system, schema, content) {
-  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, timeout: 60000, maxRetries: 1 });
+async function askClaudeJson(env, origin, system, schema, content, opts) {
+  opts = opts || {};
+  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, timeout: opts.timeout || 60000, maxRetries: 1 });
   let response;
   try {
     response = await client.beta.messages.create({
       model: AI_MODEL,
-      max_tokens: 4000,
+      max_tokens: opts.maxTokens || 4000,
       // Photo → JSON is routine extraction; low effort keeps it fast and cheap.
-      output_config: { effort: 'low', format: { type: 'json_schema', schema: schema } },
+      output_config: { effort: opts.effort || 'low', format: { type: 'json_schema', schema: schema } },
       // If the safety classifiers decline, re-run on Anthropic's recommended fallback model.
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',
@@ -401,6 +404,107 @@ async function readSupplement(request, env, origin) {
   }, 200, origin);
 }
 
+// ---------- POST /fitness: a coach's monthly programme → structured JSON ----------
+
+const MAX_FITNESS_FILES = 6;
+const MAX_FITNESS_BASE64 = 16 * 1024 * 1024; // all files together
+
+const FITNESS_SYSTEM_PROMPT = `You transcribe a swimming federation fitness coach's monthly strength programme (one PDF or photos of it) into JSON for a training app. The athlete is Slovenian: keep all names, cues and notes in Slovenian exactly as written. Transcribe only — never invent, "improve" or complete values; if a cell is unreadable, use 0 or "" and mention it in "uncertain".
+
+Typical layout: one block = one month; 1–2 sessions (Fitnes A / Fitnes B), each with a goal (e.g. "Razvoj maksimalne moči"); 4 microcycles ("mikrocikel", MC) with a number and start date (e.g. 42. MC, 15. jun); warm-up (~15 min); CORE with 2–3 exercises (duration and number of series); the main part: exercise, coach's note (cue), equipment, and for every week the sets as "% · kg × reps", "× reps" or seconds; per exercise and week the volume, 1RM and % intensity; stretching (~10 min); footer: volume, intensity, tempo, rest (may be supersets like "30 s / 180 s"), a Mon–Sun schedule.
+
+Fields:
+- title: the month and year (e.g. "Junij 2026"); place, coach: if printed, else "".
+- weeks: the microcycles in order: mc (number), date (short, e.g. "15. 6.").
+- sessions: id "A", "B", …; name (e.g. "Fitnes A"); goal; tempo; rest; warm_min; stretch_min; core (name, dose e.g. "30–35 s · 3 serije", series = number of series); week_totals (one per week, same order as weeks: volume e.g. "4.237 kg" and reps e.g. "120 pon", "" if not printed).
+- exercises: name, cue (coach's note, "" if none), equip ("" if none), type "kg" when sets have a weight, "sec" when sets are durations, otherwise "reps"; weeks: one per microcycle in order, each with sets (percent, kg, reps, seconds — 0 when not applicable) and total (the printed volume/1RM/intensity line, e.g. "1.940 kg · 1RM 88 · 71 % int.", or "").
+- schedule: for each week index (0-based) the training days as 0 = Monday … 6 = Sunday, only if marked in the document.
+- uncertain: short notes (Slovenian) about anything you could not read with confidence.
+If the document is not a training programme, set is_program to false and leave the rest empty.`;
+
+const FITNESS_SCHEMA = {
+  type: 'object',
+  properties: {
+    is_program: { type: 'boolean' },
+    title: { type: 'string' },
+    place: { type: 'string' },
+    coach: { type: 'string' },
+    weeks: { type: 'array', items: { type: 'object', properties: { mc: { type: 'integer' }, date: { type: 'string' } }, required: ['mc', 'date'], additionalProperties: false } },
+    sessions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }, name: { type: 'string' }, goal: { type: 'string' },
+          tempo: { type: 'string' }, rest: { type: 'string' },
+          warm_min: { type: 'integer' }, stretch_min: { type: 'integer' },
+          core: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, dose: { type: 'string' }, series: { type: 'integer' } }, required: ['name', 'dose', 'series'], additionalProperties: false } },
+          week_totals: { type: 'array', items: { type: 'object', properties: { volume: { type: 'string' }, reps: { type: 'string' } }, required: ['volume', 'reps'], additionalProperties: false } },
+          exercises: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' }, cue: { type: 'string' }, equip: { type: 'string' },
+                type: { type: 'string', enum: ['kg', 'reps', 'sec'] },
+                weeks: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      sets: { type: 'array', items: { type: 'object', properties: { percent: { type: 'number' }, kg: { type: 'number' }, reps: { type: 'integer' }, seconds: { type: 'integer' } }, required: ['percent', 'kg', 'reps', 'seconds'], additionalProperties: false } },
+                      total: { type: 'string' }
+                    },
+                    required: ['sets', 'total'],
+                    additionalProperties: false
+                  }
+                }
+              },
+              required: ['name', 'cue', 'equip', 'type', 'weeks'],
+              additionalProperties: false
+            }
+          }
+        },
+        required: ['id', 'name', 'goal', 'tempo', 'rest', 'warm_min', 'stretch_min', 'core', 'week_totals', 'exercises'],
+        additionalProperties: false
+      }
+    },
+    schedule: { type: 'array', items: { type: 'object', properties: { week_index: { type: 'integer' }, days: { type: 'array', items: { type: 'integer' } } }, required: ['week_index', 'days'], additionalProperties: false } },
+    uncertain: { type: 'array', items: { type: 'string' } }
+  },
+  required: ['is_program', 'title', 'place', 'coach', 'weeks', 'sessions', 'schedule', 'uncertain'],
+  additionalProperties: false
+};
+
+async function readFitnessProgram(request, env, origin) {
+  const denied = await aiAccessError(request, env, origin);
+  if (denied) return denied;
+  let body;
+  try { body = await request.json(); }
+  catch (e) { return jsonResponse({ error: 'invalid_json' }, 400, origin); }
+  const files = (Array.isArray(body.files) ? body.files : []).filter((f) => f && typeof f.data === 'string' && f.data)
+    .slice(0, MAX_FITNESS_FILES);
+  if (!files.length) {
+    return jsonResponse({ error: 'missing_parameters', error_description: 'Naloži PDF ali sliko programa.' }, 400, origin);
+  }
+  if (files.reduce((a, f) => a + f.data.length, 0) > MAX_FITNESS_BASE64) {
+    return jsonResponse({ error: 'too_large', error_description: 'Datoteke so prevelike (največ ~12 MB skupaj).' }, 413, origin);
+  }
+  const note = typeof body.note === 'string' ? body.note.trim().slice(0, 500) : '';
+  const content = files.map((f) => (f.type === 'pdf'
+    ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: f.data } }
+    : imageBlock(f.data)));
+  content.push({ type: 'text', text: 'Transcribe this fitness programme.' + (note ? ' Note from the athlete: ' + note : '') });
+
+  const result = await askClaudeJson(env, origin, FITNESS_SYSTEM_PROMPT, FITNESS_SCHEMA, content,
+    { maxTokens: 16000, effort: 'medium', timeout: 180000 });
+  if (result.error) return result.error;
+  if (result.data.is_program === false) {
+    return jsonResponse({ error: 'not_program', error_description: 'V dokumentu ni fitnes programa.' }, 422, origin);
+  }
+  return jsonResponse(result.data, 200, origin);
+}
+
 export default {
   async fetch(request, env) {
     const origin = (request.headers.get('Origin') || '').replace(/\/$/, '');
@@ -435,6 +539,9 @@ export default {
     }
     if (request.method === 'POST' && url.pathname.replace(/\/$/, '') === '/supplement') {
       return readSupplement(request, env, origin);
+    }
+    if (request.method === 'POST' && url.pathname.replace(/\/$/, '') === '/fitness') {
+      return readFitnessProgram(request, env, origin);
     }
     if (request.method !== 'POST') {
       return jsonResponse({ error: 'method_not_allowed' }, 405, origin);

@@ -331,6 +331,31 @@ oznakami. V Drive kopiji so novi ključi `shortcuts`, `templates` in `weekGoal`.
 Stari obroki in dopolnila delujejo naprej; nova polja (`split`, `pending`, `slot`) so neobvezna.
 Worker (`/meal`) zdaj vrne tudi `items` (prepoznane sestavine), `/supplement` pa sprejme tudi samo opis.
 
+## 11. Prenova (faza 3): fitnes
+
+**Trening → Fitnes.** Zgoraj *Nov program*: naloži PDF od trenerja ali slikaj list (lahko več strani),
+obkljukaj **»Dovolim, da AI prebere ta program«** (brez tega gumb ne dela) in *Analiziraj z AI*. AI
+(Worker, pot `/fitness`, isto preverjanje kot pri obrokih: koda + Google prijava) program samo prepiše:
+mikrocikle, treninge A/B s ciljem, core, vse vaje s seti (`% · kg × ponovitve`, `× ponovitve` ali
+sekunde), opombe, volumen in urnik. Pred shranjevanjem vidiš pregled in morebitne nejasnosti. Program se
+nikoli ne spremeni sam. Brez PDF-ja lahko poskusiš s *primerom (junij 2026)*.
+
+- **Program** — izbira treninga A/B in mikrocikla (pri vsakem, kolikokrat si ga že naredil — isti teden
+  lahko večkrat), podatki tedna, urnik pon–ned (tap vklopi/izklopi dan).
+- **Današnji trening** — ogrevanje in raztezanje s kljukico in nastavljivimi minutami, core s krogci
+  serij, vaje s seti kot gumbi (tap = opravljen), *Uredi* po setih (kg, ponovitve/sekunde, + set, − set,
+  *Na program*). Preklop **Program** trajno spremeni predpis za ta mikrocikel.
+- **Namig** (brez AI): če si zadnjič pri vaji naredil manj ponovitev od programa in je ta teden teža
+  višja, predlaga »ostani na X kg« — *Uporabi*.
+- **Vse po programu** in **Potrdi trening** → povzetek (seti, volumen, core, minute) in namig za
+  naslednjič; trening se pokaže v Zgodovini in na Danes. Sprememba po potrditvi posodobi isti zapis;
+  *Še uredi* ga umakne.
+- *Nov program* hrani tudi **arhiv** prejšnjih programov (*Uporabi*, *Izbriši*).
+
+Podatki: `kilometrina.fitnessPrograms` in `kilometrina.fitnessLog` (v Drive kopiji kot `fitnessPrograms`,
+`fitnessLog`), v xlsx zavihka *Fitnes dnevnik* in *Fitnes program*, v *Dnevnem pregledu* stolpec *Fitnes*.
+Današnje kljukice pred potrditvijo so samo na napravi (`kilometrina.fitnessDraft`).
+
 ## Ko boš želel dodati novo funkcijo
 
 Vrni se v ta pogovor s Claude in povej, kaj bi rad spremenil ali dodal. Ko bom

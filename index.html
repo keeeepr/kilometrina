@@ -873,6 +873,140 @@
   .calc-grid span { font-size: 11px; color: var(--text-dim); }
   .calc-card p { margin: 0; font-size: 12px; line-height: 1.5; color: #C9B98E; }
 
+  /* ================= Prenova faza 3: Fitnes ================= */
+  .fit-title { display: flex; flex-direction: column; min-width: 0; }
+  .fit-title .d { font-size: 22px; font-weight: 800; }
+  .fit-title span:last-child { font-size: 12px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #fitImportBtn { min-height: 40px; }
+  .fit { gap: 12px; }
+  .fit > * { flex-shrink: 0; }
+  .prog-card { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 20px; background: #16152B; border: 1px solid #2B2850; }
+  .prog-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .prog-top .d { font-size: 17px; font-weight: 800; }
+  .prog-top span:last-child { font-size: 12px; color: #B5ACFF; text-align: right; }
+  .sess-grid { display: grid; gap: 6px; }
+  .sess-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 8px 10px; min-height: 48px; border-radius: 12px; border: 1px solid #2B2850; background: var(--panel); color: var(--text-soft); text-align: left; cursor: pointer; min-width: 0; }
+  .sess-btn b { font-size: 14px; font-weight: 800; }
+  .sess-btn span { font-size: 11px; font-weight: 600; opacity: 0.85; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sess-btn[aria-pressed="true"] { background: var(--health); color: #17123A; border-color: var(--health); }
+  .lbl-v { font-size: 12px; font-weight: 700; color: #C9C2FF; }
+  .week-grid { display: grid; gap: 6px; }
+  .week-btn { min-height: 58px; padding: 0; border-radius: 12px; border: 1px solid #2B2850; background: transparent; color: var(--text-dim); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; }
+  .week-btn b { font-size: 14px; font-weight: 800; }
+  .week-btn span { font-size: 10px; font-weight: 600; opacity: 0.8; }
+  .week-btn i { font-style: normal; font-size: 10px; font-weight: 800; min-height: 12px; }
+  .week-btn.done { background: #1F1D3A; color: #D6D0FF; border-color: #3A3570; }
+  .week-btn[aria-pressed="true"] { background: var(--health); color: #17123A; border-color: var(--health); }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .facts span { min-height: 26px; padding: 0 9px; border-radius: 999px; background: #1F1D3A; font-size: 12px; font-weight: 600; color: #D6D0FF; display: inline-flex; align-items: center; }
+  .sched { display: flex; align-items: center; gap: 8px; }
+  .sched-days { flex: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .sched-days button { min-height: 34px; padding: 0; border-radius: 8px; border: 1px solid #2B2850; background: transparent; font-size: 11px; font-weight: 700; color: var(--text-dim); cursor: pointer; }
+  .sched-days button[aria-pressed="true"] { background: var(--health); color: #17123A; border-color: var(--health); }
+  .fit-done { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 20px; background: #10302D; border: 1px solid #2F6D66; }
+  .fit-done .d { font-size: 17px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; }
+  .fit-done span { font-size: 13px; color: #BFF7EC; }
+  .fit-done .next { color: var(--text); }
+  .fit-done button { align-self: flex-start; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #2F6D66; background: transparent; font-size: 13px; font-weight: 700; color: #7FF0DB; cursor: pointer; }
+  .min-card { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); }
+  .min-card.on { border-color: #2F6D66; background: #10231F; }
+  .min-row { display: flex; align-items: center; gap: 10px; }
+  .min-check { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; min-height: 44px; }
+  .min-check .box { width: 28px; height: 28px; flex-shrink: 0; border-radius: 9px; border: 2px solid #4A5F73; display: flex; align-items: center; justify-content: center; }
+  .min-check[aria-pressed="true"] .box { border-color: var(--swim); background: var(--swim); }
+  .min-check .t { display: flex; flex-direction: column; gap: 1px; }
+  .min-check .t b { font-size: 15px; }
+  .min-check .t span { font-size: 12px; color: var(--text-dim); }
+  .min-card .desc { font-size: 12px; color: var(--text-dim); }
+  .mini-step { display: flex; align-items: center; flex-shrink: 0; border-radius: 10px; border: 1px solid var(--field-line); background: var(--field); }
+  .mini-step button { width: 40px; height: 44px; border: 0; background: transparent; font-size: 17px; cursor: pointer; }
+  .mini-step span { min-width: 54px; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 800; }
+  .core-card { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
+  .core-row { display: flex; align-items: center; gap: 8px; min-height: 48px; border-top: 1px solid #1A2B3B; }
+  .core-row .n { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .core-row .n b { font-size: 13px; font-weight: 600; }
+  .core-row .n span { font-size: 12px; color: var(--text-dim); }
+  .dot-btn { width: 36px; height: 36px; flex-shrink: 0; border-radius: 999px; border: 1px solid #2A3F53; background: transparent; color: #6F8596; font-size: 12px; font-weight: 800; cursor: pointer; }
+  .dot-btn[aria-pressed="true"] { background: var(--swim); color: var(--on-swim); border-color: var(--swim); }
+  .main-head { display: flex; flex-direction: column; gap: 8px; padding: 4px 2px 0; }
+  .main-head .row { display: flex; justify-content: space-between; align-items: baseline; }
+  .main-head h2 { margin: 0; font-size: 18px; font-weight: 800; }
+  .main-head .row span, .main-head > span { font-size: 12px; color: var(--text-dim); }
+  .mode2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 3px; border-radius: 11px; background: var(--panel); border: 1px solid var(--field-line); }
+  .mode2 button { min-height: 34px; border: 0; border-radius: 8px; background: transparent; font-size: 12px; font-weight: 700; color: var(--text-dim); cursor: pointer; }
+  .mode2 button[aria-pressed="true"] { background: #2B2850; color: var(--text); }
+  .ex-card { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
+  .ex-card.all { background: #10231F; border-color: #2F6D66; }
+  .ex-card.prog { border-color: #3A3570; }
+  .ex-cue { font-size: 12px; font-style: italic; color: #B5ACFF; }
+  .ex-name { display: flex; align-items: baseline; gap: 8px; }
+  .ex-name b { flex: 1; font-size: 15px; font-weight: 800; }
+  .ex-name span { font-size: 11px; font-weight: 700; color: var(--text-dim); }
+  .set-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fset { min-width: 62px; min-height: 50px; padding: 0 8px; border-radius: 12px; border: 1px solid #2A3F53; background: var(--field); color: var(--text); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; }
+  .fset span { font-size: 10px; font-weight: 700; opacity: 0.75; }
+  .fset b { font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 800; }
+  .fset[aria-pressed="true"] { background: var(--swim); color: var(--on-swim); border-color: var(--swim); }
+  .fset.prog { background: #1F1D3A; color: #D6D0FF; border-color: #3A3570; }
+  .fset-all { min-height: 50px; padding: 0 10px; border-radius: 12px; border: 1px dashed #3A3570; background: transparent; font-size: 12px; font-weight: 700; color: #B5ACFF; cursor: pointer; }
+  .tip { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #2A2418; border: 1px solid #5A4A28; }
+  .tip span { flex: 1; font-size: 12px; line-height: 1.4; color: #FFE3C4; }
+  .tip button { flex-shrink: 0; min-height: 40px; padding: 0 10px; border: 0; border-radius: 9px; background: var(--food); color: #2E1A04; font-size: 12px; font-weight: 800; cursor: pointer; }
+  .ex-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .ex-foot span { font-size: 12px; color: var(--text-dim); }
+  .ex-foot button { flex-shrink: 0; min-height: 36px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--field-line); background: transparent; font-size: 12px; font-weight: 700; color: var(--text-soft); cursor: pointer; }
+  .ex-rows { display: flex; flex-direction: column; gap: 6px; }
+  .ex-row { display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 12px; background: var(--field); flex-wrap: wrap; }
+  .ex-row .i { width: 22px; text-align: center; font-size: 12px; font-weight: 700; color: #6F8596; }
+  .ex-row .grp { display: flex; align-items: center; border-radius: 10px; border: 1px solid var(--field-line); }
+  .ex-row .grp button { width: 34px; height: 40px; border: 0; background: transparent; font-size: 16px; cursor: pointer; }
+  .ex-row .grp input { width: 52px; min-height: 38px; padding: 0; border: 0; background: transparent; text-align: center; font-size: 15px; font-weight: 800; }
+  .ex-row .grp span { min-width: 44px; text-align: center; font-size: 14px; font-weight: 800; }
+  .ex-row small { font-size: 11px; color: #6F8596; }
+  .ex-acts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .ex-acts button { min-height: 40px; border-radius: 10px; border: 1px solid var(--field-line); background: transparent; font-size: 12px; font-weight: 700; color: var(--text-soft); cursor: pointer; }
+  .ex-acts button:first-child { border-style: dashed; border-color: #3A4F63; }
+  .fit-bottom {
+    position: sticky; bottom: calc(var(--nav-h) + var(--safe-b)); z-index: 10;
+    display: flex; gap: 8px; margin: 12px -16px 0; padding: 10px 16px;
+    background: #0E1A25; border-top: 1px solid var(--line);
+  }
+  .fit-all { min-height: 56px; padding: 0 14px; border-radius: 14px; border: 1px solid #3A3570; background: #16152B; font-size: 13px; font-weight: 700; color: #D6D0FF; cursor: pointer; }
+  .fit-confirm { flex: 1; min-height: 56px; border: 0; border-radius: 14px; background: var(--health); color: #17123A; font-size: 15px; font-weight: 800; cursor: pointer; }
+  .fit-confirm:disabled { background: #1A2836; color: #6F8596; cursor: default; }
+  .fit-confirm.done { background: #10302D; color: #7FF0DB; }
+  .fit-empty { display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 20px; background: #16152B; border: 1px dashed #3A3570; }
+  .fit-empty p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-soft); }
+  .fit-btn { min-height: 48px; border: 0; border-radius: 14px; background: var(--health); color: #17123A; font-size: 15px; font-weight: 800; cursor: pointer; padding: 0 12px; }
+  .fit-btn:disabled { background: #1A2836; color: #6F8596; cursor: default; }
+  .fit-btn.ghost { background: transparent; border: 1px solid #3A3570; color: #D6D0FF; }
+  .file-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .file-pick button { min-height: 76px; border-radius: 16px; border: 1px dashed #4A5F73; background: var(--field); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 700; cursor: pointer; padding: 4px; }
+  .file-row { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 4px 0 12px; border-radius: 12px; background: var(--field); font-size: 13px; }
+  .file-row span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-row button { width: 40px; height: 40px; border: 0; background: transparent; color: var(--text-dim); cursor: pointer; }
+  .consent { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--field-line); background: var(--field); text-align: left; cursor: pointer; }
+  .consent .box { width: 22px; height: 22px; flex-shrink: 0; border-radius: 7px; border: 2px solid #4A5F73; display: flex; align-items: center; justify-content: center; }
+  .consent[aria-pressed="true"] { border-color: var(--health); }
+  .consent[aria-pressed="true"] .box { border-color: var(--health); background: var(--health); }
+  .consent .t { display: flex; flex-direction: column; gap: 2px; }
+  .consent .t b { font-size: 14px; }
+  .consent .t span { font-size: 12px; color: var(--text-dim); }
+  .imp-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .imp-sum div { display: flex; flex-direction: column; padding: 10px; border-radius: 12px; background: var(--field); }
+  .imp-sum b { font-size: 18px; font-weight: 800; }
+  .imp-sum span { font-size: 11px; color: var(--text-dim); }
+  .imp-text { display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 12px; background: var(--field); font-size: 13px; line-height: 1.5; color: var(--text-soft); }
+  .imp-text b { color: var(--text); }
+  .imp-text .warn { color: #FFD19A; }
+  .arch-row { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 6px 0 12px; border-radius: 10px; background: var(--field); }
+  .arch-row .n { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .arch-row .n b { font-size: 13px; }
+  .arch-row .n span { font-size: 12px; color: var(--text-dim); }
+  .arch-row button { min-height: 36px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--field-line); background: transparent; font-size: 12px; font-weight: 700; color: var(--text-soft); cursor: pointer; }
+  .today-card.fitc .km { color: var(--health); }
+  .hist-km.fitk { color: var(--health); }
+
   @media (max-width: 640px) {
     .meta-row { grid-template-columns: 1fr; }
     .compose-row { grid-template-columns: 1fr; }
@@ -935,11 +1069,14 @@
 
   <!-- ================= TRENING ================= -->
   <section data-tab="trening" hidden class="tr-head">
-    <div class="tr-top">
+    <div class="tr-top" id="fitTop" hidden>
+      <div class="fit-title"><span class="d">Fitnes</span><span id="fitSub"></span></div>
+    </div>
+    <div class="tr-top" id="trTopSwim">
       <input type="text" id="trTitle" class="title-input d" aria-label="Naslov treninga" maxlength="60" autocomplete="off">
       <button type="button" class="primary-btn" id="trSaveBtn">Shrani</button>
     </div>
-    <div class="tr-sub">
+    <div class="tr-sub" id="trSubSwim">
       <input type="date" id="trDate" class="date-mini" aria-label="Datum treninga">
       <span id="trSummary"></span>
       <span class="tr-total d" id="trTotal">0 m</span>
@@ -949,7 +1086,8 @@
         <button type="button" data-kind="swim" aria-pressed="true">Plavanje</button>
         <button type="button" data-kind="fitness" aria-pressed="false">Fitnes</button>
       </div>
-      <div class="pool-wrap"><span>bazen</span><div class="seg" role="group" aria-label="Dolžina bazena" id="trPools"></div></div>
+      <button type="button" class="export-btn" id="fitImportBtn" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg>Nov program</button>
+      <div class="pool-wrap" id="trPoolWrap"><span>bazen</span><div class="seg" role="group" aria-label="Dolžina bazena" id="trPools"></div></div>
     </div>
     <div class="tr-editing" id="trEditing" hidden>
       <span>Urejaš shranjen trening</span>
@@ -957,11 +1095,11 @@
     </div>
   </section>
 
-  <section data-tab="trening" hidden class="card fitness-soon" id="trFitness">
-    <h2>Fitnes</h2>
-    <p class="muted">Vnos fitnes treningov po trenerjevem programu pride v naslednji fazi. Plavalni treningi delujejo kot prej.</p>
-    <button type="button" class="export-btn" id="trBackToSwim">Nazaj na plavanje</button>
-  </section>
+  <div data-tab="trening" hidden id="trFitness" class="stack fit"></div>
+  <div data-tab="trening" hidden class="fit-bottom" id="fitBottom">
+    <button type="button" class="fit-all" id="fitAllBtn">Vse po programu</button>
+    <button type="button" class="fit-confirm" id="fitConfirmBtn"></button>
+  </div>
 
   <div data-tab="trening" hidden id="trSwim">
     <div class="shortcut-row" id="trShortcuts">
@@ -1196,6 +1334,17 @@
   </div>
 </div>
 
+<div class="sheet-backdrop" id="fitSheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Nov fitnes program">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head"><span class="d">Nov fitnes program</span><button type="button" class="link-btn" data-close-sheet>Zapri</button></div>
+    <div class="stack" id="fitSheetBody"></div>
+  </div>
+</div>
+<input type="file" id="fitPdfInput" accept="application/pdf" hidden>
+<input type="file" id="fitCamInput" accept="image/*" capture="environment" hidden>
+<input type="file" id="fitGalInput" accept="image/*" multiple hidden>
+
 <div class="sheet-backdrop" id="scSheet" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-label="Uredi bližnjice">
     <div class="sheet-grip"></div>
@@ -1395,7 +1544,7 @@ async function driveSyncNow() {
   if (!driveAccessToken) return;
   setDriveStatus('sinhroniziram …', 'syncing');
   try {
-    const payload = { workouts: sessions, words: quickWords, oura: ouraDays, meals: meals, supplements: supplements, supplementList: supplementList, drinks: drinks, drinkTypes: drinkTypes, weights: weights, shortcuts: shortcuts, templates: templates, weekGoal: weekGoalKm, goals: goals, savedAt: Date.now() };
+    const payload = { workouts: sessions, words: quickWords, oura: ouraDays, meals: meals, supplements: supplements, supplementList: supplementList, drinks: drinks, drinkTypes: drinkTypes, weights: weights, shortcuts: shortcuts, templates: templates, weekGoal: weekGoalKm, goals: goals, fitnessPrograms: fitnessPrograms, fitnessLog: fitnessLog, savedAt: Date.now() };
     const fileId = localStorage.getItem(LS_DRIVE_FILE_ID);
     if (!fileId && await driveLookupFileId()) {
       // A backup from another device exists. Never overwrite it with this
@@ -1511,9 +1660,9 @@ function xlsxSheets() {
   const weightRows = [['Datum', 'Masa (kg)']].concat(weights.map((w) => [w.date, w.kg]));
 
   const days = [...new Set([].concat(sessions.map((x) => x.date), meals.map((x) => x.date), supplements.map((x) => x.date),
-    drinks.map((x) => x.date), weights.map((x) => x.date), Object.keys(ouraDays)))].sort();
+    drinks.map((x) => x.date), weights.map((x) => x.date), fitnessLog.map((x) => x.date), Object.keys(ouraDays)))].sort();
   const GX = computeGoals();
-  const daily = [['Datum', 'Masa (kg)', 'Km', 'kcal (hrana + pijača)', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Tekočina (ml)', 'Dopolnila', 'Ocena spanja', 'Pripravljenost', 'HRV (ms)', 'Utrip noč najn.', 'Krona (makri ≥ 90 %)']]
+  const daily = [['Datum', 'Masa (kg)', 'Km', 'kcal (hrana + pijača)', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Tekočina (ml)', 'Dopolnila', 'Ocena spanja', 'Pripravljenost', 'HRV (ms)', 'Utrip noč najn.', 'Krona (makri ≥ 90 %)', 'Fitnes']]
     .concat(days.map((d) => {
       const dm = eatenMeals().filter((m) => m.date === d);
       const sum = (k) => dm.length ? dm.reduce((acc, m) => acc + (m[k] || 0), 0) : null;
@@ -1524,19 +1673,41 @@ function xlsxSheets() {
       const kcal = dm.length || dd.length ? (sum('calories') || 0) + dd.reduce((acc, x) => acc + (x.kcal || 0), 0) : null;
       const w = weights.find((x) => x.date === d);
       return [d, w ? w.kg : null, km || null, kcal, sum('protein'), sum('carbs'), sum('fat'), ml || null, sd,
-        o(d).sleep_score, o(d).readiness_score, o(d).avg_hrv_overnight, o(d).lowest_hr_overnight, dayHits(d, GX) === 'bom' ? 'da' : null];
+        o(d).sleep_score, o(d).readiness_score, o(d).avg_hrv_overnight, o(d).lowest_hr_overnight, dayHits(d, GX) === 'bom' ? 'da' : null,
+        fitnessLog.filter((f) => f.date === d).map((f) => f.sessName + (f.mc ? ' (' + f.mc + '. MC)' : '')).join(', ') || null];
     }));
   return [
-    { name: 'Dnevni pregled', rows: daily, widths: [12, 9, 7, 12, 10, 8, 10, 10, 30, 10, 10, 9, 10, 12] },
+    { name: 'Dnevni pregled', rows: daily, widths: [12, 9, 7, 12, 10, 8, 10, 10, 30, 10, 10, 9, 10, 12, 22] },
     { name: 'Treningi', rows: workouts, widths: [12, 24, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9] },
     { name: 'Seti', rows: sets, widths: [12, 24, 50, 9] },
     { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 10, 7, 10, 8, 10, 10, 11, 50, 10, 18] },
     { name: 'Dopolnila', rows: supps, widths: [12, 7, 26, 10, 12, 70] },
     { name: 'Pijača', rows: drinkRows, widths: [12, 7, 16, 8, 7] },
     { name: 'Telesna masa', rows: weightRows, widths: [12, 10] },
+    { name: 'Fitnes dnevnik', rows: fitLogRows(), widths: [12, 7, 18, 10, 6, 30, 5, 7, 8, 11, 9, 11] },
+    { name: 'Fitnes program', rows: fitProgramRows(), widths: [18, 10, 6, 9, 30, 5, 7, 8, 11, 9, 34] },
     { name: 'Cilji', rows: [['Nastavitev', 'Vrednost'], ['Način', goals.method === 'custom' ? 'po meri' : 'samodejno'], ['Dnevni cilj (kcal)', GX.kcal], ['Beljakovine (g)', GX.b], ['OH (g)', GX.oh], ['Maščobe (g)', GX.m], ['Masa za izračun (kg)', GX.mass], ['Opomba', goals.note || '']], widths: [22, 16] },
     { name: 'Oura', rows: oura, widths: [12].concat(ouraCols.map((c) => c[0].startsWith('bedtime') ? 26 : 11)) }
   ];
+}
+
+function fitLogRows() {
+  const rows = [['Datum', 'Ura', 'Program', 'Trening', 'MC', 'Vaja', 'Set', '%', 'kg', 'Ponovitve', 'Sekunde', 'Opravljeno']];
+  [...fitnessLog].sort((a, b) => a.date.localeCompare(b.date) || a.time - b.time).forEach((f) => {
+    const hhmm = new Date(f.time).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
+    Object.values(f.sets || {}).forEach((x) => x.sets.forEach((y, i) => rows.push([f.date, hhmm, f.programTitle, f.sessName, f.mc || null, x.name, i + 1,
+      y.p || null, x.type === 'kg' ? y.kg : null, x.type === 'sec' ? null : y.r, x.type === 'sec' ? y.s : null, y.done ? 'da' : 'ne'])));
+    const s = f.summary || {};
+    rows.push([f.date, hhmm, f.programTitle, f.sessName, f.mc || null, 'Ogrevanje ' + (s.warmDone ? s.warmMin + ' min' : 'ne') + ' · core ' + (s.coreDone || 0) + '/' + (s.coreTotal || 0) + ' · raztezanje ' + (s.stretchDone ? s.stretchMin + ' min' : 'ne'), null, null, null, null, null, null]);
+  });
+  return rows;
+}
+function fitProgramRows() {
+  const rows = [['Program', 'Trening', 'MC', 'Datum', 'Vaja', 'Set', '%', 'kg', 'Ponovitve', 'Sekunde', 'Skupaj']];
+  fitnessPrograms.forEach((pr) => pr.sessions.forEach((ses) => pr.weeks.forEach((w, wi) => ses.ex.forEach((ex) => (ex.w[wi] || []).forEach((y, i) =>
+    rows.push([pr.title + (pr.active ? ' (trenutni)' : ''), ses.name, w.mc, w.date, ex.name, i + 1, y.p || null, ex.type === 'kg' ? y.kg : null,
+      ex.type === 'sec' ? null : y.r, ex.type === 'sec' ? y.s : null, i === 0 ? ex.tot[wi] || '' : '']))))));
+  return rows;
 }
 
 // ---------- minimal .xlsx writer (no library: SpreadsheetML in an uncompressed zip) ----------
@@ -1670,7 +1841,9 @@ document.getElementById('driveRestoreBtn').addEventListener('click', async () =>
     if (data.shortcuts && Array.isArray(data.shortcuts.tags)) { shortcuts = data.shortcuts; persistShortcuts(); }
     if (Array.isArray(data.templates)) { templates = data.templates; persistTemplates(); }
     if (Number(data.weekGoal) > 0) { weekGoalKm = Number(data.weekGoal); persistWeekGoal(); }
-    renderTraining(); renderToday();
+    if (Array.isArray(data.fitnessPrograms)) { fitnessPrograms = data.fitnessPrograms; persistFitPrograms(); }
+    if (Array.isArray(data.fitnessLog)) { fitnessLog = data.fitnessLog; persistFitLog(); }
+    renderTraining(); renderToday(); renderHistory();
     if (Array.isArray(data.meals)) { meals = data.meals; persistMeals(); }
     if (Array.isArray(data.drinks)) { drinks = data.drinks; }
     if (Array.isArray(data.drinkTypes)) { drinkTypes = data.drinkTypes; }
@@ -3997,13 +4170,16 @@ function renderTraining() {
   save.disabled = !tr.sets.length && !tr.justSaved;
   save.textContent = tr.justSaved ? 'Shranjeno ✓' : 'Shrani';
   save.classList.toggle('done', tr.justSaved);
-  document.getElementById('trEditing').hidden = !tr.editId;
+  document.getElementById('trEditing').hidden = !tr.editId || tr.kind === 'fitness';
 
   document.querySelectorAll('#trKinds [data-kind]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.kind === tr.kind ? 'true' : 'false'));
   const fitness = tr.kind === 'fitness';
   const onTraining = document.body.dataset.tab === 'trening';
-  document.getElementById('trFitness').hidden = !onTraining || !fitness;
   document.getElementById('trSwim').hidden = !onTraining || fitness;
+  ['trTopSwim', 'trSubSwim', 'trPoolWrap'].forEach((id) => { document.getElementById(id).hidden = fitness; });
+  ['fitTop', 'fitImportBtn'].forEach((id) => { document.getElementById(id).hidden = !fitness; });
+  renderFitness();
+  if (fitness) return;
 
   const pools = document.getElementById('trPools');
   pools.innerHTML = '';
@@ -4242,7 +4418,6 @@ document.getElementById('trTitle').addEventListener('input', (e) => { tr.title =
 document.getElementById('trDate').addEventListener('change', (e) => { tr.date = e.target.value || localDay(new Date()); saveDraft(); renderTraining(); });
 document.getElementById('trSaveBtn').addEventListener('click', saveTraining);
 document.querySelectorAll('#trKinds [data-kind]').forEach((b) => b.addEventListener('click', () => { tr.kind = b.dataset.kind; saveDraft(); renderTraining(); }));
-document.getElementById('trBackToSwim').addEventListener('click', () => { tr.kind = 'swim'; saveDraft(); renderTraining(); });
 document.querySelectorAll('#trModes [data-mode-key]').forEach((b) => b.addEventListener('click', () => { tr.mode = b.dataset.modeKey; tr.err = ''; saveDraft(); renderTrInput(); }));
 document.getElementById('trAddBtn').addEventListener('click', addFromInput);
 const trDraft = document.getElementById('trDraft');
@@ -4366,6 +4541,643 @@ document.getElementById('scReset').addEventListener('click', (e) => armedDelete(
 }));
 
 // ============================================================
+// FITNES — trenerjev mesečni program (uvoz z AI) in današnji trening
+// A program never changes by itself: AI only transcribes it; "Program" mode
+// is the only way to change the prescription for a microcycle.
+// ============================================================
+const LS_FIT_PROGRAMS = 'kilometrina.fitnessPrograms';
+const LS_FIT_LOG = 'kilometrina.fitnessLog';
+const LS_FIT_DRAFT = 'kilometrina.fitnessDraft'; // today's ticks on this device only
+const FIT_DAYS = ['pon', 'tor', 'sre', 'čet', 'pet', 'sob', 'ned'];
+let fitnessPrograms = lsGet(LS_FIT_PROGRAMS, []);
+let fitnessLog = lsGet(LS_FIT_LOG, []);
+function persistFitPrograms() { lsSet(LS_FIT_PROGRAMS, fitnessPrograms); scheduleDriveSync(); }
+function persistFitLog() { lsSet(LS_FIT_LOG, fitnessLog); scheduleDriveSync(); }
+const activeProgram = () => fitnessPrograms.find((p) => p.active) || fitnessPrograms[fitnessPrograms.length - 1] || null;
+
+/** The June programme from the design — real data, offered as a sample to try the screen without AI. */
+function sampleProgram() {
+  const K = (p, kg, r) => ({ p: p, kg: kg, r: r });
+  const R = (r, n) => Array.from({ length: n }, () => ({ r: r }));
+  const S = (sec, n) => Array.from({ length: n }, () => ({ s: sec }));
+  const core = [
+    { name: 'Dvig medenice (in nog) proti stropu, počasno spuščanje', dose: '30–35 s · 3 serije', series: 3 },
+    { name: 'Aktivna rotacija z žogo stoje, komolci v višini ramen', dose: '15 s · 3 serije', series: 3 },
+    { name: 'Streamline z boki na Bosuju — ravna linija, ravnotežje', dose: '60 s · 3 serije', series: 3 }
+  ];
+  return {
+    id: newId('fp'), title: 'Junij 2026 (primer)', place: 'Ilirija', coach: 'Miha Robnik', createdAt: Date.now(), source: 'primer', active: true,
+    weeks: [{ mc: 42, date: '15. 6.' }, { mc: 43, date: '22. 6.' }, { mc: 44, date: '29. 6.' }, { mc: 45, date: '6. 7.' }],
+    days: {}, uncertain: [],
+    sessions: [
+      { id: 'A', name: 'Fitnes A', goal: 'Maksimalna moč', tempo: 'aktivno', rest: '120–150 s', warm: 15, stretch: 10, core: core,
+        footer: [['4.237 kg', '120 pon'], ['4.774 kg', '132 pon'], ['4.643 kg', '144 pon'], ['3.285 kg', '120 pon']],
+        ex: [
+          { id: 'zgibi', name: 'Zgibi', cue: 'Odprt prsni koš, stisni trup', equip: 'Dodatna teža', type: 'kg',
+            w: [[K(60, 75, 6), K(72, 90, 6), K(76, 95, 5), K(76, 95, 5)], [K(60, 75, 6), K(78, 98, 5), K(80, 100, 5), K(80, 100, 4)], [K(60, 75, 6), K(78, 98, 5), K(82, 103, 4), K(84, 105, 4)], [K(60, 75, 6), K(70, 88, 4), K(70, 88, 4)]],
+            tot: ['1.940 kg · 1RM 88 · 71 % int.', '1.838 kg · 1RM 92 · 74 % int.', '1.768 kg · 1RM 93 · 74 % int.', '1.150 kg · 1RM 82 · 66 % int.'] },
+          { id: 'pocep', name: 'Počep', cue: '', equip: 'Drog', type: 'kg',
+            w: [[K(50, 60, 6), K(67, 80, 5), K(71, 85, 5)], [K(50, 60, 6), K(67, 80, 5), K(71, 85, 5), K(71, 85, 4)], [K(53, 64, 6), K(70, 84, 5), K(74, 89, 4), K(74, 89, 4)], [K(53, 64, 6), K(70, 84, 4), K(70, 84, 4)]],
+            tot: ['1.188 kg · 1RM 74 · 62 % int.', '1.529 kg · 1RM 76 · 64 % int.', '1.512 kg · 1RM 80 · 66 % int.', '1.054 kg · 1RM 75 · 63 % int.'] },
+          { id: 'potisk', name: 'Potisk s prsi', cue: 'Počasno spuščanje', equip: 'Drog', type: 'kg',
+            w: [[K(67, 60, 6), K(83, 75, 5), K(83, 75, 5)], [K(67, 60, 6), K(83, 75, 5), K(83, 75, 5), K(83, 75, 4)], [K(67, 60, 6), K(85, 77, 5), K(85, 77, 4), K(87, 78, 4)], [K(67, 60, 6), K(80, 72, 5), K(80, 72, 5)]],
+            tot: ['1.109 kg · 1RM 69 · 77 % int.', '1.408 kg · 1RM 70 · 78 % int.', '1.364 kg · 1RM 72 · 80 % int.', '1.082 kg · 1RM 68 · 75 % int.'] },
+          { id: 'izteg', name: 'Izteg trupa — enonožno', cue: 'Zataknjene noge', equip: '', type: 'sec', w: [S(20, 3), S(22, 3), S(24, 3), S(20, 3)], tot: ['120 s', '132 s', '144 s', '120 s'] },
+          { id: 'prenos', name: 'Prenos rok preko uteži', cue: 'Iztegnjene roke, počasno gibanje!', equip: '', type: 'reps', w: [R(8, 3), R(10, 3), R(10, 3), R(8, 3)], tot: ['24 pon', '30 pon', '30 pon', '24 pon'] }
+        ] },
+      { id: 'B', name: 'Fitnes B', goal: 'Hitra moč, eksplozivnost', tempo: 'eksplozivno', rest: '120–150 s', warm: 15, stretch: 10, core: core,
+        footer: [['108 pon', ''], ['132 pon', ''], ['156 pon', ''], ['108 pon', '']],
+        ex: [
+          { id: 'startni', name: 'Skok iz polčepa — startni skok', cue: 'Ena noga zadaj, dotik tal, dvig pete, odriv LE navzgor', equip: 'vsaka noga', type: 'reps', w: [R(4, 3), R(5, 3), R(6, 3), R(4, 3)], tot: ['12 pon', '15 pon', '18 pon', '12 pon'] },
+          { id: 'zavesljaj', name: 'Met zavesljaj — medicinka', cue: 'Enoročno z rotacijo · visok komolec, odprt trup, pospeševanje', equip: 'medicinka', type: 'reps', w: [R(6, 3), R(7, 3), R(8, 3), R(6, 3)], tot: ['18 pon', '21 pon', '24 pon', '18 pon'] },
+          { id: 'globinski', name: 'Globinski skok', cue: 'Iz stepa, kratek kontaktni čas, uporabi roke', equip: '', type: 'reps', w: [R(4, 3), R(5, 3), R(6, 3), R(4, 3)], tot: ['12 pon', '15 pon', '18 pon', '12 pon'] },
+          { id: 'enorocni', name: 'Enoročni met v steno — medicinka', cue: 'Z rotacijo', equip: 'medicinka', type: 'reps', w: [R(10, 3), R(12, 3), R(14, 3), R(10, 3)], tot: ['30 pon', '36 pon', '42 pon', '30 pon'] },
+          { id: 'vezani', name: 'Skok iz polčepa — vezani skoki', cue: 'Dodaj utež na prsni koš; kasneje lahko tudi drog', equip: '', type: 'reps', w: [R(4, 3), R(5, 3), R(6, 3), R(4, 3)], tot: ['12 pon', '15 pon', '18 pon', '12 pon'] },
+          { id: 'triceps', name: 'Triceps met v steno — medicinka', cue: 'Stoje, stisni trebušne, met nad glavo', equip: 'medicinka', type: 'reps', w: [R(8, 3), R(10, 3), R(12, 3), R(8, 3)], tot: ['24 pon', '30 pon', '36 pon', '24 pon'] }
+        ] }
+    ]
+  };
+}
+
+/** The Worker's JSON (see FITNESS_SCHEMA) into the app's program shape. */
+function programFromAi(d) {
+  const weeks = (d.weeks || []).map((w) => ({ mc: w.mc || 0, date: w.date || '' }));
+  const days = {};
+  (d.schedule || []).forEach((x) => { if (x.days && x.days.length) days[x.week_index] = x.days.filter((n) => n >= 0 && n <= 6); });
+  return {
+    id: newId('fp'), title: d.title || 'Fitnes program', place: d.place || '', coach: d.coach || '', createdAt: Date.now(), source: 'ai', active: true,
+    weeks: weeks, days: days, uncertain: d.uncertain || [],
+    sessions: (d.sessions || []).map((s, si) => ({
+      id: s.id || String.fromCharCode(65 + si), name: s.name || 'Fitnes ' + String.fromCharCode(65 + si), goal: s.goal || '',
+      tempo: s.tempo || '', rest: s.rest || '', warm: s.warm_min || 15, stretch: s.stretch_min || 10,
+      core: (s.core || []).map((c) => ({ name: c.name, dose: c.dose || '', series: c.series > 0 ? Math.min(c.series, 6) : 3 })),
+      footer: weeks.map((_, i) => { const t = (s.week_totals || [])[i] || {}; return [t.volume || '', t.reps || '']; }),
+      ex: (s.exercises || []).map((e, ei) => ({
+        id: 'e' + ei + '-' + (e.name || '').toLowerCase().replace(/[^a-z0-9čšž]+/g, '-').slice(0, 20),
+        name: e.name || 'Vaja', cue: e.cue || '', equip: e.equip || '', type: e.type || 'reps',
+        w: weeks.map((_, i) => ((e.weeks || [])[i] || { sets: [] }).sets.map((x) => (e.type === 'kg' ? { p: x.percent || 0, kg: x.kg || 0, r: x.reps || 0 } : e.type === 'sec' ? { s: x.seconds || 0 } : { r: x.reps || 0 }))),
+        tot: weeks.map((_, i) => ((e.weeks || [])[i] || {}).total || '')
+      }))
+    }))
+  };
+}
+
+// ---------- today's state (device draft) ----------
+function freshFit() {
+  const p = activeProgram();
+  return { programId: p ? p.id : null, sess: p && p.sessions[0] ? p.sessions[0].id : 'A', week: 0, mode: 'danes', editing: null,
+    actual: {}, warm: {}, stretch: {}, warmMin: {}, stretchMin: {}, coreDone: {}, confirmedId: null, date: localDay(new Date()) };
+}
+let fs = lsGet(LS_FIT_DRAFT, null) || freshFit();
+function saveFit() { lsSet(LS_FIT_DRAFT, fs); }
+/** A new day (or another programme) starts with nothing ticked. */
+function syncFitState() {
+  const p = activeProgram();
+  const today = localDay(new Date());
+  if (!p) return null;
+  if (fs.programId !== p.id) {
+    const keep = { sess: fs.sess, week: fs.week };
+    fs = freshFit();
+    if (p.sessions.some((s) => s.id === keep.sess)) fs.sess = keep.sess;
+    if (keep.week < p.weeks.length) fs.week = keep.week;
+  } else if (fs.date !== today) {
+    Object.assign(fs, { actual: {}, warm: {}, stretch: {}, warmMin: {}, stretchMin: {}, coreDone: {}, confirmedId: null, date: today, editing: null });
+  }
+  if (!p.sessions.some((s) => s.id === fs.sess)) fs.sess = p.sessions[0] ? p.sessions[0].id : 'A';
+  if (fs.week >= p.weeks.length) fs.week = 0;
+  saveFit();
+  return p;
+}
+const fitSession = (p) => p.sessions.find((s) => s.id === fs.sess) || p.sessions[0];
+const fitKey = (exId) => fs.sess + '|' + fs.week + '|' + exId;
+const fitSKey = () => fs.sess + '|' + fs.week;
+const prescOf = (ex) => (ex.w[fs.week] || []).map((x) => Object.assign({ done: false }, x));
+const actualOf = (ex) => fs.actual[fitKey(ex.id)] || prescOf(ex);
+const setLabelFit = (ex, x) => (ex.type === 'kg' ? fmtAmount(x.kg || 0) + ' × ' + (x.r || 0) : ex.type === 'sec' ? (x.s || 0) + ' s' : '× ' + (x.r || 0));
+const timesDone = (p, sess, week) => fitnessLog.filter((l) => l.programId === p.id && l.sess === sess && l.week === week).length;
+
+/** Every tick goes through here; after "Potrdi" the saved entry follows the changes instead of a second one being made. */
+function fitChange(fn) {
+  fn();
+  if (fs.confirmedId) {
+    const i = fitnessLog.findIndex((l) => l.id === fs.confirmedId);
+    const p = activeProgram();
+    if (i === -1 || !p) fs.confirmedId = null;
+    else { fitnessLog[i] = Object.assign(buildFitEntry(p, fitSession(p)), { id: fitnessLog[i].id, date: fitnessLog[i].date, time: fitnessLog[i].time }); persistFitLog(); renderHistory(); }
+  }
+  saveFit();
+  renderFitness();
+}
+function setActual(ex, arr) { fitChange(() => { fs.actual[fitKey(ex.id)] = arr; }); }
+function setPresc(p, ex, arr) {
+  ex.w[fs.week] = arr.map((x) => { const y = Object.assign({}, x); delete y.done; return y; });
+  delete fs.actual[fitKey(ex.id)];
+  persistFitPrograms();
+  saveFit();
+  renderFitness();
+}
+
+/** Last time this session was logged: if a set came up short and this week is heavier, suggest staying put. */
+function fitTip(p, ex) {
+  if (ex.type !== 'kg' || fs.mode !== 'danes' || fs.actual[fitKey(ex.id)]) return null;
+  const last = fitnessLog.filter((l) => l.programId === p.id && l.sess === fs.sess && l.id !== fs.confirmedId && l.sets && l.sets[ex.id])
+    .sort((a, b) => b.time - a.time)[0];
+  if (!last) return null;
+  const done = last.sets[ex.id].sets.filter((x) => x.done);
+  if (!done.length) return null;
+  const lastMax = Math.max(...done.map((x) => x.kg || 0));
+  const prevPresc = ex.w[last.week] || [];
+  const missed = last.sets[ex.id].sets.some((x, i) => prevPresc[i] && (!x.done || (x.r || 0) < prevPresc[i].r));
+  const presc = prescOf(ex);
+  if (!missed || !presc.some((x) => x.kg > lastMax)) return null;
+  const mc = (p.weeks[last.week] || {}).mc;
+  return {
+    text: 'V ' + mc + '. MC si zadnja seta naredil ' + last.sets[ex.id].sets.slice(-2).map((x) => fmtAmount(x.kg) + '×' + x.r + (x.done ? '' : ' (ne)')).join(', ')
+      + ' (program ' + prevPresc.slice(-2).map((x) => fmtAmount(x.kg) + '×' + x.r).join(', ') + '). Predlog: ostani na ' + fmtAmount(lastMax) + ' kg, dokler ne narediš vseh ponovitev.',
+    sets: presc.map((x) => Object.assign({}, x, { kg: Math.min(x.kg, lastMax) }))
+  };
+}
+
+function fitSummary(p, ses) {
+  let total = 0, done = 0, vol = 0;
+  ses.ex.forEach((ex) => {
+    const act = actualOf(ex);
+    total += act.length;
+    act.forEach((x) => { if (x.done) { done++; if (ex.type === 'kg') vol += (x.kg || 0) * (x.r || 0); } });
+  });
+  const k = fitSKey();
+  const warmMin = fs.warmMin[k] != null ? fs.warmMin[k] : ses.warm;
+  const stretchMin = fs.stretchMin[k] != null ? fs.stretchMin[k] : ses.stretch;
+  const core = fs.coreDone[k] || ses.core.map(() => 0);
+  const coreTotal = ses.core.reduce((a, c) => a + (c.series || 3), 0);
+  return { total, done, vol, warmMin, stretchMin, core, coreTotal, coreDone: core.reduce((a, b) => a + b, 0),
+    minutes: (fs.warm[k] ? warmMin : 0) + (fs.stretch[k] ? stretchMin : 0) };
+}
+
+function renderFitness() {
+  const wrap = document.getElementById('trFitness');
+  const bottom = document.getElementById('fitBottom');
+  const on = document.body.dataset.tab === 'trening' && tr.kind === 'fitness';
+  wrap.hidden = !on; bottom.hidden = true;
+  if (!on) return;
+  const p = syncFitState();
+  wrap.innerHTML = '';
+  if (!p) {
+    document.getElementById('fitSub').textContent = 'še ni programa';
+    const e = document.createElement('div');
+    e.className = 'fit-empty';
+    e.innerHTML = '<b class="d" style="font-size:18px;">Še ni programa</b><p>Naloži mesečni program od trenerja (PDF ali slika lista) — AI ga prepiše v mikrocikle, treninge A/B, core in vse vaje. Program se potem nikoli ne spremeni sam.</p>';
+    e.appendChild(btn('Uvozi program (PDF / slika)', 'fit-btn', openFitImport));
+    e.appendChild(btn('Preizkusi s primerom (junij 2026)', 'fit-btn ghost', () => {
+      fitnessPrograms.forEach((x) => { x.active = false; });
+      fitnessPrograms.push(sampleProgram());
+      persistFitPrograms();
+      fs = freshFit(); saveFit();
+      renderFitness();
+      flash('Dodan primer programa — pozneje ga zamenjaš z uvozom');
+    }));
+    wrap.appendChild(e);
+    return;
+  }
+  const ses = fitSession(p);
+  const wk = p.weeks[fs.week] || { mc: '', date: '' };
+  const k = fitSKey();
+  const sum = fitSummary(p, ses);
+  document.getElementById('fitSub').textContent = shortDay(localDay(new Date())) + ' · ' + ses.name + ' · ' + wk.mc + '. mikrocikel · ' + p.title;
+
+  // program card
+  const card = document.createElement('section');
+  card.className = 'prog-card';
+  card.setAttribute('aria-label', 'Program');
+  card.innerHTML = '<div class="prog-top"><span class="d">' + escapeHtml(p.title + (p.place ? ' · ' + p.place : '')) + '</span><span>' + escapeHtml(p.coach ? 'trener ' + p.coach : '') + '</span></div>';
+  const sg = document.createElement('div');
+  sg.className = 'sess-grid';
+  sg.style.gridTemplateColumns = 'repeat(' + Math.max(1, p.sessions.length) + ', minmax(0, 1fr))';
+  p.sessions.forEach((s) => {
+    const b = btn('', 'sess-btn', () => { fs.sess = s.id; fs.editing = null; fs.confirmedId = null; saveFit(); renderFitness(); }, { 'aria-pressed': s.id === fs.sess ? 'true' : 'false' });
+    b.innerHTML = '<b>' + escapeHtml(s.name) + '</b><span>' + escapeHtml(s.goal) + '</span>';
+    sg.appendChild(b);
+  });
+  card.appendChild(sg);
+  const wl = document.createElement('div');
+  wl.className = 'stack';
+  wl.style.gap = '6px';
+  wl.innerHTML = '<span class="lbl-v">Kateri mikrocikel delaš?</span>';
+  const wg = document.createElement('div');
+  wg.className = 'week-grid';
+  wg.style.gridTemplateColumns = 'repeat(' + Math.max(1, p.weeks.length) + ', minmax(0, 1fr))';
+  p.weeks.forEach((w, i) => {
+    const c = timesDone(p, fs.sess, i);
+    const b = btn('', 'week-btn' + (c ? ' done' : ''), () => { fs.week = i; fs.editing = null; fs.confirmedId = null; saveFit(); renderFitness(); },
+      { 'aria-pressed': i === fs.week ? 'true' : 'false', 'aria-label': w.mc + '. mikrocikel, ' + w.date + (c ? ', opravljen ' + c + '×' : '') });
+    b.innerHTML = '<b>' + w.mc + '.</b><span>' + escapeHtml(w.date) + '</span><i>' + (i === fs.week ? (c ? 'spet' : 'danes') : (c ? '✓' + (c > 1 ? '×' + c : '') : '')) + '</i>';
+    wg.appendChild(b);
+  });
+  wl.appendChild(wg);
+  const hint = document.createElement('span');
+  hint.className = 'muted-sm';
+  const cNow = timesDone(p, fs.sess, fs.week), cPrev = fs.week ? timesDone(p, fs.sess, fs.week - 1) : 0;
+  hint.textContent = cNow ? ses.name + ' v ' + wk.mc + '. MC si že naredil ' + cNow + '× — delaš ga ponovno.'
+    : cPrev > 1 ? p.weeks[fs.week - 1].mc + '. MC si ponovil, zdaj greš naprej na ' + wk.mc + '.' : 'Tapni mikrocikel, ki ga delaš. Istega lahko narediš večkrat.';
+  wl.appendChild(hint);
+  card.appendChild(wl);
+  const facts = [(ses.footer[fs.week] || [])[0], (ses.footer[fs.week] || [])[1], ses.tempo ? 'tempo ' + ses.tempo : '', ses.rest ? 'počitek ' + ses.rest : ''].filter(Boolean);
+  if (facts.length) {
+    const f = document.createElement('div');
+    f.className = 'facts';
+    f.innerHTML = facts.map((x) => '<span>' + escapeHtml(x) + '</span>').join('');
+    card.appendChild(f);
+  }
+  const sched = document.createElement('div');
+  sched.className = 'sched';
+  sched.innerHTML = '<span class="lbl-v">Urnik</span>';
+  const sd = document.createElement('div');
+  sd.className = 'sched-days';
+  const daysOn = (p.days && p.days[fs.week]) || [];
+  FIT_DAYS.forEach((d, i) => sd.appendChild(btn(d, '', () => {
+    p.days = p.days || {};
+    p.days[fs.week] = daysOn.indexOf(i) !== -1 ? daysOn.filter((x) => x !== i) : daysOn.concat(i).sort();
+    persistFitPrograms(); renderFitness();
+  }, { 'aria-pressed': daysOn.indexOf(i) !== -1 ? 'true' : 'false' })));
+  sched.appendChild(sd);
+  card.appendChild(sched);
+  wrap.appendChild(card);
+
+  // confirmed summary
+  const confirmed = fs.confirmedId && fitnessLog.find((l) => l.id === fs.confirmedId);
+  if (confirmed) {
+    const next = Math.min(fs.week + 1, p.weeks.length - 1);
+    const d = document.createElement('section');
+    d.className = 'fit-done';
+    d.innerHTML = '<span class="d"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7FF0DB" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Trening potrjen</span>'
+      + '<span>' + fitSummaryLine(confirmed.summary) + ' · shranjeno</span>'
+      + '<span class="next">' + (fs.week < p.weeks.length - 1 ? 'Naslednjič: ' + ses.name + ' v ' + p.weeks[next].mc + '. MC (' + p.weeks[next].date + ') — ali ponovi ta teden.' : 'Zadnji mikrocikel bloka — čas za nov program od trenerja.') + '</span>';
+    d.appendChild(btn('Še uredi', '', () => { fitnessLog = fitnessLog.filter((l) => l.id !== fs.confirmedId); fs.confirmedId = null; persistFitLog(); saveFit(); renderFitness(); renderHistory(); renderToday(); }));
+    wrap.appendChild(d);
+  }
+
+  wrap.appendChild(minutesCard(p, ses, 'warm', 'Ogrevanje', 'Splošno dinamično ogrevanje · zamahi vstran, gosenica, odkloni, strehica, kobra, mobilnost gležnja in kolka', sum.warmMin));
+
+  // core
+  if (ses.core.length) {
+    const c = document.createElement('section');
+    c.className = 'core-card';
+    c.setAttribute('aria-label', 'Core');
+    c.innerHTML = '<div class="row" style="display:flex;justify-content:space-between;align-items:baseline;"><b style="font-size:15px;">Core</b><span class="muted-sm">' + sum.coreDone + ' / ' + sum.coreTotal + ' serij</span></div>';
+    ses.core.forEach((item, ci) => {
+      const row = document.createElement('div');
+      row.className = 'core-row';
+      row.innerHTML = '<span class="n"><b>' + escapeHtml(item.name) + '</b><span>' + escapeHtml(item.dose) + '</span></span>';
+      for (let n = 1; n <= (item.series || 3); n++) {
+        const onN = (sum.core[ci] || 0) >= n;
+        row.appendChild(btn(String(n), 'dot-btn', () => fitChange(() => {
+          const a = (fs.coreDone[k] || ses.core.map(() => 0)).slice();
+          a[ci] = a[ci] === n ? n - 1 : n;
+          fs.coreDone[k] = a;
+        }), { 'aria-pressed': onN ? 'true' : 'false', 'aria-label': item.name + ', serija ' + n }));
+      }
+      c.appendChild(row);
+    });
+    wrap.appendChild(c);
+  }
+
+  // main part
+  const mh = document.createElement('div');
+  mh.className = 'main-head';
+  mh.innerHTML = '<div class="row"><h2 class="d">Glavni del</h2><span>' + sum.done + ' / ' + sum.total + ' setov</span></div>';
+  const m2 = document.createElement('div');
+  m2.className = 'mode2';
+  m2.setAttribute('role', 'group');
+  [['danes', 'Današnji trening'], ['program', 'Program']].forEach(([mk, l]) => m2.appendChild(btn(l, '', () => { fs.mode = mk; fs.editing = null; saveFit(); renderFitness(); }, { 'aria-pressed': fs.mode === mk ? 'true' : 'false' })));
+  mh.appendChild(m2);
+  const mhint = document.createElement('span');
+  mhint.textContent = fs.mode === 'danes' ? 'Tapni set, ko ga narediš. Če narediš drugače, »Uredi« — program ostane nespremenjen.'
+    : 'Spreminjaš program za ' + wk.mc + '. MC — velja za vse prihodnje ponovitve tega tedna.';
+  mh.appendChild(mhint);
+  wrap.appendChild(mh);
+  ses.ex.forEach((ex) => wrap.appendChild(exerciseCard(p, ex)));
+
+  wrap.appendChild(minutesCard(p, ses, 'stretch', 'Raztezanje', 'vse obremenjene mišične skupine, razteg vsaj 20 s', sum.stretchMin));
+
+  // bottom bar
+  bottom.hidden = false;
+  const confirm = document.getElementById('fitConfirmBtn');
+  confirm.disabled = !sum.done || !!confirmed;
+  confirm.classList.toggle('done', !!confirmed);
+  confirm.textContent = confirmed ? 'Potrjeno ✓' : sum.done ? 'Potrdi trening · ' + sum.done + '/' + sum.total : 'Označi opravljene sete';
+}
+
+function fitSummaryLine(s) {
+  return s.done + ' / ' + s.total + ' setov' + (s.vol ? ' · ' + fmtInt(s.vol) + ' kg volumna' : '') + ' · core ' + s.coreDone + '/' + s.coreTotal
+    + (s.warmDone ? ' · ogrevanje ' + s.warmMin + ' min' : '') + (s.stretchDone ? ' · raztezanje ' + s.stretchMin + ' min' : '');
+}
+
+function minutesCard(p, ses, kind, title, desc, minutes) {
+  const k = fitSKey();
+  const done = !!fs[kind][k];
+  const card = document.createElement('div');
+  card.className = 'min-card' + (done ? ' on' : '');
+  const row = document.createElement('div');
+  row.className = 'min-row';
+  const programMin = ses[kind];
+  const check = btn('', 'min-check', () => fitChange(() => { fs[kind][k] = !done; }), { 'aria-pressed': done ? 'true' : 'false' });
+  check.innerHTML = '<span class="box">' + (done ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06231E" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>' : '') + '</span>'
+    + '<span class="t"><b>' + title + '</b><span>' + (fs.mode === 'program' ? 'nastavitev programa' : minutes !== programMin ? 'danes spremenjeno · program ' + programMin + ' min' : 'po programu') + '</span></span>';
+  row.appendChild(check);
+  const st = document.createElement('div');
+  st.className = 'mini-step';
+  const shown = fs.mode === 'program' ? programMin : minutes;
+  const setMin = (v) => {
+    const val = Math.max(0, Math.min(60, v));
+    if (fs.mode === 'program') { ses[kind] = val; persistFitPrograms(); renderFitness(); return; }
+    fitChange(() => { fs[kind + 'Min'][k] = val; });
+  };
+  st.appendChild(btn('−', '', () => setMin(shown - 1), { 'aria-label': 'Manj minut: ' + title }));
+  const v = document.createElement('span'); v.textContent = shown + ' min'; st.appendChild(v);
+  st.appendChild(btn('+', '', () => setMin(shown + 1), { 'aria-label': 'Več minut: ' + title }));
+  row.appendChild(st);
+  card.appendChild(row);
+  const d = document.createElement('span'); d.className = 'desc'; d.textContent = desc; card.appendChild(d);
+  return card;
+}
+
+function exerciseCard(p, ex) {
+  const program = fs.mode === 'program';
+  const presc = prescOf(ex);
+  const act = actualOf(ex);
+  const sets = program ? presc : act;
+  const nDone = act.filter((x) => x.done).length;
+  const all = act.length && nDone === act.length;
+  const save = (arr) => (program ? setPresc(p, ex, arr) : setActual(ex, arr));
+  const changed = !program && fs.actual[fitKey(ex.id)] && (act.length !== presc.length || act.some((x, i) => !presc[i] || x.kg !== presc[i].kg || x.r !== presc[i].r || x.s !== presc[i].s));
+  const card = document.createElement('section');
+  card.className = 'ex-card' + (program ? ' prog' : all ? ' all' : '');
+  card.innerHTML = (ex.cue ? '<span class="ex-cue">' + escapeHtml(ex.cue) + '</span>' : '') + '<div class="ex-name"><b>' + escapeHtml(ex.name) + '</b><span>' + escapeHtml(ex.equip || '') + '</span></div>';
+  const sb = document.createElement('div');
+  sb.className = 'set-btns';
+  sets.forEach((x, i) => {
+    const b = btn('', 'fset' + (program ? ' prog' : ''), () => {
+      if (program) { fs.editing = ex.id; saveFit(); renderFitness(); return; }
+      setActual(ex, act.map((y, j) => (j === i ? Object.assign({}, y, { done: !y.done }) : y)));
+    }, { 'aria-pressed': !program && x.done ? 'true' : 'false', 'aria-label': 'Set ' + (i + 1) + ': ' + setLabelFit(ex, x) + (x.done ? ', opravljen' : '') });
+    b.innerHTML = '<span>' + (ex.type === 'kg' ? (x.p ? fmtAmount(x.p) + ' %' : 'set ' + (i + 1)) : 'set ' + (i + 1)) + '</span><b>' + setLabelFit(ex, x) + '</b>';
+    sb.appendChild(b);
+  });
+  sb.appendChild(btn(program ? 'uredi' : all ? 'odznači' : 'vse ✓', 'fset-all', () => {
+    if (program) { fs.editing = ex.id; saveFit(); renderFitness(); return; }
+    setActual(ex, act.map((y) => Object.assign({}, y, { done: !all })));
+  }, { 'aria-label': program ? 'Uredi program vaje' : 'Vsi seti opravljeni' }));
+  card.appendChild(sb);
+  const tip = fitTip(p, ex);
+  if (tip) {
+    const t = document.createElement('div');
+    t.className = 'tip';
+    t.innerHTML = '<span>' + escapeHtml(tip.text) + '</span>';
+    t.appendChild(btn('Uporabi', '', () => setActual(ex, tip.sets)));
+    card.appendChild(t);
+  }
+  const foot = document.createElement('div');
+  foot.className = 'ex-foot';
+  foot.innerHTML = '<span>' + escapeHtml((program ? 'Program: ' : '') + (ex.tot[fs.week] || '') + (changed ? ' · spremenjeno danes' : '')) + '</span>';
+  const editing = fs.editing === ex.id;
+  foot.appendChild(btn(editing ? 'Zapri' : program ? 'Uredi program' : 'Uredi', '', () => { fs.editing = editing ? null : ex.id; saveFit(); renderFitness(); }, { 'aria-expanded': editing ? 'true' : 'false' }));
+  card.appendChild(foot);
+  if (editing) {
+    const rows = document.createElement('div');
+    rows.className = 'ex-rows';
+    sets.forEach((x, i) => {
+      const u = (patch) => save(sets.map((y, j) => (j === i ? Object.assign({}, y, patch) : y)));
+      const r = document.createElement('div');
+      r.className = 'ex-row';
+      r.innerHTML = '<span class="i">' + (i + 1) + '</span>';
+      if (ex.type === 'kg') {
+        const g = document.createElement('div');
+        g.className = 'grp';
+        g.appendChild(btn('−', '', () => u({ kg: Math.max(0, (x.kg || 0) - 1) }), { 'aria-label': 'Manj kg' }));
+        const inp = document.createElement('input');
+        inp.inputMode = 'decimal'; inp.value = String(x.kg || 0).replace('.', ','); inp.setAttribute('aria-label', 'Teža v kg');
+        inp.addEventListener('change', () => { const v = parseFloat(inp.value.replace(',', '.')); if (!isNaN(v) && v >= 0) u({ kg: Math.round(v * 4) / 4 }); });
+        g.appendChild(inp);
+        g.appendChild(btn('+', '', () => u({ kg: (x.kg || 0) + 1 }), { 'aria-label': 'Več kg' }));
+        r.appendChild(g);
+        const kgl = document.createElement('small'); kgl.textContent = 'kg'; r.appendChild(kgl);
+      }
+      const g2 = document.createElement('div');
+      g2.className = 'grp';
+      g2.appendChild(btn('−', '', () => (ex.type === 'sec' ? u({ s: Math.max(5, (x.s || 0) - 1) }) : u({ r: Math.max(1, (x.r || 0) - 1) })), { 'aria-label': 'Manj' }));
+      const val = document.createElement('span'); val.textContent = ex.type === 'sec' ? (x.s || 0) + ' s' : '× ' + (x.r || 0); g2.appendChild(val);
+      g2.appendChild(btn('+', '', () => (ex.type === 'sec' ? u({ s: (x.s || 0) + 1 }) : u({ r: (x.r || 0) + 1 })), { 'aria-label': 'Več' }));
+      r.appendChild(g2);
+      rows.appendChild(r);
+    });
+    const acts = document.createElement('div');
+    acts.className = 'ex-acts';
+    acts.appendChild(btn('+ Set', '', () => save(sets.concat(Object.assign({}, sets[sets.length - 1] || (ex.type === 'kg' ? { p: 0, kg: 0, r: 5 } : ex.type === 'sec' ? { s: 20 } : { r: 5 }), { done: false })))));
+    acts.appendChild(btn('− Set', '', () => { if (sets.length > 1) save(sets.slice(0, -1)); }));
+    acts.appendChild(btn('Na program', '', () => { if (program) return; fitChange(() => { delete fs.actual[fitKey(ex.id)]; }); }, { disabled: program }));
+    rows.appendChild(acts);
+    card.appendChild(rows);
+  }
+  return card;
+}
+
+document.getElementById('fitAllBtn').addEventListener('click', () => {
+  const p = activeProgram();
+  if (!p) return;
+  const ses = fitSession(p);
+  const k = fitSKey();
+  fitChange(() => {
+    ses.ex.forEach((ex) => { fs.actual[fitKey(ex.id)] = actualOf(ex).map((x) => Object.assign({}, x, { done: true })); });
+    fs.mode = 'danes';
+    fs.warm[k] = true; fs.stretch[k] = true;
+    fs.coreDone[k] = ses.core.map((c) => c.series || 3);
+  });
+});
+document.getElementById('fitConfirmBtn').addEventListener('click', () => {
+  const p = activeProgram();
+  if (!p || fs.confirmedId) return;
+  const ses = fitSession(p);
+  if (!fitSummary(p, ses).done) return;
+  const entry = buildFitEntry(p, ses);
+  fitnessLog.push(entry);
+  // the schedule remembers the day it was actually done
+  const dow = (new Date().getDay() + 6) % 7;
+  p.days = p.days || {};
+  if ((p.days[fs.week] || []).indexOf(dow) === -1) { p.days[fs.week] = (p.days[fs.week] || []).concat(dow).sort(); persistFitPrograms(); }
+  fs.confirmedId = entry.id;
+  fs.editing = null;
+  persistFitLog();
+  saveFit();
+  renderFitness();
+  renderHistory();
+  renderToday();
+  window.scrollTo(0, 0);
+});
+
+/** What gets written to the log (and Drive, xlsx, history) for today's session. */
+function buildFitEntry(p, ses) {
+  const sum = fitSummary(p, ses);
+  const k = fitSKey();
+  const sets = {};
+  ses.ex.forEach((ex) => { sets[ex.id] = { name: ex.name, type: ex.type, sets: actualOf(ex).map((x) => Object.assign({}, x)) }; });
+  return {
+    id: newId('f'), date: localDay(new Date()), time: Date.now(), programId: p.id, programTitle: p.title,
+    sess: ses.id, sessName: ses.name, week: fs.week, mc: (p.weeks[fs.week] || {}).mc,
+    sets: sets, warm: { done: !!fs.warm[k], min: sum.warmMin }, stretch: { done: !!fs.stretch[k], min: sum.stretchMin }, core: sum.core.slice(),
+    summary: { done: sum.done, total: sum.total, vol: Math.round(sum.vol), coreDone: sum.coreDone, coreTotal: sum.coreTotal,
+      warmDone: !!fs.warm[k], warmMin: sum.warmMin, stretchDone: !!fs.stretch[k], stretchMin: sum.stretchMin, minutes: sum.minutes }
+  };
+}
+
+// ---------- uvoz programa (PDF / slike) ----------
+let fitImp = null;
+function openFitImport() {
+  fitImp = { files: [], note: '', consent: false, analyzing: false, result: null, error: '' };
+  renderFitImport();
+  openSheet('fitSheet');
+}
+document.getElementById('fitImportBtn').addEventListener('click', openFitImport);
+
+function renderFitImport() {
+  const body = document.getElementById('fitSheetBody');
+  body.innerHTML = '';
+  const imp = fitImp;
+  if (imp.result) {
+    const prog = imp.result;
+    const nEx = prog.sessions.reduce((a, s) => a + s.ex.length, 0);
+    body.insertAdjacentHTML('beforeend', '<span class="cap" style="color:#C9C2FF;">AI je prebral · preveri</span>'
+      + '<div class="imp-sum"><div><b>' + prog.sessions.length + '</b><span>' + plural(prog.sessions.length, 'trening', 'treninga', 'treningi', 'treningov').replace(/^\d+ /, '') + ' (' + prog.sessions.map((s) => s.id).join(', ') + ')</span></div>'
+      + '<div><b>' + prog.weeks.length + '</b><span>' + plural(prog.weeks.length, 'mikrocikel', 'mikrocikla', 'mikrocikli', 'mikrociklov').replace(/^\d+ /, '') + '</span></div><div><b>' + nEx + '</b><span>' + plural(nEx, 'vaja', 'vaji', 'vaje', 'vaj').replace(/^\d+ /, '') + '</span></div></div>'
+      + '<div class="imp-text"><b>' + escapeHtml(prog.title) + (prog.weeks.length ? ' · ' + prog.weeks[0].mc + '.–' + prog.weeks[prog.weeks.length - 1].mc + '. MC' : '') + '</b>'
+      + prog.sessions.map((s) => '<span>' + escapeHtml(s.name + (s.goal ? ' — ' + s.goal : '') + ' · ' + s.ex.map((e) => e.name).join(', ')) + '</span>').join('')
+      + (prog.uncertain || []).map((u) => '<span class="warn">' + escapeHtml(u) + '</span>').join('') + '</div>'
+      + '<span class="muted-sm">Vsako vrednost lahko pozneje popraviš z »Program«. Program se nikoli ne spremeni sam.</span>');
+    const g = document.createElement('div');
+    g.className = 'gate-btns';
+    g.appendChild(btn('Nazaj', '', () => { imp.result = null; renderFitImport(); }));
+    g.appendChild(btn('Shrani program', 'fit-btn', () => {
+      fitnessPrograms.forEach((x) => { x.active = false; });
+      fitnessPrograms.push(prog);
+      persistFitPrograms();
+      fs = freshFit(); saveFit();
+      closeSheets();
+      tr.kind = 'fitness'; saveDraft();
+      renderTraining();
+      flash('Program shranjen: ' + prog.title);
+    }));
+    body.appendChild(g);
+    return;
+  }
+  body.insertAdjacentHTML('beforeend', '<span class="muted-sm" style="color:var(--text-soft);">Naloži PDF od trenerja ali ga slikaj (lahko več strani). AI prebere mikrocikle, treninge A/B, core, vse vaje s % / kg × ponovitve, opombe in volumen.</span>');
+  const pick = document.createElement('div');
+  pick.className = 'file-pick';
+  const ico = (path) => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B5ACFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
+  const b1 = btn('', '', () => document.getElementById('fitPdfInput').click()); b1.innerHTML = ico('<path d="M8 3h7l5 5v13H4V3z"/><path d="M14 3v6h6"/>') + 'Naloži PDF';
+  const b2 = btn('', '', () => document.getElementById('fitCamInput').click()); b2.innerHTML = ico('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>') + 'Slikaj list';
+  const b3 = btn('', '', () => document.getElementById('fitGalInput').click()); b3.innerHTML = ico('<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>') + 'Iz galerije';
+  pick.appendChild(b1); pick.appendChild(b2); pick.appendChild(b3);
+  body.appendChild(pick);
+  imp.files.forEach((f, i) => {
+    const r = document.createElement('div');
+    r.className = 'file-row';
+    r.innerHTML = '<span>' + (f.type === 'pdf' ? 'PDF · ' : 'Slika · ') + escapeHtml(f.name) + '</span>';
+    r.appendChild(btn('✕', '', () => { imp.files.splice(i, 1); renderFitImport(); }, { 'aria-label': 'Odstrani ' + f.name }));
+    body.appendChild(r);
+  });
+  const nl = document.createElement('label');
+  nl.className = 'fld';
+  nl.innerHTML = '<span class="vn-label">Opomba za AI (neobvezno)</span>';
+  const ni = document.createElement('input');
+  ni.value = imp.note; ni.placeholder = 'npr. zgibi so skupna teža s telesom';
+  ni.addEventListener('input', () => { imp.note = ni.value; });
+  nl.appendChild(ni);
+  body.appendChild(nl);
+  const c = btn('', 'consent', () => { imp.consent = !imp.consent; renderFitImport(); }, { 'aria-pressed': imp.consent ? 'true' : 'false' });
+  c.innerHTML = '<span class="box">' + (imp.consent ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#17123A" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>' : '')
+    + '</span><span class="t"><b>Dovolim, da AI prebere ta program</b><span>Pošlje se samo ta dokument, prek tvojega Workerja in z AI kodo.</span></span>';
+  body.appendChild(c);
+  if (imp.error) body.insertAdjacentHTML('beforeend', '<div class="err-card">' + escapeHtml(imp.error) + '</div>');
+  const can = imp.consent && imp.files.length && !imp.analyzing;
+  body.appendChild(btn(imp.analyzing ? 'AI bere program … (lahko traja do minute)' : !imp.files.length ? 'Najprej naloži PDF ali sliko' : imp.consent ? 'Analiziraj z AI' : 'Označi dovoljenje zgoraj', 'fit-btn', runFitImport, { disabled: !can }));
+
+  const others = fitnessPrograms.slice().reverse();
+  if (others.length) {
+    const a = document.createElement('div');
+    a.className = 'stack';
+    a.style.cssText = 'gap:6px;padding-top:10px;border-top:1px solid var(--line);';
+    a.innerHTML = '<span class="cap">Programi</span>';
+    others.forEach((pr) => {
+      const r = document.createElement('div');
+      r.className = 'arch-row';
+      r.innerHTML = '<span class="n"><b>' + escapeHtml(pr.title) + '</b><span>' + escapeHtml(pr.sessions.map((s) => s.id).join(' + ') + (pr.weeks.length ? ' · ' + pr.weeks[0].mc + '.–' + pr.weeks[pr.weeks.length - 1].mc + '. MC' : '') + (pr === activeProgram() ? ' · trenutni' : '')) + '</span></span>';
+      if (pr !== activeProgram()) r.appendChild(btn('Uporabi', '', () => {
+        fitnessPrograms.forEach((x) => { x.active = x === pr; });
+        persistFitPrograms(); fs = freshFit(); saveFit(); closeSheets(); renderTraining(); flash('Trenutni program: ' + pr.title);
+      }));
+      const del = btn('Izbriši', '', null);
+      del.addEventListener('click', () => armedDelete(del, () => {
+        const wasActive = pr === activeProgram();
+        fitnessPrograms = fitnessPrograms.filter((x) => x !== pr);
+        if (wasActive && fitnessPrograms.length) fitnessPrograms[fitnessPrograms.length - 1].active = true;
+        persistFitPrograms(); fs = freshFit(); saveFit(); renderFitImport(); renderTraining();
+      }));
+      r.appendChild(del);
+      a.appendChild(r);
+    });
+    body.appendChild(a);
+  }
+}
+
+async function onFitFile(e, type) {
+  const list = Array.from(e.target.files || []);
+  e.target.value = '';
+  for (const file of list) {
+    try {
+      if (type === 'pdf') {
+        if (file.size > 10 * 1024 * 1024) { fitImp.error = 'PDF je prevelik (največ 10 MB).'; continue; }
+        const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = () => rej(r.error); r.readAsDataURL(file); });
+        fitImp.files.push({ type: 'pdf', name: file.name || 'program.pdf', data: data });
+      } else {
+        const img = await loadImage(file);
+        // tables have small print: keep plenty of detail
+        fitImp.files.push({ type: 'image', name: file.name || 'slika.jpg', data: renderJpeg(img, 2000).toDataURL('image/jpeg', 0.85).split(',')[1] });
+      }
+      fitImp.error = '';
+    } catch (err) {
+      fitImp.error = 'Datoteke ni bilo mogoče prebrati: ' + (err.message || err);
+    }
+  }
+  fitImp.files = fitImp.files.slice(0, 6);
+  renderFitImport();
+}
+document.getElementById('fitPdfInput').addEventListener('change', (e) => onFitFile(e, 'pdf'));
+document.getElementById('fitCamInput').addEventListener('change', (e) => onFitFile(e, 'image'));
+document.getElementById('fitGalInput').addEventListener('change', (e) => onFitFile(e, 'image'));
+
+async function runFitImport() {
+  const imp = fitImp;
+  if (!imp || !imp.consent || !imp.files.length) return;
+  if (!driveAccessToken || !savedPasscode()) {
+    closeSheets();
+    openGate(() => { openSheet('fitSheet'); runFitImport(); });
+    return;
+  }
+  imp.analyzing = true; imp.error = '';
+  renderFitImport();
+  try {
+    const data = await aiRequest('/fitness', { files: imp.files.map((f) => ({ type: f.type, data: f.data })), note: imp.note.trim() });
+    const prog = programFromAi(data);
+    if (!prog.sessions.length || !prog.weeks.length) throw new Error('v dokumentu nisem našel treningov ali mikrociklov');
+    imp.result = prog;
+  } catch (e) {
+    if (e.code === 'bad_passcode') { imp.analyzing = false; closeSheets(); openGate(() => { openSheet('fitSheet'); runFitImport(); }, 'Napačna koda. Poskusi znova.'); return; }
+    imp.error = 'Branje ni uspelo: ' + (e.message || e);
+  }
+  imp.analyzing = false;
+  renderFitImport();
+}
+
+// ============================================================
 // ZGODOVINA
 // ============================================================
 const LS_HIST_FILTER = 'kilometrina.historyFilter';
@@ -4423,31 +5235,75 @@ function renderHistory() {
     + '</span><span class="now">ta teden ' + fmtKm(weeks[11].m) + '</span>';
 
   const q = document.getElementById('histSearch').value.trim().toLowerCase();
-  const shown = inPeriod.filter((w) => !q || workoutSearchText(w).indexOf(q) !== -1);
+  const fitText = (f) => [f.sessName, f.programTitle, 'fitnes'].concat(Object.values(f.sets || {}).map((x) => x.name)).join(' ').toLowerCase();
+  const shown = inPeriod.filter((w) => !q || workoutSearchText(w).indexOf(q) !== -1).map((w) => ({ w: w, date: w.date, t: w.createdAt || 0 }))
+    .concat(fitnessLog.filter((f) => f.date >= from && (!q || fitText(f).indexOf(q) !== -1)).map((f) => ({ f: f, date: f.date, t: f.time || 0 })))
+    .sort((a, b) => b.date.localeCompare(a.date) || b.t - a.t);
   const wrap = document.getElementById('historyList');
-  if (!sessions.length) { wrap.innerHTML = '<div class="empty-card">Še ni shranjenih treningov.</div>'; return; }
+  if (!sessions.length && !fitnessLog.length) { wrap.innerHTML = '<div class="empty-card">Še ni shranjenih treningov.</div>'; return; }
   if (!shown.length) { wrap.innerHTML = '<div class="empty-card">Ni treningov za ta izbor.</div>'; return; }
 
   const groups = [];
-  shown.forEach((w) => {
-    const wk = mondayOf(w.date);
+  shown.forEach((it) => {
+    const wk = mondayOf(it.date);
     let g = groups[groups.length - 1];
     if (!g || g.wk !== wk) { g = { wk: wk, list: [] }; groups.push(g); }
-    g.list.push(w);
+    g.list.push(it);
   });
   const lastMonday = addDays(thisMonday, -7);
   wrap.innerHTML = '';
   groups.forEach((g) => {
     const sum = sessions.filter((w) => mondayOf(w.date) === g.wk).reduce((a, w) => a + (w.totalMeters || 0), 0);
+    const nFit = fitnessLog.filter((f) => mondayOf(f.date) === g.wk).length;
     const d1 = dayDate(g.wk), d2 = dayDate(addDays(g.wk, 6));
     const name = g.wk === thisMonday ? 'Ta teden' : g.wk === lastMonday ? 'Prejšnji teden'
       : d1.getDate() + '. ' + (d1.getMonth() + 1) + '. – ' + d2.getDate() + '. ' + (d2.getMonth() + 1) + '.';
     const h = document.createElement('h2');
     h.className = 'hist-week';
-    h.textContent = name + ' · ' + fmtKm(sum) + ' km';
+    h.textContent = [name, sum || !nFit ? fmtKm(sum) + ' km' : '', nFit ? 'fitnes ' + nFit + '×' : ''].filter(Boolean).join(' · ');
     wrap.appendChild(h);
-    g.list.forEach((w) => wrap.appendChild(historyItem(w)));
+    g.list.forEach((it) => wrap.appendChild(it.w ? historyItem(it.w) : fitHistoryItem(it.f)));
   });
+}
+
+function fitHistoryItem(f) {
+  const open = histOpen === f.id;
+  const d = dayDate(f.date);
+  const item = document.createElement('div');
+  item.className = 'hist-item' + (open ? ' open' : '');
+  const head = document.createElement('button');
+  head.type = 'button';
+  head.className = 'hist-head';
+  head.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const s = f.summary || {};
+  head.innerHTML = '<span class="hist-day"><span>' + WEEKDAY_SHORT[d.getDay()] + '</span><b>' + d.getDate() + '</b></span>'
+    + '<span class="hist-mid"><b>' + escapeHtml(f.sessName + (f.mc ? ' · ' + f.mc + '. MC' : '')) + '</b><span>' + escapeHtml((s.done || 0) + '/' + (s.total || 0) + ' setov' + (s.vol ? ' · ' + fmtInt(s.vol) + ' kg' : '') + ' · ' + f.programTitle) + '</span></span>'
+    + '<span class="hist-km fitk">' + escapeHtml(f.sess) + '</span>';
+  head.addEventListener('click', () => { histOpen = open ? null : f.id; renderHistory(); });
+  item.appendChild(head);
+  if (open) {
+    const body = document.createElement('div');
+    body.className = 'hist-body';
+    body.innerHTML = Object.values(f.sets || {}).map((x) => '<div class="hl"><span>' + escapeHtml(x.name) + '</span><span class="m">'
+      + escapeHtml(x.sets.map((y) => (y.done ? '' : '(') + (x.type === 'kg' ? fmtAmount(y.kg || 0) + '×' + (y.r || 0) : x.type === 'sec' ? (y.s || 0) + ' s' : '×' + (y.r || 0)) + (y.done ? '' : ')')).join(' · ')) + '</span></div>').join('')
+      + '<div class="hl"><span>Ogrevanje / core / raztezanje</span><span class="m">' + (s.warmDone ? s.warmMin + ' min' : '—') + ' · ' + (s.coreDone || 0) + '/' + (s.coreTotal || 0) + ' · ' + (s.stretchDone ? s.stretchMin + ' min' : '—') + '</span></div>'
+      + ouraBadgesHtml(f.date);
+    const acts = document.createElement('div');
+    acts.className = 'hist-actions';
+    acts.style.gridTemplateColumns = '1fr';
+    const del = btn('Izbriši', 'x', null);
+    del.addEventListener('click', () => armedDelete(del, () => {
+      fitnessLog = fitnessLog.filter((x) => x.id !== f.id);
+      if (fs.confirmedId === f.id) { fs.confirmedId = null; saveFit(); }
+      persistFitLog();
+      renderHistory();
+      renderToday();
+    }));
+    acts.appendChild(del);
+    body.appendChild(acts);
+    item.appendChild(body);
+  }
+  return item;
 }
 
 function historyItem(w) {
@@ -4552,10 +5408,22 @@ function renderToday() {
   // today's training
   const list = document.getElementById('todayWorkouts');
   const todays = sessions.filter((w) => w.date === today);
+  const fitToday = fitnessLog.filter((f) => f.date === today);
   list.innerHTML = '';
-  if (!todays.length) {
+  if (!todays.length && !fitToday.length) {
     list.innerHTML = '<div class="empty-card">Danes še ni treninga.</div>';
   }
+  fitToday.forEach((f) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'today-card fitc';
+    const s = f.summary || {};
+    card.innerHTML = '<div class="row"><div><div class="t">' + escapeHtml(f.sessName) + '</div><div class="s">'
+      + new Date(f.time).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }) + ' · ' + (f.mc ? f.mc + '. MC · ' : '') + (s.done || 0) + '/' + (s.total || 0) + ' setov</div></div>'
+      + '<span class="km">' + (s.vol ? fmtInt(s.vol) + ' kg' : escapeHtml(f.sess)) + '</span></div>';
+    card.addEventListener('click', () => { histOpen = f.id; setTab('zgodovina'); renderHistory(); });
+    list.appendChild(card);
+  });
   todays.forEach((w) => {
     const card = document.createElement('button');
     card.type = 'button';
