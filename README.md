@@ -295,7 +295,9 @@ Spodaj je stalna vrstica z zavihki:
   odpre Trening.
 - **Trening** — *Plavanje | Fitnes* (fitnes pride v 3. fazi), bazen 25 / 50 m. Seti z gumbi (ponovitve →
   razdalja → slog → oznake/interval → Dodaj) ali s tipkanjem (`8x100 p tempo na 1:45`, več setov loči s `;`).
-  Tap na set ga odpre za urejanje. Bližnjice: *Ponovi zadnji*, *Predloge*, *Kot prejšnji*, *Razveljavi*;
+  Pri gumbih ni nič izbrano vnaprej — *Dodaj* se odklene, ko izbereš ponovitve, razdaljo in slog (ponoven tap
+  izbiro prekliče), po dodajanju se izbira počisti. Tap na set ga odpre za urejanje. Bližnjici: *Ponovi zadnji*,
+  *Razveljavi*;
   svinčnik ureja gumbe. Nedokončan trening ostane shranjen na napravi, dokler ga ne shraniš.
 - **Zgodovina** — iskanje, Teden / Mesec / Leto / Vse, graf zadnjih 12 tednov, seznam po tednih;
   tap odpre podrobnosti z gumbi *Uredi*, *Podvoji*, *Izbriši* (dvojni tap). Izvoz CSV je zgoraj desno.

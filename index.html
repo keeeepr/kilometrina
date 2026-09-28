@@ -564,7 +564,7 @@
   .add-big:disabled { background: #1A2836; color: #6F8596; cursor: default; }
   .fitness-soon p { margin: 0 0 12px; }
 
-  /* Bottom sheets (Predloge, Uredi bližnjice) */
+  /* Bottom sheets (Uredi bližnjice) */
   .sheet-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(4, 9, 14, 0.72); display: flex; flex-direction: column; justify-content: flex-end; }
   .sheet {
     width: 100%; max-width: 640px; margin: 0 auto; max-height: 85vh; overflow-y: auto;
@@ -1192,8 +1192,6 @@
   <div data-tab="trening" hidden id="trSwim">
     <div class="shortcut-row" id="trShortcuts">
       <button type="button" class="sc-btn accent" id="trRepeat"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5"/></svg>Ponovi zadnji</button>
-      <button type="button" class="sc-btn" id="trTemplatesBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 10h16M10 10v10"/></svg>Predloge</button>
-      <button type="button" class="sc-btn" id="trCopyPrev">Kot prejšnji</button>
       <button type="button" class="sc-btn warn" id="trUndo" hidden>Razveljavi</button>
     </div>
     <div class="set-list" id="trSets"></div>
@@ -1421,16 +1419,6 @@
   <div class="sheet" role="dialog" aria-modal="true" aria-label="AI koda">
     <div class="sheet-grip"></div>
     <div class="stack" id="gateBody" style="gap:14px;"></div>
-  </div>
-</div>
-
-<div class="sheet-backdrop" id="tplSheet" hidden>
-  <div class="sheet" role="dialog" aria-modal="true" aria-label="Predloge">
-    <div class="sheet-grip"></div>
-    <div class="sheet-head"><span class="d">Predloge</span><button type="button" class="link-btn" data-close-sheet>Zapri</button></div>
-    <span class="muted-sm">Tapni, da doda vse sete na konec treninga.</span>
-    <div class="stack" id="tplList"></div>
-    <button type="button" class="dashed-btn" id="tplSaveBtn">+ Shrani trenutni trening kot predlogo</button>
   </div>
 </div>
 
@@ -4938,11 +4926,12 @@ function suggestTitle(dateKey) {
 
 let trNextId = 1;
 const withId = (s) => { const c = Object.assign({ tags: [], note: '' }, cloneJson(s), { id: trNextId++ }); delete c.strokeGiven; return c; };
+const emptyBuilder = () => ({ reps: null, dist: null, stroke: null, tags: [] });
 function freshTraining() {
   return {
     editId: null, title: '', date: localDay(new Date()), pool: defaultPool(), kind: 'swim',
     sets: [], open: null, mode: 'keys', draft: '',
-    b: { reps: 8, dist: 100, stroke: 'kravl', tags: [] },
+    b: emptyBuilder(),
     undo: [], toast: '', err: '', justSaved: false
   };
 }
@@ -4950,11 +4939,11 @@ let tr = freshTraining();
 (function restoreDraft() {
   const d = lsGet(LS_TR_DRAFT, null);
   if (!d || !Array.isArray(d.sets)) return;
-  tr = Object.assign(freshTraining(), d, { open: null, undo: [], toast: '', err: '', justSaved: false });
+  tr = Object.assign(freshTraining(), d, { open: null, undo: [], toast: '', err: '', justSaved: false, b: emptyBuilder() });
   tr.sets = tr.sets.map(withId);
 })();
 function saveDraft() {
-  const keep = { editId: tr.editId, title: tr.title, date: tr.date, pool: tr.pool, kind: tr.kind, mode: tr.mode, b: tr.b, sets: tr.sets };
+  const keep = { editId: tr.editId, title: tr.title, date: tr.date, pool: tr.pool, kind: tr.kind, mode: tr.mode, sets: tr.sets };
   if (!tr.sets.length && !tr.title && !tr.editId) { try { localStorage.removeItem(LS_TR_DRAFT); } catch (e) {} return; }
   try { localStorage.setItem(LS_TR_DRAFT, JSON.stringify(keep)); } catch (e) {}
 }
@@ -5031,7 +5020,7 @@ function renderSetList() {
   const list = document.getElementById('trSets');
   list.innerHTML = '';
   if (!tr.sets.length) {
-    list.innerHTML = '<div class="empty-card">Še ni setov.<br>Tapni ponovitve in razdaljo spodaj, izberi <b>Predloge</b> ali <b>Kot prejšnji</b>.</div>';
+    list.innerHTML = '<div class="empty-card">Še ni setov.<br>Spodaj tapni ponovitve, razdaljo in slog ali preklopi na <b>Tipkaj</b>.</div>';
     return;
   }
   tr.sets.forEach((s, i) => {
@@ -5144,13 +5133,13 @@ function renderTrInput() {
 
   const reps = document.getElementById('trRepChips');
   reps.innerHTML = '';
-  shortcuts.reps.forEach((r) => reps.appendChild(btn(String(r), 'chip-btn big' + (b.reps === r ? ' on' : ''), () => setB({ reps: r }), { 'aria-label': r + ' ponovitev' })));
+  shortcuts.reps.forEach((r) => reps.appendChild(btn(String(r), 'chip-btn big' + (b.reps === r ? ' on' : ''), () => setB({ reps: b.reps === r ? null : r }), { 'aria-label': r + ' ponovitev' })));
   const dists = document.getElementById('trDistChips');
   dists.innerHTML = '';
-  shortcuts.dists.forEach((d) => dists.appendChild(btn(String(d), 'chip-btn big' + (b.dist === d && okDist(d) ? ' on' : ''), () => setB({ dist: d }), { 'aria-label': d + ' metrov', disabled: !okDist(d) })));
+  shortcuts.dists.forEach((d) => dists.appendChild(btn(String(d), 'chip-btn big' + (b.dist === d && okDist(d) ? ' on' : ''), () => setB({ dist: b.dist === d ? null : d }), { 'aria-label': d + ' metrov', disabled: !okDist(d) })));
   const strokes = document.getElementById('trStrokeChips');
   strokes.innerHTML = '';
-  strokeList().forEach(([k, label]) => strokes.appendChild(btn(label, 'chip-btn' + (b.stroke === k ? ' on' : ''), () => setB({ stroke: k }))));
+  strokeList().forEach(([k, label]) => strokes.appendChild(btn(label, 'chip-btn' + (b.stroke === k ? ' on' : ''), () => setB({ stroke: b.stroke === k ? null : k }))));
   const tags = document.getElementById('trTagChips');
   tags.innerHTML = '';
   shortcuts.tags.concat(shortcuts.intervals).forEach((t) => tags.appendChild(btn(t, 'chip-btn round' + (b.tags.indexOf(t) !== -1 ? ' soft' : ''), () => setB({ tags: toggleTag(b.tags, t) }))));
@@ -5162,11 +5151,13 @@ function renderTrInput() {
   const add = document.getElementById('trAddBtn');
   const label = document.getElementById('trAddLabel');
   if (keys) {
-    const ok = okDist(b.dist);
+    const ok = builderReady(b);
+    const missing = [!b.reps && 'ponovitve', !b.dist && 'razdaljo', !b.stroke && 'slog'].filter(Boolean);
     add.disabled = !ok;
     label.textContent = ok
       ? 'Dodaj ' + (b.reps > 1 ? b.reps + ' × ' : '') + b.dist + ' ' + b.stroke + (b.tags.length ? ' · ' + b.tags.join(' ') : '') + '  =  ' + fmtInt(b.reps * b.dist) + ' m'
-      : (b.dist ? b.dist + ' m ne gre v ' + tr.pool + ' m bazen' : 'Izberi razdaljo');
+      : b.dist && !okDist(b.dist) ? b.dist + ' m ne gre v ' + tr.pool + ' m bazen'
+      : 'Izberi ' + missing.join(', ').replace(/, ([^,]*)$/, ' in $1');
   } else {
     const pv = textPreview();
     add.disabled = !pv || pv.bad;
@@ -5177,11 +5168,13 @@ function renderTrInput() {
   renderTrHint();
 }
 
+const builderReady = (b) => !!(b.reps && b.stroke && okDist(b.dist));
 function addFromInput() {
   if (tr.mode === 'keys') {
     const b = tr.b;
-    if (!okDist(b.dist)) return;
-    // the chosen buttons stay selected for the next set
+    if (!builderReady(b)) return;
+    // every set starts from scratch — nothing is pre-chosen
+    tr.b = emptyBuilder();
     changeSets(tr.sets.concat(withId({ reps: b.reps, dist: b.dist, stroke: b.stroke, tags: b.tags.slice(), note: '' })), { err: '' });
   } else {
     const pv = textPreview();
@@ -5239,7 +5232,7 @@ function saveTraining() {
     showError('shranjevanje treninga ni uspelo (' + (err.message || err) + ')');
     return;
   }
-  const keep = { pool: tr.pool, b: tr.b, mode: tr.mode };
+  const keep = { pool: tr.pool, mode: tr.mode };
   tr = Object.assign(freshTraining(), keep, { justSaved: true });
   saveDraft();
   renderHistory();
@@ -5268,55 +5261,19 @@ document.getElementById('trUndo').addEventListener('click', () => {
   saveDraft();
   renderTraining();
 });
-document.getElementById('trCopyPrev').addEventListener('click', () => {
-  const prev = sessions.find((w) => w.id !== tr.editId && (w.lines || []).length);
-  if (!prev) { flash('Še ni prejšnjega treninga'); return; }
-  const d = dayDate(prev.date);
-  appendSets((prev.lines || []).map(lineToSet), 'Dodan trening od ' + WEEKDAY_SHORT[d.getDay()].toLowerCase() + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '.');
-});
 document.getElementById('trCancelEdit').addEventListener('click', () => {
-  const keep = { pool: tr.pool, b: tr.b, mode: tr.mode };
+  const keep = { pool: tr.pool, mode: tr.mode };
   tr = Object.assign(freshTraining(), keep);
   saveDraft();
   renderTraining();
 });
 
-// ---------- sheets: Predloge, Uredi bližnjice ----------
+// ---------- sheets: Uredi bližnjice ----------
 function openSheet(id) { document.getElementById(id).hidden = false; }
 function closeSheets() { document.querySelectorAll('.sheet-backdrop').forEach((el) => { el.hidden = true; }); }
 document.querySelectorAll('.sheet-backdrop').forEach((bd) => bd.addEventListener('click', (e) => {
   if (e.target === bd || e.target.closest('[data-close-sheet]')) { closeSheets(); renderTraining(); }
 }));
-
-function renderTemplates() {
-  const list = document.getElementById('tplList');
-  list.innerHTML = '';
-  if (!templates.length) list.innerHTML = '<div class="muted-sm">Ni shranjenih predlog.</div>';
-  templates.forEach((t, ti) => {
-    const row = document.createElement('div');
-    row.className = 'tpl-row';
-    const pick = document.createElement('button');
-    pick.type = 'button';
-    pick.className = 'tpl-pick';
-    const tot = t.sets.reduce((a, s) => a + s.reps * s.dist, 0);
-    pick.innerHTML = '<span class="n"><b>' + escapeHtml(t.name) + '</b><span>' + escapeHtml(t.sets.map((s) => (s.reps > 1 ? s.reps + '×' : '') + s.dist + ' ' + s.stroke).join(' + ')) + '</span></span><span class="m">' + fmtInt(tot) + '</span>';
-    pick.addEventListener('click', () => { closeSheets(); appendSets(t.sets, 'Dodana predloga: ' + t.name); });
-    const del = btn('✕', 'tpl-del', null, { 'aria-label': 'Izbriši predlogo ' + t.name });
-    del.addEventListener('click', () => armedDelete(del, () => { templates.splice(ti, 1); persistTemplates(); renderTemplates(); }));
-    row.appendChild(pick); row.appendChild(del);
-    list.appendChild(row);
-  });
-  document.getElementById('tplSaveBtn').disabled = !tr.sets.some((s) => !s.legacy);
-}
-document.getElementById('trTemplatesBtn').addEventListener('click', () => { renderTemplates(); openSheet('tplSheet'); });
-document.getElementById('tplSaveBtn').addEventListener('click', () => {
-  const sets = tr.sets.filter((s) => !s.legacy).map((s) => ({ reps: s.reps, dist: s.dist, stroke: s.stroke, tags: s.tags.slice(), note: s.note || '' }));
-  if (!sets.length) return;
-  templates.push({ name: tr.title.trim() || suggestTitle(tr.date), sets: sets });
-  persistTemplates();
-  renderTemplates();
-  flash('Shranjeno kot predloga');
-});
 
 const SC_GROUPS = [['strokes', 'Slogi', 'npr. prosto', 'text'], ['reps', 'Ponovitve', 'npr. 5', 'numeric'], ['dists', 'Razdalje (m)', 'npr. 250', 'numeric'], ['tags', 'Oznake', 'npr. pull buoy', 'text'], ['intervals', 'Intervali', 'npr. 1:15', 'text']];
 function addShortcut(key, raw, showErr) {
