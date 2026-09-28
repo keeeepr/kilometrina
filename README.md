@@ -311,6 +311,8 @@ oznakami. V Drive kopiji so novi ključi `shortcuts`, `templates` in `weekGoal`.
 V `kilometrina.xlsx` na Drivu je bazen jasno označen: stolpec *Bazen* (»25 m« / »50 m«, pri starejših
 treningih brez podatka »ni označeno«) v zavihkih *Treningi* in *Seti*, v *Dnevnem pregledu* pa sta
 stolpca *Km v 25 m bazenu* in *Km v 50 m bazenu*. Tudi CSV izvoz ima stolpec `pool`.
+Zavihek *Seti* je razdeljen po treningih: obarvana naslovna vrstica (dan, datum, naslov, bazen, število
+setov), oštevilčeni seti, krepka vrstica *Skupaj: … m = … km* in prazna vrstica do naslednjega treninga.
 
 ## 10. Prenova (faza 2): prehrana in makro cilji
 

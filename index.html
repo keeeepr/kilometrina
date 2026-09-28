@@ -1795,8 +1795,20 @@ function xlsxSheets() {
     o(s.date).sleep_score, o(s.date).readiness_score, o(s.date).total_sleep_duration_min, o(s.date).avg_hrv_overnight,
     o(s.date).avg_hr_overnight, o(s.date).lowest_hr_overnight, o(s.date).resting_heart_rate
   ]));
-  const sets = [['Datum', 'Naslov', 'Bazen', 'Set', 'Metri']];
-  byDate.forEach((s) => (s.lines || []).forEach((l) => sets.push([s.date, s.title, poolLabel(s.pool), l.text, l.meters])));
+  // one block per workout: coloured title row, numbered sets, bold total, empty row
+  const sets = [['Datum', 'Trening', 'Bazen', 'Št.', 'Set', 'Metri']];
+  const setStyles = {};
+  byDate.forEach((s) => {
+    const d = dayDate(s.date);
+    const km = (s.totalMeters || 0) / 1000;
+    setStyles[sets.length] = 2;
+    sets.push([s.date, s.title, poolLabel(s.pool), null,
+      WEEKDAY_SHORT[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear() + ' — ' + (s.title || 'Trening') + ' · bazen ' + poolLabel(s.pool) + ' · ' + setsWord((s.lines || []).length), null]);
+    (s.lines || []).forEach((l, i) => sets.push([s.date, s.title, poolLabel(s.pool), i + 1, l.text, l.meters]));
+    setStyles[sets.length] = 3;
+    sets.push([s.date, s.title, poolLabel(s.pool), null, 'Skupaj: ' + fmtInt(s.totalMeters || 0) + ' m = ' + km.toLocaleString('sl-SI', { maximumFractionDigits: 2 }) + ' km', s.totalMeters || 0]);
+    sets.push([]);
+  });
   const ouraCols = [
     ['sleep_score', 'Ocena spanja'], ['total_sleep_duration_min', 'Spanje (min)'], ['deep_sleep_min', 'Globoko (min)'],
     ['rem_sleep_min', 'REM (min)'], ['light_sleep_min', 'Lahko (min)'], ['sleep_efficiency', 'Učinkovitost (%)'],
@@ -1842,7 +1854,7 @@ function xlsxSheets() {
   return [
     { name: 'Dnevni pregled', rows: daily, widths: [12, 9, 7, 10, 10, 12, 10, 8, 10, 10, 30, 10, 10, 9, 10, 12, 22] },
     { name: 'Treningi', rows: workouts, widths: [12, 24, 8, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9] },
-    { name: 'Seti', rows: sets, widths: [12, 24, 8, 50, 9] },
+    { name: 'Seti', rows: sets, widths: [12, 22, 12, 5, 80, 9], rowStyles: setStyles },
     { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 10, 7, 10, 8, 10, 10, 11, 50, 10, 18] },
     { name: 'Dopolnila', rows: supps, widths: [12, 7, 26, 10, 12, 70] },
     { name: 'Pijača', rows: drinkRows, widths: [12, 7, 16, 8, 7] },
@@ -1886,13 +1898,20 @@ function xlsxColName(i) {
 }
 
 function xlsxSheetXml(sheet) {
-  const rows = sheet.rows.map((row, r) => '<row r="' + (r + 1) + '">' + row.map((v, c) => {
+  const nCols = sheet.rows.length ? sheet.rows[0].length : 0;
+  const rows = sheet.rows.map((row, r) => {
+    const rs = (sheet.rowStyles || {})[r];
+    // a styled row fills every column, so the whole band is coloured
+    const cells = rs ? row.concat(new Array(Math.max(0, nCols - row.length)).fill(null)) : row;
+    return '<row r="' + (r + 1) + '">' + cells.map((v, c) => {
     const ref = xlsxColName(c) + (r + 1);
-    const style = r === 0 ? ' s="1"' : '';
+    const style = r === 0 ? ' s="1"' : rs ? ' s="' + rs + '"' : '';
+    if ((v == null || v === '') && rs) return '<c r="' + ref + '"' + style + '/>';
     if (v == null || v === '') return '';
     if (typeof v === 'number' && isFinite(v)) return '<c r="' + ref + '"' + style + '><v>' + v + '</v></c>';
     return '<c r="' + ref + '"' + style + ' t="inlineStr"><is><t xml:space="preserve">' + xmlEsc(v) + '</t></is></c>';
-  }).join('') + '</row>').join('');
+  }).join('') + '</row>';
+  }).join('');
   const cols = '<cols>' + sheet.widths.map((w, i) => '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join('') + '</cols>';
   return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
     '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
@@ -1922,14 +1941,15 @@ function buildXlsx(sheets) {
       '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
       sheets.map((_, i) => '<Relationship Id="rId' + (i + 1) + '" Type="' + R + '/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>').join('') +
       '<Relationship Id="rId' + (sheets.length + 1) + '" Type="' + R + '/styles" Target="styles.xml"/></Relationships>'],
-    // Style 1 = bold header row; everything else stays default.
+    // Style 1 = bold header row, 2 = bold on light teal (a workout's title row), 3 = bold (totals).
     ['xl/styles.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
       '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
       '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>' +
-      '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>' +
+      '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFCFF3EA"/><bgColor indexed="64"/></patternFill></fill></fills>' +
       '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
       '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
-      '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>' +
+      '<cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+      '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>' +
       '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
       '</styleSheet>']
   ].concat(sheets.map((s, i) => ['xl/worksheets/sheet' + (i + 1) + '.xml', xlsxSheetXml(s)]));
