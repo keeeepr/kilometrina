@@ -1,4 +1,4 @@
-const CACHE = 'kilometrina-v2';
+const CACHE = 'kilometrina-v3';
 const CORE_ASSETS = [
   './',
   './index.html',

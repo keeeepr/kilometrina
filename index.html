@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kilometrina — beleženje setov</title>
+<title>Kilometrina</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="theme-color" content="#0B1F33">
+<meta name="theme-color" content="#09131D">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Kilometrina">
@@ -15,32 +15,51 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0B1F33;
-    --panel: #122A44;
-    --panel-2: #16324F;
-    --line: #1E3A56;
-    --text: #EDEAE0;
-    --text-dim: #9FB2C4;
-    --teal: #2DD4BF;
-    --coral: #FF6B4A;
-    --amber: #F2B84B;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --bg: #09131D;
+    --panel: #111E2A;
+    --panel-2: #172838;
+    --line: #1C2E3F;
+    --field: #0D1822;
+    --field-line: #213447;
+    --text: #ECF1F4;
+    --text-dim: #8EA2B2;
+    --text-soft: #C9D5DE;
+    /* Area accent: training turquoise; Prehrana and Zdravje override it below. */
+    --teal: #4FE3C8;
+    --on-teal: #06231E;
+    --swim: #4FE3C8;
+    --on-swim: #06231E;
+    --food: #FFB45E;
+    --health: #A89CFF;
+    --coral: #FF9A8A;
+    --coral-bg: #2A1517;
+    --amber: #FFC857;
+    --nav-h: 64px;
+    --safe-b: env(safe-area-inset-bottom, 0px);
   }
+  body[data-tab="prehrana"] { --teal: #FFB45E; --on-teal: #2E1A04; }
+  body[data-tab="zdravje"] { --teal: #A89CFF; --on-teal: #17123A; }
+  [hidden] { display: none !important; }
   * { box-sizing: border-box; }
   html { scroll-padding-top: env(safe-area-inset-top, 0px); }
   html, body {
     margin: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Figtree', system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
   }
-  body { min-height: 100vh; padding: 28px 18px 60px; }
-  .wrap { max-width: 900px; margin: 0 auto; }
+  body {
+    min-height: 100vh;
+    padding: calc(env(safe-area-inset-top, 0px) + 20px) 16px calc(var(--nav-h) + var(--safe-b) + 28px);
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  .d, h1, h2 { font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; }
   .lanes {
     height: 10px;
     border-radius: 5px;
@@ -48,30 +67,29 @@
     background: repeating-linear-gradient(90deg, var(--teal) 0px, var(--teal) 26px, transparent 26px, transparent 40px);
     opacity: 0.55;
   }
-  header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
-  h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
-  header .sub { color: var(--text-dim); font-size: 13px; font-family: 'IBM Plex Mono', monospace; }
+  h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
 
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 20px; }
-  .panel h2 { font-size: 15px; font-weight: 600; margin: 0 0 14px; color: var(--text-dim); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 18px; margin-bottom: 14px; }
+  .panel h2 { font-size: 18px; font-weight: 700; margin: 0 0 14px; color: var(--text); }
 
   .meta-row { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 16px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
-  label { font-size: 11px; color: var(--text-dim); }
+  label { font-size: 12px; font-weight: 600; color: var(--text-dim); }
   input, textarea {
-    background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
-    color: var(--text); padding: 10px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 14px;
+    background: var(--field); border: 1px solid var(--field-line); border-radius: 10px;
+    color: var(--text); padding: 10px 12px; font-family: 'Figtree', system-ui, sans-serif; font-size: 16px;
   }
+  input::placeholder, textarea::placeholder { color: #6F8596; }
   input:focus, textarea:focus, button:focus-visible {
     outline: 2px solid var(--teal); outline-offset: 1px;
   }
 
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
   .chip {
-    display: inline-flex; align-items: center; gap: 0;
-    background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
-    border-radius: 999px; font-size: 12.5px;
-    font-family: 'IBM Plex Mono', monospace; overflow: hidden;
+    display: inline-flex; align-items: center; gap: 0; min-height: 34px;
+    background: var(--panel); border: 1px solid var(--field-line); color: var(--text-soft);
+    border-radius: 999px; font-size: 13px; font-weight: 600;
+    font-family: 'Figtree', system-ui, sans-serif; overflow: hidden;
   }
   .chip-label {
     background: none; border: none; color: inherit; cursor: pointer;
@@ -99,17 +117,18 @@
     gap: 10px;
     align-items: end;
   }
-  .compose-row textarea { min-height: 40px; resize: vertical; font-family: 'Space Grotesk', sans-serif; }
+  .compose-row textarea { min-height: 40px; resize: vertical; font-family: 'Figtree', system-ui, sans-serif; }
   .compose-row input[type="number"] { text-align: right; }
   button.add-btn {
-    background: var(--teal); color: #06231F; border: none; border-radius: 8px;
-    padding: 10px 16px; font-weight: 600; font-family: 'Space Grotesk', sans-serif;
+    background: var(--teal); color: var(--on-teal); border: none; border-radius: 12px;
+    min-height: 44px; padding: 10px 16px; font-weight: 800; font-family: 'Figtree', system-ui, sans-serif;
     cursor: pointer; white-space: nowrap;
   }
+  button.add-btn:disabled { background: #1A2836; color: #6F8596; cursor: default; }
   button.add-btn:hover { filter: brightness(1.05); }
   .hint { font-size: 11.5px; color: var(--text-dim); margin-top: 8px; line-height: 1.5; }
   .live-preview {
-    font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--amber);
+    font-family: 'Figtree', system-ui, sans-serif; font-size: 13px; color: var(--amber);
     margin-top: 10px; min-height: 18px;
   }
   .live-preview.empty-state { color: var(--text-dim); }
@@ -125,14 +144,14 @@
     font-size: 13.5px;
   }
   .line-row .txt { line-height: 1.4; }
-  .line-row .m { font-family: 'IBM Plex Mono', monospace; color: var(--amber); text-align: right; }
+  .line-row .m { font-family: 'Figtree', system-ui, sans-serif; color: var(--amber); text-align: right; }
   .line-row .m-edit {
-    font-family: 'IBM Plex Mono', monospace; color: var(--amber); text-align: right;
+    font-family: 'Figtree', system-ui, sans-serif; color: var(--amber); text-align: right;
     background: transparent; border: 1px solid transparent; border-radius: 6px;
     padding: 4px 6px; font-size: 13.5px; width: 100%;
   }
   .line-row .m-edit:hover, .line-row .m-edit:focus { border-color: var(--line); background: var(--panel); }
-  .line-row .cum { font-family: 'IBM Plex Mono', monospace; color: var(--text-dim); text-align: right; }
+  .line-row .cum { font-family: 'Figtree', system-ui, sans-serif; color: var(--text-dim); text-align: right; }
   .line-row .del { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 15px; }
   .line-row .del:hover { color: var(--coral); }
 
@@ -140,24 +159,24 @@
     display: flex; justify-content: space-between; align-items: center;
     margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
   }
-  .total-bar .big { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; color: var(--teal); }
+  .total-bar .big { font-family: 'Figtree', system-ui, sans-serif; font-size: 26px; font-weight: 600; color: var(--teal); }
   .total-bar .lbl { font-size: 12px; color: var(--text-dim); }
 
   .save-row { display: flex; gap: 10px; margin-top: 18px; }
   button.save-btn {
-    flex: 1; background: var(--coral); color: #2A0C04; border: none; border-radius: 8px;
-    padding: 12px; font-weight: 600; font-size: 15px; font-family: 'Space Grotesk', sans-serif; cursor: pointer;
+    flex: 1; background: var(--teal); color: var(--on-teal); border: none; border-radius: 12px;
+    min-height: 48px; padding: 12px; font-weight: 800; font-size: 16px; font-family: 'Figtree', system-ui, sans-serif; cursor: pointer;
   }
   button.save-btn:hover { filter: brightness(1.05); }
   button.save-btn:disabled { opacity: 0.5; cursor: default; }
   button.clear-btn {
-    background: transparent; border: 1px solid var(--line); color: var(--text-dim);
-    border-radius: 8px; padding: 12px 16px; font-family: 'Space Grotesk', sans-serif; cursor: pointer;
+    background: transparent; border: 1px solid var(--field-line); color: var(--text-dim);
+    border-radius: 12px; min-height: 44px; padding: 12px 16px; font-family: 'Figtree', system-ui, sans-serif; cursor: pointer;
   }
   button.clear-btn:hover { border-color: var(--coral); color: var(--coral); }
 
   .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-  .stat .num { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: var(--teal); }
+  .stat .num { font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 800; color: var(--teal); }
   .stat .lbl { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
 
   .history-item {
@@ -168,29 +187,29 @@
     display: flex; justify-content: space-between; align-items: center; cursor: pointer;
   }
   .history-head .title { font-weight: 600; font-size: 14px; }
-  .history-head .date { font-family: 'IBM Plex Mono', monospace; color: var(--text-dim); font-size: 12.5px; }
-  .history-head .km { font-family: 'IBM Plex Mono', monospace; color: var(--amber); font-weight: 600; }
+  .history-head .date { font-family: 'Figtree', system-ui, sans-serif; color: var(--text-dim); font-size: 12.5px; }
+  .history-head .km { font-family: 'Figtree', system-ui, sans-serif; color: var(--amber); font-weight: 600; }
   .history-lines { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); display: none; }
   .history-lines.open { display: block; }
   .history-lines .hl { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; color: var(--text-dim); }
-  .history-lines .hl .m { font-family: 'IBM Plex Mono', monospace; color: var(--amber); }
+  .history-lines .hl .m { font-family: 'Figtree', system-ui, sans-serif; color: var(--amber); }
   .history-actions { margin-top: 10px; display: flex; gap: 8px; }
   .history-actions button {
     background: none; border: 1px solid var(--line); color: var(--text-dim); border-radius: 6px;
-    padding: 5px 10px; font-size: 12px; cursor: pointer; font-family: 'IBM Plex Mono', monospace;
+    padding: 5px 10px; font-size: 12px; cursor: pointer; font-family: 'Figtree', system-ui, sans-serif;
   }
   .history-actions button:hover { border-color: var(--coral); color: var(--coral); }
   .empty { color: var(--text-dim); font-size: 14px; padding: 10px 0; }
   .err-banner {
-    display: none; background: rgba(255,107,74,0.12); border: 1px solid var(--coral);
+    display: none; background: var(--coral-bg); border: 1px solid var(--coral);
     color: var(--coral); border-radius: 10px; padding: 10px 14px; font-size: 12.5px;
-    font-family: 'IBM Plex Mono', monospace; margin-bottom: 16px; white-space: pre-wrap;
+    font-family: 'Figtree', system-ui, sans-serif; margin-bottom: 16px; white-space: pre-wrap;
   }
 
   .drive-panel { padding: 16px 20px; }
   .drive-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
   .drive-status {
-    font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--text-dim);
+    font-family: 'Figtree', system-ui, sans-serif; font-size: 12.5px; color: var(--text-dim);
   }
   .drive-status.ok { color: var(--teal); }
   .drive-status.syncing { color: var(--amber); }
@@ -210,7 +229,7 @@
     grid-template-columns: 1.1fr repeat(5, 1fr);
     gap: 8px;
     align-items: center;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'Figtree', system-ui, sans-serif;
   }
   .oura-head {
     font-size: 10.5px; color: var(--text-dim); letter-spacing: 0.04em; text-transform: uppercase;
@@ -229,7 +248,7 @@
   .oura-badges {
     display: flex; flex-wrap: wrap; gap: 6px 14px;
     margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
-    font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-dim);
+    font-family: 'Figtree', system-ui, sans-serif; font-size: 12px; color: var(--text-dim);
   }
   .oura-badges strong { font-weight: 500; color: var(--text); }
   .oura-badges strong.good { color: var(--teal); }
@@ -238,23 +257,12 @@
 
   .table-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
   .export-btn {
-    background: transparent; border: 1px solid var(--line); color: var(--text); border-radius: 8px;
-    padding: 8px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; cursor: pointer;
+    background: var(--panel); border: 1px solid var(--field-line); color: var(--text-soft); border-radius: 12px;
+    min-height: 40px; padding: 8px 14px; font-family: 'Figtree', system-ui, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   }
+  .export-btn:disabled { opacity: 0.5; cursor: default; }
   .export-btn:hover { border-color: var(--teal); color: var(--teal); }
-
-  /* Mode switch: which half of the app is showing (training & Oura, or food). */
-  .mode-switch {
-    display: flex; gap: 4px; margin-bottom: 20px; padding: 4px;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
-  }
-  .mode-btn {
-    flex: 1; background: none; border: none; border-radius: 999px; cursor: pointer;
-    color: var(--text-dim); font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600;
-    padding: 10px 12px;
-  }
-  .mode-btn:hover { color: var(--text); }
-  .mode-btn.active { background: var(--teal); color: #06231F; }
 
   /* Food diary */
   .date-compact { padding: 7px 10px; font-size: 13px; }
@@ -270,9 +278,10 @@
   .meal-thumb.large { width: 96px; height: 96px; }
   .meal-fields { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
   .meal-fields .wide { grid-column: 1 / -1; }
-  .meal-fields input { width: 100%; }
+  .meal-fields input { width: 100%; min-width: 0; }
+  .meal-fields .field { min-width: 0; }
   .ai-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-  .ai-status { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--text-dim); line-height: 1.5; }
+  .ai-status { font-family: 'Figtree', system-ui, sans-serif; font-size: 12.5px; color: var(--text-dim); line-height: 1.5; }
   .ai-status.ok { color: var(--teal); }
   .ai-status.busy { color: var(--amber); }
   .ai-status.low { color: var(--coral); }
@@ -283,12 +292,12 @@
   .meal-item:last-child { border-bottom: none; }
   .meal-item .info { flex: 1; min-width: 0; }
   .meal-item .title { font-weight: 600; font-size: 14px; }
-  .meal-item .meta { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-dim); margin-top: 2px; }
-  .meal-item .macros { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--amber); margin-top: 3px; }
+  .meal-item .meta { font-family: 'Figtree', system-ui, sans-serif; font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .meal-item .macros { font-family: 'Figtree', system-ui, sans-serif; font-size: 12.5px; color: var(--amber); margin-top: 3px; }
   .item-actions { display: flex; gap: 6px; flex: none; }
   .item-actions button {
     background: none; border: 1px solid var(--line); color: var(--text-dim); border-radius: 6px;
-    padding: 5px 9px; font-size: 12px; cursor: pointer; font-family: 'IBM Plex Mono', monospace;
+    padding: 5px 9px; font-size: 12px; cursor: pointer; font-family: 'Figtree', system-ui, sans-serif;
   }
   .item-actions button:hover { border-color: var(--teal); color: var(--teal); }
   .item-actions button.danger:hover { border-color: var(--coral); color: var(--coral); }
@@ -301,10 +310,10 @@
   .past-head input { width: 150px; }
   .past-chip .kc { color: var(--amber); margin-left: 6px; }
   .portion-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-  .portion-input { display: flex; align-items: center; gap: 6px; font-family: 'IBM Plex Mono', monospace; color: var(--text-dim); }
+  .portion-input { display: flex; align-items: center; gap: 6px; font-family: 'Figtree', system-ui, sans-serif; color: var(--text-dim); }
   .portion-input input { width: 80px; }
   .supp-add { display: flex; flex-direction: column; gap: 8px; margin: 14px 0 6px; }
-  .servings { display: inline-flex; align-items: center; gap: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--text); }
+  .servings { display: inline-flex; align-items: center; gap: 4px; font-family: 'Figtree', system-ui, sans-serif; font-size: 12.5px; color: var(--text); }
   .servings button {
     background: none; border: 1px solid var(--line); color: var(--text-dim); border-radius: 6px;
     width: 26px; height: 26px; cursor: pointer; font-size: 14px; line-height: 1;
@@ -314,32 +323,310 @@
   .ai-pass-form input[type="password"], .ai-pass-form input[type="text"] { flex: 1; min-width: 180px; }
   .check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-dim); cursor: pointer; }
   .check input { width: 16px; height: 16px; accent-color: var(--teal); }
-  .weight-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; }
-  .weight-latest { margin: 16px 0 8px; font-family: 'IBM Plex Mono', monospace; }
+  .weight-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+  .weight-row .field, .weight-row input { min-width: 0; width: 100%; }
+  .weight-latest { margin: 16px 0 8px; font-family: 'Figtree', system-ui, sans-serif; }
   .weight-latest .big { font-size: 26px; font-weight: 600; color: var(--teal); }
   .weight-latest .delta { font-size: 13px; color: var(--text-dim); margin-left: 10px; }
   .weight-item {
     display: flex; justify-content: space-between; align-items: center; gap: 10px;
-    padding: 7px 0; border-bottom: 1px solid var(--line); font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    padding: 7px 0; border-bottom: 1px solid var(--line); font-family: 'Figtree', system-ui, sans-serif; font-size: 13px;
   }
   .weight-item:last-child { border-bottom: none; }
   .weight-item .d { color: var(--text-dim); }
   .weight-item .kg { color: var(--text); margin-left: auto; }
   .chip.chip-on { border-color: var(--teal); }
   .chip.chip-on .chip-label { color: var(--teal); }
-  .drink-total { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--teal); }
-  .supp-contents { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--amber); margin-top: 3px; line-height: 1.5; }
+  .drink-total { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-family: 'Figtree', system-ui, sans-serif; font-size: 13px; color: var(--teal); }
+  .supp-contents { font-family: 'Figtree', system-ui, sans-serif; font-size: 12px; color: var(--amber); margin-top: 3px; line-height: 1.5; }
   .supp-total {
     margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
-    font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--teal); line-height: 1.6;
+    font-family: 'Figtree', system-ui, sans-serif; font-size: 12.5px; color: var(--teal); line-height: 1.6;
   }
-  .supp-total .lbl { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 11px; color: var(--text-dim); }
+  .supp-total .lbl { display: block; font-family: 'Figtree', system-ui, sans-serif; font-size: 11px; color: var(--text-dim); }
   .supp-scan {
     background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
     padding: 14px; margin-bottom: 16px;
   }
   .supp-scan .save-row { flex-wrap: wrap; }
-  .supp-row .t { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-dim); margin-right: 10px; }
+  .supp-row .t { font-family: 'Figtree', system-ui, sans-serif; font-size: 12px; color: var(--text-dim); margin-right: 10px; }
+
+  /* ================= Prenova: ogrodje ================= */
+  .screen-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin: 4px 0 16px; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 2px; }
+  .group-title { margin: 22px 0 10px; font-family: 'Figtree', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 18px; margin-bottom: 14px; }
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .stack > * { flex-shrink: 0; }
+  .muted { font-size: 13px; font-weight: 600; color: var(--text-dim); }
+  .muted-sm { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+  .muted-sm.center { text-align: center; margin: 14px 0 0; }
+  .link-btn { background: none; border: 0; padding: 0; color: var(--teal); font-weight: 700; font-size: inherit; cursor: pointer; }
+  .link-btn.big { min-height: 44px; font-size: 15px; }
+  .pill-btn {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px;
+    border-radius: 999px; border: 1px solid var(--field-line); background: var(--panel);
+    font-size: 12px; font-weight: 600; color: var(--text-soft); cursor: pointer;
+  }
+  .pill-btn svg { color: var(--text-dim); }
+  .pill-btn.ok svg { color: var(--swim); }
+  .pill-btn.syncing svg { color: var(--amber); }
+  .icon-btn {
+    width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px; border: 1px solid var(--field-line);
+    background: var(--panel); color: var(--text-soft); display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .primary-btn {
+    min-height: 44px; flex-shrink: 0; padding: 0 16px; border: 0; border-radius: 14px;
+    background: var(--teal); color: var(--on-teal); font-size: 15px; font-weight: 800; cursor: pointer;
+  }
+  .primary-btn:disabled { background: #1A2836; color: #6F8596; cursor: default; }
+  .primary-btn.done { background: #173A3A; color: #7FF0DB; }
+  .dashed-btn {
+    min-height: 46px; border-radius: 12px; border: 1px dashed #2F6D66; background: transparent;
+    color: #7FF0DB; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .dashed-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* Bottom tab bar — always visible, opaque, clear of the home indicator */
+  .tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    height: calc(var(--nav-h) + var(--safe-b)); padding: 6px 8px var(--safe-b);
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+    background: #0B1620; border-top: 1px solid var(--line);
+  }
+  .tabbar button {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    min-height: 48px; border: 0; background: none; cursor: pointer;
+    font-size: 11px; font-weight: 600; color: #7F93A3;
+  }
+  .tabbar button[aria-current="page"] { font-weight: 700; color: var(--teal); }
+  .fab {
+    position: fixed; right: max(20px, calc(50% - 300px)); bottom: calc(var(--nav-h) + var(--safe-b) + 16px); z-index: 15;
+    width: 60px; height: 60px; border-radius: 20px; border: 0; cursor: pointer;
+    background: var(--swim); color: var(--on-swim); display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 30px rgba(79, 227, 200, 0.28);
+  }
+
+  /* ================= Danes ================= */
+  .week-card { display: flex; flex-direction: column; gap: 16px; padding: 20px; border-radius: 24px; }
+  .week-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .week-main { display: flex; flex-direction: column; gap: 4px; }
+  .big-row { display: flex; align-items: baseline; gap: 6px; }
+  .huge { font-size: 56px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--swim); }
+  .unit { font-size: 20px; font-weight: 700; }
+  .delta-box { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; padding: 8px 10px; border-radius: 12px; background: var(--panel-2); }
+  .delta-box span { font-size: 11px; font-weight: 600; color: var(--text-dim); }
+  .delta-box strong { font-size: 15px; font-weight: 700; color: var(--swim); }
+  .bar-track { height: 8px; border-radius: 999px; background: #1E3143; overflow: hidden; }
+  .bar-fill { height: 100%; width: 0; border-radius: 999px; background: var(--swim); }
+  .day-bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end; height: 124px; }
+  .day-bars .col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; }
+  .day-bars .v { font-size: 10px; color: var(--text-dim); }
+  .day-bars .b { width: 100%; border-radius: 8px; background: #2A4A5C; }
+  .day-bars .b.zero { background: var(--field-line); }
+  .day-bars .l { font-size: 11px; font-weight: 600; color: var(--text-dim); }
+  .day-bars .col.today .v { font-weight: 700; color: var(--swim); }
+  .day-bars .col.today .b { background: var(--swim); }
+  .day-bars .col.today .l { font-weight: 700; color: var(--text); }
+  .inline-form { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .inline-form input { width: 90px; }
+  .oura-strip {
+    width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px;
+    padding: 14px; border-radius: 20px; background: #16152B; border: 1px solid #2B2850; text-align: left; cursor: pointer;
+  }
+  .oura-strip .k { display: block; font-size: 11px; font-weight: 600; color: #B5ACFF; }
+  .oura-strip .v { font-family: 'Bricolage Grotesque', sans-serif; font-size: 26px; font-weight: 800; color: var(--text); }
+  .oura-strip .v small { font-family: 'Figtree', sans-serif; font-size: 14px; font-weight: 600; color: var(--text-dim); }
+  .section-head { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 6px; }
+  .section-head h2 { margin: 0; font-size: 20px; font-weight: 700; }
+  .today-card {
+    display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; width: 100%;
+    background: var(--panel); border: 1px solid var(--line); text-align: left; cursor: pointer;
+  }
+  .today-card .row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .today-card .t { font-size: 16px; font-weight: 700; }
+  .today-card .s { font-size: 13px; color: var(--text-dim); }
+  .today-card .km { font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 800; color: var(--swim); white-space: nowrap; }
+  .seg-bar { display: flex; gap: 3px; height: 10px; }
+  .seg-bar span { border-radius: 4px; }
+  .seg-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--text-dim); }
+  .seg-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .seg-legend i { width: 8px; height: 8px; border-radius: 2px; }
+  .empty-card { padding: 22px 16px; text-align: center; border-radius: 18px; border: 1px dashed #2A3F53; color: var(--text-dim); font-size: 14px; line-height: 1.5; }
+  .tile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+  .tile {
+    display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; min-width: 0;
+    background: var(--panel); border: 1px solid var(--line); text-align: left; cursor: pointer;
+  }
+  .tile .k { font-size: 13px; font-weight: 600; }
+  .tile .k.food { color: #FFC27E; }
+  .tile .k.health { color: #B5ACFF; }
+  .tile .v { display: flex; align-items: baseline; gap: 4px; }
+  .tile .v strong { font-family: 'Bricolage Grotesque', sans-serif; font-size: 26px; font-weight: 800; }
+  .tile .v span, .tile .s { font-size: 12px; color: var(--text-dim); }
+  .macro-lines { display: flex; flex-direction: column; gap: 5px; }
+  .macro-lines div { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); }
+  .macro-lines b { color: var(--text); font-weight: 700; }
+
+  /* ================= Trening ================= */
+  .tr-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+  .tr-top { display: flex; align-items: center; gap: 10px; }
+  .tr-title-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .title-input { flex: 1; border: 0; background: transparent; padding: 0; font-size: 22px; font-weight: 800; min-width: 0; width: 100%; border-radius: 6px; }
+  .title-input:focus { outline: none; box-shadow: 0 1px 0 var(--teal); }
+  .tr-sub { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim); margin-top: -4px; }
+  .tr-sub #trSummary { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .date-mini { padding: 2px 6px; font-size: 13px; border-radius: 8px; background: transparent; border: 1px solid var(--field-line); color: var(--text-dim); }
+  .tr-total { flex-shrink: 0; font-size: 24px; font-weight: 800; color: var(--swim); }
+  .tr-toggles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); padding: 3px; border-radius: 12px; background: var(--panel); border: 1px solid var(--field-line); }
+  .seg button { min-height: 34px; border: 0; border-radius: 9px; background: transparent; color: var(--text-dim); font-size: 13px; font-weight: 700; cursor: pointer; padding: 0 8px; }
+  .seg button[aria-pressed="true"] { background: var(--swim); color: var(--on-swim); font-weight: 800; }
+  #trKinds button[aria-pressed="true"] { background: #2A3F53; color: var(--text); }
+  .pool-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12px; font-weight: 700; color: var(--text-dim); }
+  .pool-wrap .seg { flex: 1; min-width: 0; }
+  .seg.small { grid-auto-columns: auto; border-radius: 10px; }
+  .seg.small button { min-height: 30px; font-size: 12px; }
+  .seg.small button[aria-pressed="true"] { background: #1E3A4A; color: var(--swim); }
+  .tr-editing { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; background: #2A2418; border: 1px solid #5A4A28; color: #FFD19A; font-size: 13px; font-weight: 600; }
+  .tr-editing .link-btn { color: #FFD19A; min-height: 32px; }
+  .shortcut-row { display: flex; gap: 6px; padding-bottom: 8px; overflow-x: auto; scrollbar-width: none; }
+  .shortcut-row::-webkit-scrollbar, .key-row::-webkit-scrollbar { display: none; }
+  .sc-btn {
+    flex-shrink: 0; min-height: 38px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--field-line);
+    background: var(--panel); color: var(--text-soft); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  }
+  .sc-btn.accent { border-color: #2F6D66; background: #10302D; color: #7FF0DB; }
+  .sc-btn.warn { border-color: #5A4A28; background: #2A2418; color: #FFD19A; }
+  .sc-btn:disabled { opacity: 0.4; cursor: default; }
+  .set-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .set-list > * { flex-shrink: 0; }
+  .set-card { border-radius: 14px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+  .set-card.open { background: #132433; border-color: #2F6D66; }
+  .set-card.bad { border-color: #6A4A22; }
+  .set-row { display: flex; align-items: center; gap: 4px; padding-right: 6px; }
+  .set-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px 4px 10px 12px; border: 0; background: transparent; text-align: left; cursor: pointer; }
+  .set-num { width: 20px; flex-shrink: 0; font-size: 12px; font-weight: 700; color: #6F8596; }
+  .set-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .set-label { font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .set-desc { font-size: 12px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .set-desc .bad { color: #FFC27E; }
+  .set-m { font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 700; color: var(--swim); white-space: nowrap; }
+  .step-btn { width: 40px; height: 44px; flex-shrink: 0; border: 0; border-radius: 10px; background: #1A2B3B; font-size: 18px; cursor: pointer; }
+  .set-edit { display: flex; flex-direction: column; gap: 10px; padding: 2px 12px 12px; }
+  .dist-row { display: flex; align-items: center; gap: 8px; }
+  .dist-row .lbl { width: 68px; font-size: 12px; font-weight: 700; color: var(--text-dim); }
+  .dist-row .val { flex: 1; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; font-weight: 700; }
+  .dist-row button { width: 44px; height: 44px; border: 1px solid var(--field-line); border-radius: 10px; background: var(--field); font-size: 18px; cursor: pointer; }
+  .set-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .set-actions button { min-height: 44px; border-radius: 10px; border: 1px solid var(--field-line); background: transparent; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .set-actions button.danger { border-color: #5A2A28; background: var(--coral-bg); color: var(--coral); }
+  .legacy-fields { display: grid; grid-template-columns: 1fr 110px; gap: 8px; }
+  .chip-btn {
+    flex-shrink: 0; min-width: 36px; min-height: 36px; padding: 0 10px; border-radius: 9px;
+    border: 1px solid var(--field-line); background: var(--panel); color: var(--text-soft);
+    font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .chip-btn.round { border-radius: 999px; font-weight: 600; font-size: 12px; min-height: 34px; }
+  .chip-btn.big { min-height: 40px; font-size: 14px; font-weight: 800; }
+  .chip-btn.on { background: var(--swim); color: var(--on-swim); border-color: var(--swim); }
+  .chip-btn.soft { background: #173A3A; color: #7FF0DB; border-color: #2F6D66; }
+  .chip-btn:disabled { background: transparent; color: #3A4F63; border-color: #1A2B3B; cursor: default; }
+  .chip-wrap { display: flex; flex-wrap: wrap; gap: 4px; }
+  .stroke-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+  .stroke-grid .chip-btn { padding: 0 2px; font-size: 12px; }
+  .tr-input {
+    position: sticky; bottom: calc(var(--nav-h) + var(--safe-b)); z-index: 10;
+    display: flex; flex-direction: column; gap: 8px; margin: 0 -16px; padding: 10px 16px 12px;
+    background: #0E1A25; border-top: 1px solid var(--line);
+  }
+  .tr-input-head { display: flex; align-items: center; gap: 8px; }
+  .tr-hint { flex: 1; min-width: 0; font-size: 12px; color: var(--text-dim); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tr-hint.err { color: var(--coral); }
+  .tr-hint.ok { color: #7FF0DB; }
+  .tr-keys { display: flex; flex-direction: column; gap: 6px; }
+  .key-row { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .tr-text { display: flex; flex-direction: column; gap: 6px; }
+  .tr-text textarea { width: 100%; resize: none; border-radius: 14px; background: var(--panel); }
+  .tr-text textarea.err { border-color: #FF7A66; }
+  .tr-text .help { font-size: 12px; line-height: 1.5; color: var(--text-dim); }
+  .tr-text .help b { color: var(--text-soft); }
+  .add-big {
+    min-height: 50px; border: 0; border-radius: 14px; background: var(--swim); color: var(--on-swim);
+    font-size: 16px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; padding: 0 12px;
+  }
+  .add-big span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .add-big:disabled { background: #1A2836; color: #6F8596; cursor: default; }
+  .fitness-soon p { margin: 0 0 12px; }
+
+  /* Bottom sheets (Predloge, Uredi bližnjice) */
+  .sheet-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(4, 9, 14, 0.72); display: flex; flex-direction: column; justify-content: flex-end; }
+  .sheet {
+    width: 100%; max-width: 640px; margin: 0 auto; max-height: 85vh; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 12px; padding: 16px 16px calc(24px + var(--safe-b));
+    border-radius: 26px 26px 0 0; background: var(--panel); border-top: 1px solid var(--field-line);
+  }
+  .sheet > * { flex-shrink: 0; }
+  .sheet-grip { align-self: center; width: 40px; height: 5px; border-radius: 999px; background: #2A3F53; }
+  .sheet-head { display: flex; justify-content: space-between; align-items: center; }
+  .sheet-head .d { font-size: 20px; font-weight: 800; }
+  .sheet-head .link-btn { min-height: 40px; color: var(--text-dim); }
+  .tpl-row { display: flex; gap: 6px; }
+  .tpl-pick {
+    flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px;
+    border: 1px solid var(--line); background: var(--field); text-align: left; cursor: pointer;
+  }
+  .tpl-pick .n { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .tpl-pick .n b { font-size: 15px; }
+  .tpl-pick .n span { font-size: 12px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tpl-pick .m { font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 700; color: var(--swim); }
+  .tpl-del { width: 48px; flex-shrink: 0; border-radius: 14px; border: 1px solid var(--line); background: var(--field); color: var(--coral); cursor: pointer; font-size: 12px; font-weight: 700; }
+  .sc-group { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .sc-group .h { display: flex; justify-content: space-between; align-items: baseline; }
+  .sc-group .h b { font-size: 15px; }
+  .sc-group .h span { font-size: 12px; color: var(--text-dim); }
+  .sc-item { display: inline-flex; align-items: center; height: 38px; border-radius: 10px; border: 1px solid var(--field-line); background: var(--field); overflow: hidden; }
+  .sc-item span { padding: 0 8px; font-size: 13px; font-weight: 700; }
+  .sc-item button { width: 32px; height: 38px; border: 0; background: transparent; cursor: pointer; color: var(--text-dim); font-size: 15px; }
+  .sc-item button.x { color: var(--coral); border-left: 1px solid #1A2B3B; }
+  .sc-item button.l { border-right: 1px solid #1A2B3B; }
+  .sc-add { display: flex; gap: 6px; }
+  .sc-add input { flex: 1; min-width: 0; }
+  .sc-add input.err { border-color: #FF7A66; }
+  .sc-err { font-size: 12px; color: var(--coral); }
+
+  /* ================= Zgodovina ================= */
+  .search-box { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); margin-bottom: 12px; }
+  .search-box input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 0; outline: none; }
+  .filter-row { display: flex; gap: 6px; margin-bottom: 12px; }
+  .filter-row button { min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #2A3F53; background: transparent; font-size: 13px; font-weight: 600; color: var(--text-soft); cursor: pointer; }
+  .filter-row button[aria-pressed="true"] { border-color: var(--swim); background: var(--swim); color: var(--on-swim); font-weight: 700; }
+  .stats.three { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .stat .num.plain { color: var(--text); }
+  .week-chart { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 5px; align-items: end; height: 100px; padding-top: 6px; border-bottom: 1px solid var(--field-line); }
+  .week-chart div { border-radius: 4px 4px 0 0; background: #2A4A5C; min-height: 2px; }
+  .week-chart div.now { background: var(--swim); }
+  .week-chart-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text-dim); }
+  .week-chart-labels .now { color: var(--swim); font-weight: 700; }
+  .hist-week { margin: 10px 0 0; font-family: 'Figtree', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); }
+  .hist-item { border-radius: 18px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+  .hist-item.open { border-color: #2F6D66; }
+  .hist-head { width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px; border: 0; background: transparent; text-align: left; cursor: pointer; }
+  .hist-day { width: 46px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
+  .hist-day span { font-size: 11px; font-weight: 700; color: var(--text-dim); }
+  .hist-day b { font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 800; }
+  .hist-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .hist-mid b { font-size: 15px; }
+  .hist-mid span { font-size: 12px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hist-km { font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 800; color: var(--swim); }
+  .hist-body { padding: 0 14px 14px; border-top: 1px solid var(--line); }
+  .hist-body .hl { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 7px 0; color: var(--text-soft); border-bottom: 1px solid #16273A; }
+  .hist-body .hl .m { color: var(--swim); white-space: nowrap; }
+  .hist-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+  .hist-actions button { min-height: 44px; border-radius: 12px; border: 0; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .hist-actions .e { background: #1E3A4A; color: var(--swim); }
+  .hist-actions .c { background: #253545; color: var(--text-soft); }
+  .hist-actions .x { background: #7A2A22; color: #FFE1DC; }
 
   @media (max-width: 640px) {
     .meta-row { grid-template-columns: 1fr; }
@@ -349,40 +636,145 @@
     .stats { grid-template-columns: repeat(2, 1fr); }
     .oura-head, .oura-day { grid-template-columns: 1fr repeat(5, 36px); gap: 6px; font-size: 12px; }
     .meal-fields { grid-template-columns: repeat(2, 1fr); }
-    .weight-row { grid-template-columns: 1fr 1fr; }
+    .weight-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     .weight-row .add-btn { grid-column: 1 / -1; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="lanes"></div>
   <div class="err-banner" id="errBanner"></div>
-  <header>
-    <h1>Kilometrina</h1>
-    <div class="sub" id="statusLine">nalagam …</div>
+
+  <!-- ================= DANES ================= -->
+  <header class="screen-head" data-tab="danes" hidden>
+    <div>
+      <div class="eyebrow" id="todayLabel"></div>
+      <h1>Danes</h1>
+    </div>
+    <button type="button" class="pill-btn" id="todayDriveBtn" data-go="zdravje" aria-label="Google Drive">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a5 5 0 1 1 .9-9.9A6 6 0 0 1 19 10a4 4 0 0 1-1 8z"/><path d="M9.5 13.5l2 2 3.5-4"/></svg>
+      <span>Drive</span>
+    </button>
   </header>
 
-  <div class="mode-switch" role="tablist" aria-label="Kaj izpolnjuješ">
-    <button type="button" class="mode-btn" role="tab" data-mode-btn="train">Treningi &amp; Oura</button>
-    <button type="button" class="mode-btn" role="tab" data-mode-btn="food">Prehrana</button>
+  <section data-tab="danes" hidden class="card week-card" aria-label="Tedenski obseg">
+    <div class="week-top">
+      <div class="week-main">
+        <div class="muted">Zadnjih 7 dni</div>
+        <div class="big-row"><span class="huge d" id="weekKm">0</span><span class="unit d">km</span></div>
+        <div class="muted-sm"><span id="weekCount">0 treningov</span> · <button type="button" class="link-btn" id="weekGoalBtn">cilj 30 km</button></div>
+      </div>
+      <div class="delta-box"><span>vs. prejšnji</span><strong id="weekDelta">—</strong></div>
+    </div>
+    <form class="inline-form" id="weekGoalForm" hidden>
+      <label for="weekGoalInput">Tedenski cilj (km)</label>
+      <input type="text" id="weekGoalInput" inputmode="decimal" autocomplete="off">
+      <button type="submit" class="add-btn">Shrani</button>
+    </form>
+    <div class="bar-track"><div class="bar-fill" id="weekProgress"></div></div>
+    <div class="day-bars" id="weekBars"></div>
+  </section>
+
+  <button type="button" data-tab="danes" hidden class="oura-strip" id="todayOura" data-go="zdravje"></button>
+
+  <div data-tab="danes" hidden class="section-head">
+    <h2>Današnji trening</h2>
+    <button type="button" class="link-btn big" data-go="trening">+ Nov</button>
+  </div>
+  <div data-tab="danes" hidden id="todayWorkouts" class="stack"></div>
+
+  <div data-tab="danes" hidden class="tile-grid">
+    <button type="button" class="tile" data-go="prehrana" id="todayFood"></button>
+    <button type="button" class="tile" data-go="zdravje" id="todayWeight"></button>
   </div>
 
-  <section class="panel drive-panel">
-    <div class="drive-row">
-      <div>
-        <h2 style="margin:0 0 4px;">Google Drive varnostna kopija</h2>
-        <div class="drive-status" id="driveStatus">ni povezano</div>
+  <!-- ================= TRENING ================= -->
+  <section data-tab="trening" hidden class="tr-head">
+    <div class="tr-top">
+      <input type="text" id="trTitle" class="title-input d" aria-label="Naslov treninga" maxlength="60" autocomplete="off">
+      <button type="button" class="primary-btn" id="trSaveBtn">Shrani</button>
+    </div>
+    <div class="tr-sub">
+      <input type="date" id="trDate" class="date-mini" aria-label="Datum treninga">
+      <span id="trSummary"></span>
+      <span class="tr-total d" id="trTotal">0 m</span>
+    </div>
+    <div class="tr-toggles">
+      <div class="seg" role="group" aria-label="Vrsta treninga" id="trKinds">
+        <button type="button" data-kind="swim" aria-pressed="true">Plavanje</button>
+        <button type="button" data-kind="fitness" aria-pressed="false">Fitnes</button>
       </div>
-      <div class="drive-actions">
-        <button type="button" class="export-btn" id="driveSignInBtn">Prijava v Google</button>
-        <button type="button" class="export-btn" id="driveSyncBtn" style="display:none;">Sinhroniziraj zdaj</button>
-        <button type="button" class="export-btn" id="driveRestoreBtn" style="display:none;">Obnovi iz Drive</button>
-      </div>
+      <div class="pool-wrap"><span>bazen</span><div class="seg" role="group" aria-label="Dolžina bazena" id="trPools"></div></div>
+    </div>
+    <div class="tr-editing" id="trEditing" hidden>
+      <span>Urejaš shranjen trening</span>
+      <button type="button" class="link-btn" id="trCancelEdit">Prekliči urejanje</button>
     </div>
   </section>
 
-  <section class="panel" data-mode="food" hidden>
+  <section data-tab="trening" hidden class="card fitness-soon" id="trFitness">
+    <h2>Fitnes</h2>
+    <p class="muted">Vnos fitnes treningov po trenerjevem programu pride v naslednji fazi. Plavalni treningi delujejo kot prej.</p>
+    <button type="button" class="export-btn" id="trBackToSwim">Nazaj na plavanje</button>
+  </section>
+
+  <div data-tab="trening" hidden id="trSwim">
+    <div class="shortcut-row" id="trShortcuts">
+      <button type="button" class="sc-btn accent" id="trRepeat"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5"/></svg>Ponovi zadnji</button>
+      <button type="button" class="sc-btn" id="trTemplatesBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 10h16M10 10v10"/></svg>Predloge</button>
+      <button type="button" class="sc-btn" id="trCopyPrev">Kot prejšnji</button>
+      <button type="button" class="sc-btn warn" id="trUndo" hidden>Razveljavi</button>
+    </div>
+    <div class="set-list" id="trSets"></div>
+
+    <div class="tr-input" id="trInput">
+      <div class="tr-input-head">
+        <div class="seg small" role="group" aria-label="Način vnosa" id="trModes">
+          <button type="button" data-mode-key="keys" aria-pressed="true">Gumbi</button>
+          <button type="button" data-mode-key="text" aria-pressed="false">Tipkaj</button>
+        </div>
+        <span class="tr-hint" id="trHint"></span>
+        <button type="button" class="icon-btn" id="trEditShortcuts" aria-label="Uredi bližnjice"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>
+      </div>
+      <div id="trKeys" class="tr-keys">
+        <div class="key-row" id="trRepChips" aria-label="Ponovitve"></div>
+        <div class="key-row" id="trDistChips" aria-label="Razdalja"></div>
+        <div class="stroke-grid" id="trStrokeChips" aria-label="Slog"></div>
+        <div class="key-row" id="trTagChips" aria-label="Oznake in intervali"></div>
+      </div>
+      <div id="trText" class="tr-text" hidden>
+        <textarea id="trDraft" rows="2" aria-label="Nov set" placeholder="npr. 8x100 p tempo na 1:45" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+        <div class="help">Enter doda set (Shift+Enter nova vrstica). Okrajšave: <b>k</b> kravl · <b>h</b> hrbtno · <b>p</b> prsno · <b>d</b> delfin · <b>m</b> mešana · <b>na 1:30</b> interval · <b>ct</b>, <b>raz</b>, <b>max</b>. Več setov loči s podpičjem ali novo vrstico: <b>400 raz; 4x50 noge; 30x50 ct</b></div>
+      </div>
+      <button type="button" class="add-big" id="trAddBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span id="trAddLabel">Dodaj</span></button>
+    </div>
+  </div>
+
+  <!-- ================= ZGODOVINA ================= -->
+  <header class="screen-head" data-tab="zgodovina" hidden>
+    <h1>Zgodovina</h1>
+    <button type="button" class="export-btn" id="exportBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Izvozi CSV</button>
+  </header>
+  <label data-tab="zgodovina" hidden class="search-box">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8EA2B2" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+    <input type="search" id="histSearch" aria-label="Išči treninge" placeholder="Išči po naslovu, slogu, oznaki …" autocomplete="off">
+  </label>
+  <div data-tab="zgodovina" hidden class="filter-row" role="group" aria-label="Obdobje" id="histFilters"></div>
+  <section data-tab="zgodovina" hidden class="card" aria-label="Tedenski obseg, zadnjih 12 tednov">
+    <div class="stats three">
+      <div class="stat"><div class="num" id="histKm">0</div><div class="lbl" id="histKmLbl">km</div></div>
+      <div class="stat"><div class="num plain" id="histCount">0</div><div class="lbl">treningov</div></div>
+      <div class="stat"><div class="num plain" id="histAvg">—</div><div class="lbl">povp. km / trening</div></div>
+    </div>
+    <div class="week-chart" id="histChart"></div>
+    <div class="week-chart-labels" id="histChartLabels"></div>
+  </section>
+  <div data-tab="zgodovina" hidden id="historyList" class="stack"></div>
+  <p data-tab="zgodovina" hidden class="muted-sm center">Tapni trening za podrobnosti, urejanje, podvajanje ali brisanje. Na iPhonu izvoz CSV odpre okno »Deli« (Google Drive, Datoteke …).</p>
+
+  <header class="screen-head" data-tab="prehrana" hidden><h1>Prehrana</h1></header>
+
+  <section data-tab="prehrana" hidden class="panel">
     <div class="table-head">
       <h2 style="margin:0;">Prehranski dnevnik</h2>
       <input type="date" id="foodDate" class="date-compact" aria-label="Dan">
@@ -396,25 +788,7 @@
     <div class="hint" id="foodDrinkNote" style="margin-top:12px;"></div>
   </section>
 
-  <section class="panel drive-panel" data-mode="food" hidden>
-    <div class="drive-row">
-      <div>
-        <h2 style="margin:0 0 4px;">AI analiza</h2>
-        <div class="drive-status" id="aiAccessStatus"></div>
-      </div>
-      <div class="drive-actions">
-        <button type="button" class="export-btn" id="aiPassEditBtn">Vpiši geslo</button>
-        <button type="button" class="export-btn" id="aiPassForgetBtn">Pozabi geslo</button>
-      </div>
-    </div>
-    <form class="ai-pass-form" id="aiPassForm" autocomplete="off" hidden>
-      <input type="password" id="aiPassInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AI geslo (APP_PASSCODE)" aria-label="AI geslo">
-      <label class="check"><input type="checkbox" id="aiPassShow"> Pokaži geslo</label>
-      <button type="submit" class="add-btn">Shrani geslo</button>
-    </form>
-  </section>
-
-  <section class="panel" data-mode="food" hidden>
+  <section data-tab="prehrana" hidden class="panel">
     <h2 id="mealFormTitle">Nov obrok</h2>
     <div class="photo-row">
       <label class="export-btn" for="mealPhotoInput">Slikaj ali izberi sliko</label>
@@ -461,12 +835,12 @@
     </div>
   </section>
 
-  <section class="panel" data-mode="food" hidden>
+  <section data-tab="prehrana" hidden class="panel">
     <h2>Obroki</h2>
     <div id="mealList"></div>
   </section>
 
-  <section class="panel" data-mode="food" hidden>
+  <section data-tab="prehrana" hidden class="panel">
     <h2>Pijača</h2>
     <label style="display:block; margin-bottom:8px;">Kaj</label>
     <div class="chips" id="drinkTypeChips"></div>
@@ -487,7 +861,7 @@
     <div id="drinkLog"></div>
   </section>
 
-  <section class="panel" data-mode="food" hidden>
+  <section data-tab="prehrana" hidden class="panel">
     <h2>Prehranska dopolnila</h2>
     <div class="ai-row" style="margin:0 0 16px;">
       <label class="export-btn" for="suppPhotoInput">Slikaj etiketo dopolnila</label>
@@ -518,7 +892,9 @@
     <div id="suppLog"></div>
   </section>
 
-  <section class="panel drive-panel" data-mode="train">
+  <header class="screen-head" data-tab="zdravje" hidden><h1>Zdravje</h1></header>
+
+  <section data-tab="zdravje" hidden class="panel drive-panel">
     <div class="drive-row">
       <div>
         <h2 style="margin:0 0 4px;">Oura Ring</h2>
@@ -533,51 +909,7 @@
     <div class="oura-table" id="ouraTable"></div>
   </section>
 
-  <section class="panel" data-mode="train">
-    <h2>Nov trening</h2>
-    <div class="meta-row">
-      <div class="field">
-        <label for="sessDate">Datum</label>
-        <input type="date" id="sessDate">
-      </div>
-      <div class="field">
-        <label for="sessTitle">Naslov (npr. Četrtek popoldan)</label>
-        <input type="text" id="sessTitle" placeholder="Četrtek popoldan">
-      </div>
-    </div>
-
-    <label for="lineText" style="display:block; margin-bottom:6px;">Napiši sete (vsaka vrstica = en set — Enter za novo vrstico)</label>
-    <div class="compose-row">
-      <textarea id="lineText" placeholder="400 ogr.&#10;2 x 300 (50h + 100k DIH3 + 50h + 100k DIH5)&#10;30 x 50 kravl" rows="4"></textarea>
-      <button class="add-btn" id="addLineBtn">Dodaj vse vrstice</button>
-    </div>
-
-    <label style="display:block; margin:14px 0 8px;">Hitro vstavi</label>
-    <div class="chips" id="chips"></div>
-    <div class="add-word-row" style="margin-bottom:0;">
-      <input type="text" id="newWordInput" placeholder="nova beseda …" maxlength="30">
-      <button type="button" class="export-btn" id="addWordBtn">Dodaj besedo</button>
-    </div>
-
-    <div class="live-preview" id="livePreview"></div>
-    <div class="hint">Vsaka vrstica se doda kot svoj set. Metri se poskusijo prepoznati sami (npr. "30 x 50" → 1500, "400 ogr." → 400) — če kje ugane narobe, jih popraviš kar v seznamu spodaj, klikni na številko.</div>
-
-    <div class="lines-list" id="linesList"></div>
-
-    <div class="total-bar">
-      <div>
-        <div class="lbl">skupaj ta trening</div>
-        <div class="big" id="sessionTotal">0.0 km</div>
-      </div>
-    </div>
-
-    <div class="save-row">
-      <button class="save-btn" id="saveBtn">Shrani trening</button>
-      <button class="clear-btn" id="clearBtn">Počisti</button>
-    </div>
-  </section>
-
-  <section class="panel" data-mode="train">
+  <section data-tab="zdravje" hidden class="panel">
     <h2>Telesna masa</h2>
     <div class="weight-row">
       <div class="field"><label for="weightDate">Datum</label><input type="date" id="weightDate"></div>
@@ -588,24 +920,72 @@
     <div id="weightList"></div>
   </section>
 
-  <section class="panel" data-mode="train">
-    <h2>Pregled</h2>
-    <div class="stats">
-      <div class="stat"><div class="num" id="statSessions">—</div><div class="lbl">treningov</div></div>
-      <div class="stat"><div class="num" id="statWeekKm">—</div><div class="lbl">km ta teden</div></div>
-      <div class="stat"><div class="num" id="statTotalKm">—</div><div class="lbl">km skupaj</div></div>
-      <div class="stat"><div class="num" id="statAvgKm">—</div><div class="lbl">povp. km / trening</div></div>
+  <h2 class="group-title" data-tab="zdravje" hidden>Povezave</h2>
+
+  <section data-tab="zdravje" hidden class="panel drive-panel">
+    <div class="drive-row">
+      <div>
+        <h2 style="margin:0 0 4px;">Google Drive varnostna kopija</h2>
+        <div class="drive-status" id="driveStatus">ni povezano</div>
+      </div>
+      <div class="drive-actions">
+        <button type="button" class="export-btn" id="driveSignInBtn">Prijava v Google</button>
+        <button type="button" class="export-btn" id="driveSyncBtn" style="display:none;">Sinhroniziraj zdaj</button>
+        <button type="button" class="export-btn" id="driveRestoreBtn" style="display:none;">Obnovi iz Drive</button>
+      </div>
     </div>
   </section>
 
-  <section class="panel" data-mode="train">
-    <div class="table-head">
-      <h2 style="margin:0;">Zgodovina treningov</h2>
-      <button class="export-btn" id="exportBtn">Izvozi / deli CSV</button>
+  <section data-tab="zdravje" hidden class="panel drive-panel">
+    <div class="drive-row">
+      <div>
+        <h2 style="margin:0 0 4px;">AI analiza</h2>
+        <div class="drive-status" id="aiAccessStatus"></div>
+      </div>
+      <div class="drive-actions">
+        <button type="button" class="export-btn" id="aiPassEditBtn">Vpiši geslo</button>
+        <button type="button" class="export-btn" id="aiPassForgetBtn">Pozabi geslo</button>
+      </div>
     </div>
-    <p class="hint" style="margin:0 0 14px;">Na iPhonu ta gumb odpre sistemsko okno "Deli" — od tam izberi Google Drive (ali Datoteke), da shraniš izvoz kot varnostno kopijo.</p>
-    <div id="historyList"><div class="empty">Nalagam …</div></div>
+    <form class="ai-pass-form" id="aiPassForm" autocomplete="off" hidden>
+      <input type="password" id="aiPassInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AI geslo (APP_PASSCODE)" aria-label="AI geslo">
+      <label class="check"><input type="checkbox" id="aiPassShow"> Pokaži geslo</label>
+      <button type="submit" class="add-btn">Shrani geslo</button>
+    </form>
   </section>
+</div>
+
+
+<button type="button" class="fab" data-tab="danes" hidden data-go="trening" aria-label="Nov trening">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<nav class="tabbar" aria-label="Glavna navigacija">
+  <button type="button" data-nav="danes"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Danes</button>
+  <button type="button" data-nav="trening"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 16c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/></svg>Trening</button>
+  <button type="button" data-nav="zgodovina"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Zgodovina</button>
+  <button type="button" data-nav="prehrana"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a2 2 0 0 0 2 2v9M4 3v5M8 3v5M17 3c-2 0-3 3-3 6s1 4 3 4v8"/></svg>Prehrana</button>
+  <button type="button" data-nav="zdravje"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>Zdravje</button>
+</nav>
+
+<div class="sheet-backdrop" id="tplSheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Predloge">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head"><span class="d">Predloge</span><button type="button" class="link-btn" data-close-sheet>Zapri</button></div>
+    <span class="muted-sm">Tapni, da doda vse sete na konec treninga.</span>
+    <div class="stack" id="tplList"></div>
+    <button type="button" class="dashed-btn" id="tplSaveBtn">+ Shrani trenutni trening kot predlogo</button>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="scSheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Uredi bližnjice">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head"><span class="d">Uredi bližnjice</span><button type="button" class="add-btn" data-close-sheet>Končano</button></div>
+    <span class="muted-sm">× odstrani gumb, ‹ ga premakne bolj levo. Številke se razvrstijo same. Spremembe se shranijo in sinhronizirajo z Drive.</span>
+    <div id="scGroups" class="stack"></div>
+    <button type="button" class="clear-btn" id="scReset">Ponastavi na privzete</button>
+  </div>
 </div>
 
 <script>
@@ -666,6 +1046,12 @@ function setDriveStatus(text, cls) {
   const el = document.getElementById('driveStatus');
   el.textContent = text;
   el.className = 'drive-status' + (cls ? ' ' + cls : '');
+  const chip = document.getElementById('todayDriveBtn');
+  if (chip) {
+    chip.className = 'pill-btn' + (cls ? ' ' + cls : '');
+    chip.setAttribute('aria-label', 'Google Drive: ' + text);
+    chip.title = 'Google Drive: ' + text;
+  }
 }
 
 function initDrive() {
@@ -790,7 +1176,7 @@ async function driveSyncNow() {
   if (!driveAccessToken) return;
   setDriveStatus('sinhroniziram …', 'syncing');
   try {
-    const payload = { workouts: sessions, words: quickWords, oura: ouraDays, meals: meals, supplements: supplements, supplementList: supplementList, drinks: drinks, drinkTypes: drinkTypes, weights: weights, savedAt: Date.now() };
+    const payload = { workouts: sessions, words: quickWords, oura: ouraDays, meals: meals, supplements: supplements, supplementList: supplementList, drinks: drinks, drinkTypes: drinkTypes, weights: weights, shortcuts: shortcuts, templates: templates, weekGoal: weekGoalKm, savedAt: Date.now() };
     const fileId = localStorage.getItem(LS_DRIVE_FILE_ID);
     if (!fileId && await driveLookupFileId()) {
       // A backup from another device exists. Never overwrite it with this
@@ -874,11 +1260,11 @@ function xlsxSheets() {
   const workouts = [[
     'Datum', 'Naslov', 'Metri', 'Km', 'Število setov',
     'Ocena spanja', 'Pripravljenost', 'Spanje (min)', 'HRV (ms)',
-    'Utrip noč povp.', 'Utrip noč najn.', 'Mirovni utrip'
+    'Utrip noč povp.', 'Utrip noč najn.', 'Mirovni utrip', 'Bazen (m)'
   ]].concat(byDate.map((s) => [
     s.date, s.title, s.totalMeters, s.totalMeters / 1000, (s.lines || []).length,
     o(s.date).sleep_score, o(s.date).readiness_score, o(s.date).total_sleep_duration_min, o(s.date).avg_hrv_overnight,
-    o(s.date).avg_hr_overnight, o(s.date).lowest_hr_overnight, o(s.date).resting_heart_rate
+    o(s.date).avg_hr_overnight, o(s.date).lowest_hr_overnight, o(s.date).resting_heart_rate, s.pool || null
   ]));
   const sets = [['Datum', 'Naslov', 'Set', 'Metri']];
   byDate.forEach((s) => (s.lines || []).forEach((l) => sets.push([s.date, s.title, l.text, l.meters])));
@@ -922,7 +1308,7 @@ function xlsxSheets() {
     }));
   return [
     { name: 'Dnevni pregled', rows: daily, widths: [12, 9, 7, 12, 10, 8, 10, 10, 30, 10, 10, 9, 10] },
-    { name: 'Treningi', rows: workouts, widths: [12, 24, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9] },
+    { name: 'Treningi', rows: workouts, widths: [12, 24, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9] },
     { name: 'Seti', rows: sets, widths: [12, 24, 50, 9] },
     { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 10, 7, 10, 8, 10, 10, 11, 50] },
     { name: 'Dopolnila', rows: supps, widths: [12, 7, 26, 10, 12, 70] },
@@ -1059,7 +1445,11 @@ document.getElementById('driveRestoreBtn').addEventListener('click', async () =>
     const res = await driveApiFetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media');
     const data = await res.json();
     if (Array.isArray(data.workouts)) { sessions = data.workouts; persistSessions(); renderHistory(); }
-    if (Array.isArray(data.words)) { quickWords = data.words; persistWords(); renderChips(); }
+    if (Array.isArray(data.words)) { quickWords = data.words; persistWords(); }
+    if (data.shortcuts && Array.isArray(data.shortcuts.tags)) { shortcuts = data.shortcuts; persistShortcuts(); }
+    if (Array.isArray(data.templates)) { templates = data.templates; persistTemplates(); }
+    if (Number(data.weekGoal) > 0) { weekGoalKm = Number(data.weekGoal); persistWeekGoal(); }
+    renderTraining(); renderToday();
     if (Array.isArray(data.meals)) { meals = data.meals; persistMeals(); }
     if (Array.isArray(data.drinks)) { drinks = data.drinks; }
     if (Array.isArray(data.drinkTypes)) { drinkTypes = data.drinkTypes; }
@@ -1447,7 +1837,7 @@ async function initOura() {
 const LS_MEALS = 'kilometrina.meals';
 const LS_SUPPS = 'kilometrina.supplements';
 const LS_SUPP_LIST = 'kilometrina.supplementList';
-const LS_MODE = 'kilometrina.mode';
+const LS_MODE = 'kilometrina.mode'; // old Treningi/Prehrana switch — only read once to pick the first tab
 const LS_AI_PASSCODE = 'kilometrina.aiPasscode';
 const MEAL_TYPES = [['zajtrk', 'Zajtrk'], ['kosilo', 'Kosilo'], ['vecerja', 'Večerja'], ['prigrizek', 'Prigrizek']];
 const ANALYSIS_WIDTH = 1024, ANALYSIS_QUALITY = 0.7; // enough for recognition, few tokens
@@ -1473,18 +1863,6 @@ const newId = (prefix) => prefix + '-' + Date.now() + '-' + Math.random().toStri
 
 function persistMeals() { lsSet(LS_MEALS, meals); scheduleDriveSync(); }
 function persistSupps() { lsSet(LS_SUPPS, supplements); lsSet(LS_SUPP_LIST, supplementList); scheduleDriveSync(); }
-
-// ---------- mode switch ----------
-function setMode(mode) {
-  document.querySelectorAll('[data-mode]').forEach((el) => { el.hidden = el.dataset.mode !== mode; });
-  document.querySelectorAll('[data-mode-btn]').forEach((b) => {
-    const on = b.dataset.modeBtn === mode;
-    b.classList.toggle('active', on);
-    b.setAttribute('aria-selected', on ? 'true' : 'false');
-  });
-  lsSet(LS_MODE, mode);
-}
-document.querySelectorAll('[data-mode-btn]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.modeBtn)));
 
 // ---------- photos: IndexedDB ----------
 function photoDb() {
@@ -1675,13 +2053,13 @@ const CONFIDENCE_TEXT = { high: 'zanesljiva ocena', medium: 'srednje zanesljiva 
 async function aiRequest(path, payload) {
   if (!driveAccessToken) {
     renderAiAccess();
-    throw new Error('za AI analizo se najprej prijavi v Google');
+    throw new Error('za AI analizo se najprej prijavi v Google (Zdravje → Povezave)');
   }
   const code = savedPasscode();
   if (!code) {
     renderAiAccess();
     showPassForm();
-    throw new Error('najprej vpiši AI geslo (razdelek AI analiza zgoraj)');
+    throw new Error('najprej vpiši AI geslo (Zdravje → AI analiza)');
   }
   const res = await fetch(OURA_WORKER_URL + path, {
     method: 'POST',
@@ -2264,7 +2642,6 @@ function initFood() {
   resetMealForm();
   renderSuppChips();
   renderFood();
-  setMode(lsGet(LS_MODE, 'train') === 'food' ? 'food' : 'train');
 }
 // ============================================================
 
@@ -2322,153 +2699,17 @@ function renderWeights() {
 }
 // ============================================================
 
-let quickWords = lsGet(LS_WORDS, [...DEFAULT_WORDS]);
-let currentLines = []; // {text, meters}
+let quickWords = lsGet(LS_WORDS, [...DEFAULT_WORDS]); // kept and synced; its words live on as training tags
 let sessions = lsGet(LS_WORKOUTS, []);
-let activeInput = null;
-
-const sessDate = document.getElementById('sessDate');
-sessDate.value = localDay(new Date());
-const sessTitle = document.getElementById('sessTitle');
-const lineText = document.getElementById('lineText');
-
-document.querySelectorAll('input, textarea').forEach(el => {
-  el.addEventListener('focus', () => { activeInput = el; });
-});
-
-// ---------- distance auto-parse ----------
-function parseMeters(text) {
-  const t = text.trim();
-  const xMatch = t.match(/^(\d+)\s*[x×]\s*(\d+)/i);
-  if (xMatch) return Number(xMatch[1]) * Number(xMatch[2]);
-  const numMatch = t.match(/^(\d+)/);
-  if (numMatch) return Number(numMatch[1]);
-  return 0;
-}
-
-function updateLivePreview() {
-  const el = document.getElementById('livePreview');
-  const raw = lineText.value.split('\n').map(s => s.trim()).filter(Boolean);
-  if (!raw.length) {
-    el.textContent = '';
-    el.classList.remove('empty-state');
-    return;
-  }
-  const m = raw.reduce((s, t) => s + parseMeters(t), 0);
-  const word = raw.length === 1 ? 'vrstica' : (raw.length < 5 ? 'vrstice' : 'vrstic');
-  el.textContent = `zaznano: ${raw.length} ${word} · ${m} m (${(m/1000).toFixed(2)} km) — po dodajanju: skupaj ${(( currentLines.reduce((s,l)=>s+l.meters,0) + m)/1000).toFixed(1)} km`;
-  el.classList.remove('empty-state');
-}
-lineText.addEventListener('input', updateLivePreview);
-
-// ---------- quick words / chips ----------
-function renderChips() {
-  const wrap = document.getElementById('chips');
-  wrap.innerHTML = '';
-  quickWords.forEach((w, i) => {
-    const chip = document.createElement('span');
-    chip.className = 'chip';
-    const label = document.createElement('button');
-    label.type = 'button';
-    label.className = 'chip-label';
-    label.textContent = w;
-    label.addEventListener('click', () => insertWord(w));
-    const del = document.createElement('button');
-    del.type = 'button';
-    del.className = 'chip-del';
-    del.textContent = '✕';
-    del.setAttribute('aria-label', 'Odstrani besedo ' + w);
-    del.addEventListener('click', (e) => { e.stopPropagation(); removeWord(i); });
-    chip.appendChild(label);
-    chip.appendChild(del);
-    wrap.appendChild(chip);
-  });
-}
 
 function persistWords() {
   lsSet(LS_WORDS, quickWords);
   scheduleDriveSync();
 }
 
-function insertWord(word) {
-  const target = lineText;
-  const start = target.selectionStart ?? target.value.length;
-  const end = target.selectionEnd ?? target.value.length;
-  const before = target.value.slice(0, start);
-  const after = target.value.slice(end);
-  const needsSpaceBefore = before.length && !/\s$/.test(before);
-  const insert = (needsSpaceBefore ? ' ' : '') + word + ' ';
-  target.value = before + insert + after;
-  const pos = (before + insert).length;
-  target.focus();
-  target.setSelectionRange(pos, pos);
-}
-
-function addWord(word) {
-  try {
-    const w = (word ?? '').trim();
-    if (!w) return;
-    if (quickWords.includes(w)) return;
-    quickWords.push(w);
-    renderChips();
-    persistWords();
-  } catch (e) { showError('dodajanje besede ni uspelo (' + (e.message || e) + ')'); }
-}
-
-const newWordInput = document.getElementById('newWordInput');
-document.getElementById('addWordBtn').addEventListener('click', () => {
-  addWord(newWordInput.value);
-  newWordInput.value = '';
-  newWordInput.focus();
-});
-newWordInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    document.getElementById('addWordBtn').click();
-  }
-});
-
-function removeWord(index) {
-  try {
-    quickWords.splice(index, 1);
-    renderChips();
-    persistWords();
-  } catch (e) { showError('brisanje besede ni uspelo (' + (e.message || e) + ')'); }
-}
-
-// ---------- current session lines ----------
-function renderLines() {
-  const wrap = document.getElementById('linesList');
-  if (!currentLines.length) {
-    wrap.innerHTML = '';
-  } else {
-    let cum = 0;
-    wrap.innerHTML = currentLines.map((l, i) => {
-      cum += l.meters;
-      return `
-        <div class="line-row">
-          <div class="txt">${escapeHtml(l.text)}</div>
-          <input class="m-edit" type="number" min="0" step="25" data-i="${i}" value="${l.meters}">
-          <div class="cum">${(cum/1000).toFixed(1)}</div>
-          <button class="del" data-i="${i}" aria-label="Izbriši vrstico">✕</button>
-        </div>`;
-    }).join('');
-    wrap.querySelectorAll('.del').forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentLines.splice(Number(btn.dataset.i), 1);
-        renderLines();
-      });
-    });
-    wrap.querySelectorAll('.m-edit').forEach(inp => {
-      inp.addEventListener('change', () => {
-        currentLines[Number(inp.dataset.i)].meters = Number(inp.value) || 0;
-        renderLines();
-      });
-    });
-  }
-  const total = currentLines.reduce((s, l) => s + l.meters, 0);
-  document.getElementById('sessionTotal').textContent = (total/1000).toFixed(1) + ' km';
-  updateLivePreview();
+function persistSessions() {
+  lsSet(LS_WORKOUTS, sessions);
+  scheduleDriveSync();
 }
 
 function escapeHtml(s) {
@@ -2477,139 +2718,863 @@ function escapeHtml(s) {
   return d.innerHTML;
 }
 
-document.getElementById('addLineBtn').addEventListener('click', () => {
-  const rawLines = lineText.value.split('\n').map(s => s.trim()).filter(Boolean);
-  if (!rawLines.length) return;
-  rawLines.forEach(t => currentLines.push({ text: t, meters: parseMeters(t) }));
-  lineText.value = '';
-  lineText.focus();
-  renderLines();
-});
-lineText.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-    e.preventDefault();
-    document.getElementById('addLineBtn').click();
-  }
+// Slovenian number format: 1.500 m, 72,4 kg.
+const fmtInt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const fmtKm = (m, digits) => (m / 1000).toLocaleString('sl-SI', { minimumFractionDigits: digits ?? 1, maximumFractionDigits: digits ?? 1 });
+const WEEKDAY_SHORT = ['NED', 'PON', 'TOR', 'SRE', 'ČET', 'PET', 'SOB'];
+const WEEKDAY_LETTER = ['N', 'P', 'T', 'S', 'Č', 'P', 'S'];
+const dayDate = (key) => new Date(key + 'T00:00:00');
+const addDays = (key, n) => { const d = dayDate(key); d.setDate(d.getDate() + n); return localDay(d); };
+function mondayOf(key) {
+  const d = dayDate(key);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return localDay(d);
+}
+/** 1 set, 2 seta, 3 seti, 5 setov */
+function plural(n, one, two, few, many) {
+  const t = Math.abs(n) % 100;
+  return n + ' ' + (t === 1 ? one : t === 2 ? two : t === 3 || t === 4 ? few : many);
+}
+const setsWord = (n) => plural(n, 'set', 'seta', 'seti', 'setov');
+const sortSessions = () => sessions.sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt || 0) - (a.createdAt || 0));
+
+// ============================================================
+// NAVIGACIJA — bottom tab bar (replaces the old Treningi & Oura / Prehrana switch)
+// ============================================================
+const LS_TAB = 'kilometrina.tab';
+const TABS = ['danes', 'trening', 'zgodovina', 'prehrana', 'zdravje'];
+
+function setTab(tab) {
+  if (TABS.indexOf(tab) === -1) tab = 'danes';
+  document.body.dataset.tab = tab;
+  document.querySelectorAll('[data-tab]').forEach((el) => { el.hidden = el.dataset.tab !== tab; });
+  document.querySelectorAll('[data-nav]').forEach((b) => {
+    if (b.dataset.nav === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  lsSet(LS_TAB, tab);
+  if (tab === 'danes') renderToday();
+  if (tab === 'trening') renderTraining();
+  window.scrollTo(0, 0);
+}
+function initialTab() {
+  const saved = lsGet(LS_TAB, null);
+  if (saved) return saved;
+  const oldMode = lsGet(LS_MODE, null); // before the tab bar: 'food' / 'train'
+  return oldMode === 'food' ? 'prehrana' : oldMode === 'train' ? 'trening' : 'danes';
+}
+document.addEventListener('click', (e) => {
+  const nav = e.target.closest('[data-nav]');
+  if (nav) { setTab(nav.dataset.nav); return; }
+  const go = e.target.closest('[data-go]');
+  if (go) setTab(go.dataset.go);
 });
 
-const clearBtn = document.getElementById('clearBtn');
-let clearArmed = false;
-let clearArmedTimeout = null;
-clearBtn.addEventListener('click', () => {
-  if (!currentLines.length) return;
-  if (!clearArmed) {
-    clearArmed = true;
-    clearBtn.textContent = 'Res počisti?';
-    clearArmedTimeout = setTimeout(() => {
-      clearArmed = false;
-      clearBtn.textContent = 'Počisti';
-    }, 3000);
+// ============================================================
+// TRENING — plavalni trening: seti z gumbi ali s tipkanjem
+// A set keeps the old shape {text, meters} (so CSV, xlsx and old history
+// keep working) plus optional {reps, dist, stroke, tags, note}.
+// ============================================================
+const LS_SHORTCUTS = 'kilometrina.shortcuts';
+const LS_TEMPLATES = 'kilometrina.templates';
+const LS_TR_DRAFT = 'kilometrina.trainingDraft'; // unsaved training on this device only
+const STROKES = [['kravl', 'Kravl'], ['hrbtno', 'Hrbtno'], ['prsno', 'Prsno'], ['delfin', 'Delfin'], ['mešana', 'Mešana']];
+const STROKE_WORDS = ['kravl', 'hrbtno', 'prsno', 'delfin', 'mešana'];
+const DEFAULT_SHORTCUTS = {
+  reps: [1, 2, 4, 6, 8, 10, 12, 16, 20],
+  dists: [25, 50, 75, 100, 150, 200, 300, 400, 800],
+  tags: ['raz.', 'tempo', 'C.T.', 'max.', 'noge', 'roke', 'šnorkel', 'plavutke', 'DIH', 'tehnika'],
+  intervals: ['na 0:50', 'na 1:00', 'na 1:20', 'na 1:30', 'na 1:45', 'na 2:00']
+};
+const DEFAULT_TEMPLATES = [
+  { name: 'Standardno ogrevanje', sets: [{ reps: 1, dist: 400, stroke: 'mešana', tags: ['raz.'] }, { reps: 4, dist: 50, stroke: 'kravl', tags: ['noge', 'šnorkel'] }, { reps: 4, dist: 50, stroke: 'kravl', tags: ['tehnika'] }] },
+  { name: 'Aerobni 30 × 50', sets: [{ reps: 30, dist: 50, stroke: 'kravl', tags: ['C.T.', 'na 0:50'] }] },
+  { name: 'Prsno tempo', sets: [{ reps: 8, dist: 100, stroke: 'prsno', tags: ['tempo', 'na 1:45'] }] },
+  { name: 'Mešana 10 × 100', sets: [{ reps: 10, dist: 100, stroke: 'mešana', tags: ['na 1:40'] }] },
+  { name: 'Iztek', sets: [{ reps: 1, dist: 200, stroke: 'hrbtno', tags: ['raz.'] }] }
+];
+const cloneJson = (x) => JSON.parse(JSON.stringify(x));
+
+/** First run after the redesign: the old quick words become tags (strokes have their own buttons). */
+function defaultShortcuts() {
+  const sc = cloneJson(DEFAULT_SHORTCUTS);
+  quickWords.forEach((w) => {
+    const word = String(w).trim();
+    if (!word || word === 'na' || word === '+' || STROKE_WORDS.indexOf(word.toLowerCase()) !== -1) return;
+    if (!sc.tags.some((t) => t.toLowerCase() === word.toLowerCase())) sc.tags.push(word);
+  });
+  return sc;
+}
+let shortcuts = lsGet(LS_SHORTCUTS, null) || defaultShortcuts();
+let templates = lsGet(LS_TEMPLATES, null) || cloneJson(DEFAULT_TEMPLATES);
+function persistShortcuts() { lsSet(LS_SHORTCUTS, shortcuts); scheduleDriveSync(); }
+function persistTemplates() { lsSet(LS_TEMPLATES, templates); scheduleDriveSync(); }
+
+const tagNorm = (t) => String(t).toLowerCase().replace(/\./g, '').trim();
+const isInterval = (t) => /^na \d{1,2}:\d{2}$/.test(t);
+
+function setLabel(s) { return s.reps > 1 ? s.reps + ' × ' + s.dist : String(s.dist); }
+/** The plain-text form stored with every set, e.g. "8 x 100 prsno tempo na 1:45". */
+function setText(s) {
+  return (s.reps > 1 ? s.reps + ' x ' + s.dist : String(s.dist)) + ' ' + s.stroke
+    + (s.tags.length ? ' ' + s.tags.join(' ') : '') + (s.note ? ' (' + s.note + ')' : '');
+}
+const setMeters = (s) => (s.legacy ? s.meters : s.reps * s.dist);
+
+/**
+ * One typed set: "8x100 p tempo na 1:45", "400 raz", "30 x 50 ct (DIH3)".
+ * Returns null when it doesn't start with a distance. Words that aren't a
+ * stroke, tag or interval are kept in the note, so nothing typed is lost.
+ */
+function parseLine(t) {
+  let reps = 1, dist = 0, rest = String(t).trim();
+  const m = rest.match(/^(\d+)\s*[x×*]\s*(\d+)\s*m?\b\s*(.*)$/i);
+  if (m) { reps = +m[1]; dist = +m[2]; rest = m[3]; }
+  else {
+    const m2 = rest.match(/^(\d+)\s*m?\b\s*(.*)$/i);
+    if (m2) { dist = +m2[1]; rest = m2[2]; }
+  }
+  if (!dist || !reps) return null;
+
+  let note = '';
+  const paren = rest.match(/\((.*)\)/);
+  if (paren) { note = paren[1].trim(); rest = rest.replace(paren[0], ' '); }
+
+  const tags = [];
+  const iv = rest.match(/\bna\s*(\d{1,2})[:.](\d{2})\b/i);
+  if (iv) { tags.push('na ' + (+iv[1]) + ':' + iv[2]); rest = rest.replace(iv[0], ' '); }
+
+  let stroke = null;
+  const leftovers = [];
+  const low = ' ' + rest.toLowerCase() + ' ';
+  // multi-word tags ("pull buoy") are matched on the whole text first
+  shortcuts.tags.filter((k) => /\s/.test(k)).forEach((k) => { if (low.indexOf(' ' + k.toLowerCase() + ' ') !== -1 && tags.indexOf(k) === -1) tags.push(k); });
+  rest.split(/\s+/).filter(Boolean).forEach((tok) => {
+    const n = tagNorm(tok);
+    if (!n) return;
+    const single = { k: 'kravl', h: 'hrbtno', p: 'prsno', d: 'delfin', m: 'mešana' }[n];
+    if (single) { stroke = single; return; }
+    const pre = [['hrbt', 'hrbtno'], ['prsn', 'prsno'], ['delf', 'delfin'], ['meš', 'mešana'], ['mes', 'mešana'], ['kravl', 'kravl'], ['prost', 'kravl']].find((p) => n.indexOf(p[0]) === 0);
+    if (pre) { stroke = pre[1]; return; }
+    const tag = shortcuts.tags.find((k) => tagNorm(k) === n);
+    if (tag) { if (tags.indexOf(tag) === -1) tags.push(tag); return; }
+    if (shortcuts.tags.some((k) => /\s/.test(k) && tagNorm(k).split(/\s+/).indexOf(n) !== -1)) return;
+    leftovers.push(tok);
+  });
+  if (leftovers.length) note = (leftovers.join(' ') + (note ? ' ' + note : '')).trim();
+  // strokeGiven: false when the text named no stroke and kravl is only assumed
+  return { reps: reps, dist: dist, stroke: stroke || 'kravl', tags: tags, note: note, strokeGiven: !!stroke };
+}
+
+/** A stored line back into an editable set; lines that don't parse cleanly stay as text. */
+function lineToSet(l) {
+  if (l.reps && l.dist && l.stroke) {
+    return { reps: l.reps, dist: l.dist, stroke: l.stroke, tags: (l.tags || []).slice(), note: l.note || '' };
+  }
+  // Old lines become structured only when that doesn't change what was written
+  // (same meters, stroke named); otherwise they stay as text, untouched.
+  const p = parseLine(l.text || '');
+  if (p && p.strokeGiven && p.reps * p.dist === l.meters) { delete p.strokeGiven; return p; }
+  return { legacy: true, text: l.text || '', meters: Number(l.meters) || 0 };
+}
+
+function defaultPool() {
+  const last = sessions.find((w) => w.pool);
+  return last ? last.pool : 25;
+}
+function suggestTitle(dateKey) {
+  const names = ['Nedelja', 'Ponedeljek', 'Torek', 'Sreda', 'Četrtek', 'Petek', 'Sobota'];
+  const h = new Date().getHours();
+  return names[dayDate(dateKey).getDay()] + (h < 12 ? ' dopoldne' : ' popoldne');
+}
+
+let trNextId = 1;
+const withId = (s) => { const c = Object.assign({ tags: [], note: '' }, cloneJson(s), { id: trNextId++ }); delete c.strokeGiven; return c; };
+function freshTraining() {
+  return {
+    editId: null, title: '', date: localDay(new Date()), pool: defaultPool(), kind: 'swim',
+    sets: [], open: null, mode: 'keys', draft: '',
+    b: { reps: 8, dist: 100, stroke: 'kravl', tags: [] },
+    undo: [], toast: '', err: '', justSaved: false
+  };
+}
+let tr = freshTraining();
+(function restoreDraft() {
+  const d = lsGet(LS_TR_DRAFT, null);
+  if (!d || !Array.isArray(d.sets)) return;
+  tr = Object.assign(freshTraining(), d, { open: null, undo: [], toast: '', err: '', justSaved: false });
+  tr.sets = tr.sets.map(withId);
+})();
+function saveDraft() {
+  const keep = { editId: tr.editId, title: tr.title, date: tr.date, pool: tr.pool, kind: tr.kind, mode: tr.mode, b: tr.b, sets: tr.sets };
+  if (!tr.sets.length && !tr.title && !tr.editId) { try { localStorage.removeItem(LS_TR_DRAFT); } catch (e) {} return; }
+  try { localStorage.setItem(LS_TR_DRAFT, JSON.stringify(keep)); } catch (e) {}
+}
+
+/** Every change to the list of sets goes through here: undo, draft, redraw. */
+function changeSets(newSets, extra) {
+  tr.undo = tr.undo.concat([cloneJson(tr.sets)]).slice(-20);
+  tr.sets = newSets;
+  tr.justSaved = false;
+  Object.assign(tr, extra || {});
+  saveDraft();
+  renderTraining();
+}
+function patchSet(id, patch) {
+  changeSets(tr.sets.map((x) => (x.id === id ? Object.assign({}, x, patch) : x)));
+}
+function flash(msg) {
+  tr.toast = msg;
+  renderTrHint();
+  clearTimeout(flash.t);
+  flash.t = setTimeout(() => { tr.toast = ''; renderTrHint(); }, 3500);
+}
+
+const okDist = (d) => d > 0 && d % tr.pool === 0;
+function btn(label, cls, onClick, attrs) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = cls;
+  b.textContent = label;
+  Object.keys(attrs || {}).forEach((k) => { if (attrs[k] !== undefined && attrs[k] !== false) b.setAttribute(k, attrs[k] === true ? '' : attrs[k]); });
+  if (onClick) b.addEventListener('click', onClick);
+  return b;
+}
+function toggleTag(list, t) {
+  if (list.indexOf(t) !== -1) return list.filter((x) => x !== t);
+  // one interval per set
+  return list.filter((x) => !(isInterval(t) && isInterval(x))).concat(t);
+}
+
+function renderTraining() {
+  const total = tr.sets.reduce((a, s) => a + setMeters(s), 0);
+  const title = document.getElementById('trTitle');
+  if (document.activeElement !== title) title.value = tr.title;
+  title.placeholder = suggestTitle(tr.date);
+  document.getElementById('trDate').value = tr.date;
+  document.getElementById('trTotal').textContent = fmtInt(total) + ' m';
+  document.getElementById('trSummary').textContent = setsWord(tr.sets.length) + ' · ' + plural(Math.round(total / tr.pool), 'dolžina', 'dolžini', 'dolžine', 'dolžin');
+  const save = document.getElementById('trSaveBtn');
+  save.disabled = !tr.sets.length && !tr.justSaved;
+  save.textContent = tr.justSaved ? 'Shranjeno ✓' : 'Shrani';
+  save.classList.toggle('done', tr.justSaved);
+  document.getElementById('trEditing').hidden = !tr.editId;
+
+  document.querySelectorAll('#trKinds [data-kind]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.kind === tr.kind ? 'true' : 'false'));
+  const fitness = tr.kind === 'fitness';
+  const onTraining = document.body.dataset.tab === 'trening';
+  document.getElementById('trFitness').hidden = !onTraining || !fitness;
+  document.getElementById('trSwim').hidden = !onTraining || fitness;
+
+  const pools = document.getElementById('trPools');
+  pools.innerHTML = '';
+  [25, 50].forEach((p) => pools.appendChild(btn(p + ' m', '', () => { tr.pool = p; tr.justSaved = false; saveDraft(); renderTraining(); }, { 'aria-pressed': tr.pool === p ? 'true' : 'false', 'aria-label': 'bazen ' + p + ' m', title: 'bazen ' + p + ' m' })));
+
+  document.getElementById('trRepeat').disabled = !tr.sets.length;
+  document.getElementById('trUndo').hidden = !tr.undo.length;
+  renderSetList();
+  renderTrInput();
+}
+
+function renderSetList() {
+  const list = document.getElementById('trSets');
+  list.innerHTML = '';
+  if (!tr.sets.length) {
+    list.innerHTML = '<div class="empty-card">Še ni setov.<br>Tapni ponovitve in razdaljo spodaj, izberi <b>Predloge</b> ali <b>Kot prejšnji</b>.</div>';
     return;
   }
-  clearTimeout(clearArmedTimeout);
-  clearArmed = false;
-  clearBtn.textContent = 'Počisti';
-  currentLines = [];
-  lineText.value = '';
-  renderLines();
-});
-
-function persistSessions() {
-  lsSet(LS_WORKOUTS, sessions);
-  scheduleDriveSync();
+  tr.sets.forEach((s, i) => {
+    const open = tr.open === s.id;
+    const bad = !s.legacy && !okDist(s.dist);
+    const card = document.createElement('div');
+    card.className = 'set-card' + (open ? ' open' : '') + (bad ? ' bad' : '');
+    const row = document.createElement('div');
+    row.className = 'set-row';
+    const main = document.createElement('button');
+    main.type = 'button';
+    main.className = 'set-main';
+    main.setAttribute('aria-expanded', open ? 'true' : 'false');
+    const desc = s.legacy ? 'prej vpisan kot besedilo'
+      : [s.stroke].concat(s.tags).join(' · ') + (s.note ? ' — ' + s.note : '');
+    main.innerHTML = '<span class="set-num">' + (i + 1) + '</span><span class="set-txt"><span class="set-label">'
+      + escapeHtml(s.legacy ? s.text : setLabel(s)) + '</span><span class="set-desc">' + escapeHtml(desc)
+      + (bad ? '<span class="bad"> · ni deljivo z ' + tr.pool + ' m</span>' : '') + '</span></span><span class="set-m">' + fmtInt(setMeters(s)) + '</span>';
+    main.addEventListener('click', () => { tr.open = tr.open === s.id ? null : s.id; renderTraining(); });
+    row.appendChild(main);
+    if (!s.legacy) {
+      row.appendChild(btn('−', 'step-btn', () => patchSet(s.id, { reps: Math.max(1, s.reps - 1) }), { 'aria-label': 'Manj ponovitev' }));
+      row.appendChild(btn('+', 'step-btn', () => patchSet(s.id, { reps: s.reps + 1 }), { 'aria-label': 'Več ponovitev' }));
+    }
+    card.appendChild(row);
+    if (open) card.appendChild(renderSetEditor(s, i));
+    list.appendChild(card);
+  });
 }
 
-document.getElementById('saveBtn').addEventListener('click', () => {
-  if (!currentLines.length) return;
-  const total = currentLines.reduce((s, l) => s + l.meters, 0);
-  const data = {
-    id: 'w-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
-    date: sessDate.value || localDay(new Date()),
-    title: sessTitle.value.trim() || 'Trening',
-    lines: currentLines,
-    totalMeters: total,
-    createdAt: Date.now()
-  };
-  const btn = document.getElementById('saveBtn');
+function renderSetEditor(s, i) {
+  const ed = document.createElement('div');
+  ed.className = 'set-edit';
+  if (s.legacy) {
+    const f = document.createElement('div');
+    f.className = 'legacy-fields';
+    const txt = document.createElement('input');
+    txt.value = s.text; txt.setAttribute('aria-label', 'Besedilo seta');
+    txt.addEventListener('change', () => patchSet(s.id, { text: txt.value }));
+    const mm = document.createElement('input');
+    mm.type = 'number'; mm.inputMode = 'numeric'; mm.value = s.meters; mm.setAttribute('aria-label', 'Metri');
+    mm.addEventListener('change', () => patchSet(s.id, { meters: Math.max(0, Math.round(Number(mm.value) || 0)) }));
+    f.appendChild(txt); f.appendChild(mm);
+    ed.appendChild(f);
+    const conv = parseLine(s.text);
+    if (conv) { delete conv.strokeGiven; ed.appendChild(btn('Pretvori v set: ' + setLabel(conv) + ' ' + conv.stroke, 'chip-btn round', () => patchSet(s.id, Object.assign({ legacy: false, text: undefined, meters: undefined }, conv)))); }
+  } else {
+    const dist = document.createElement('div');
+    dist.className = 'dist-row';
+    dist.innerHTML = '<span class="lbl">Razdalja</span>';
+    dist.appendChild(btn('−', '', () => patchSet(s.id, { dist: Math.max(tr.pool, s.dist - tr.pool) }), { 'aria-label': 'Krajše' }));
+    const v = document.createElement('span'); v.className = 'val'; v.textContent = fmtInt(s.dist) + ' m';
+    dist.appendChild(v);
+    dist.appendChild(btn('+', '', () => patchSet(s.id, { dist: s.dist + tr.pool }), { 'aria-label': 'Daljše' }));
+    ed.appendChild(dist);
+    const strokes = document.createElement('div');
+    strokes.className = 'stroke-grid';
+    STROKES.forEach(([k, label]) => strokes.appendChild(btn(label, 'chip-btn' + (s.stroke === k ? ' on' : ''), () => patchSet(s.id, { stroke: k }))));
+    ed.appendChild(strokes);
+    const tags = document.createElement('div');
+    tags.className = 'chip-wrap';
+    shortcuts.tags.concat(shortcuts.intervals).forEach((t) => {
+      tags.appendChild(btn(t, 'chip-btn round' + (s.tags.indexOf(t) !== -1 ? ' soft' : ''), () => patchSet(s.id, { tags: toggleTag(s.tags, t) })));
+    });
+    ed.appendChild(tags);
+    const note = document.createElement('input');
+    note.value = s.note || ''; note.placeholder = 'opomba, npr. 50h + 100k DIH3'; note.setAttribute('aria-label', 'Opomba');
+    note.addEventListener('change', () => patchSet(s.id, { note: note.value.trim() }));
+    ed.appendChild(note);
+  }
+  const acts = document.createElement('div');
+  acts.className = 'set-actions';
+  acts.appendChild(btn('↑ Gor', '', () => { if (i === 0) return; const a = tr.sets.slice(); a[i] = a[i - 1]; a[i - 1] = s; changeSets(a); }));
+  acts.appendChild(btn('↓ Dol', '', () => { if (i === tr.sets.length - 1) return; const a = tr.sets.slice(); a[i] = a[i + 1]; a[i + 1] = s; changeSets(a); }));
+  acts.appendChild(btn('Podvoji', '', () => { const a = tr.sets.slice(); const c = withId(s); a.splice(i + 1, 0, c); changeSets(a, { open: c.id }); }));
+  acts.appendChild(btn('Izbriši', 'danger', () => { changeSets(tr.sets.filter((x) => x.id !== s.id), { open: null }); flash('Set izbrisan — Razveljavi ga vrne'); }));
+  ed.appendChild(acts);
+  return ed;
+}
+
+function textPreview() {
+  const lines = (tr.draft || '').split(/;|\n/).map((x) => x.trim()).filter(Boolean);
+  if (!lines.length) return null;
+  const ps = lines.map(parseLine);
+  if (ps.some((p) => !p)) return { bad: true };
+  return { list: ps, m: ps.reduce((a, p) => a + p.reps * p.dist, 0) };
+}
+
+function renderTrHint() {
+  const hint = document.getElementById('trHint');
+  const keys = tr.mode === 'keys';
+  let text, cls = '';
+  if (tr.err) { text = tr.err; cls = 'err'; }
+  else if (tr.toast) { text = tr.toast; cls = 'ok'; }
+  else if (!keys) {
+    const pv = textPreview();
+    text = pv && !pv.bad ? 'Prepoznano: ' + pv.list.length + (pv.list.length === 1 ? ' set' : ' seti') + ' = ' + fmtInt(pv.m) + ' m' : 'Enter = dodaj';
+  } else text = 'ponovitve → razdalja → slog → Dodaj';
+  hint.textContent = text;
+  hint.className = 'tr-hint' + (cls ? ' ' + cls : '');
+}
+
+function renderTrInput() {
+  const keys = tr.mode === 'keys';
+  document.querySelectorAll('#trModes [data-mode-key]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.modeKey === tr.mode ? 'true' : 'false'));
+  document.getElementById('trKeys').hidden = !keys;
+  document.getElementById('trText').hidden = keys;
+  const b = tr.b;
+  const setB = (p) => { tr.b = Object.assign({}, tr.b, p); tr.err = ''; saveDraft(); renderTrInput(); };
+
+  const reps = document.getElementById('trRepChips');
+  reps.innerHTML = '';
+  shortcuts.reps.forEach((r) => reps.appendChild(btn(String(r), 'chip-btn big' + (b.reps === r ? ' on' : ''), () => setB({ reps: r }), { 'aria-label': r + ' ponovitev' })));
+  const dists = document.getElementById('trDistChips');
+  dists.innerHTML = '';
+  shortcuts.dists.forEach((d) => dists.appendChild(btn(String(d), 'chip-btn big' + (b.dist === d && okDist(d) ? ' on' : ''), () => setB({ dist: d }), { 'aria-label': d + ' metrov', disabled: !okDist(d) })));
+  const strokes = document.getElementById('trStrokeChips');
+  strokes.innerHTML = '';
+  STROKES.forEach(([k, label]) => strokes.appendChild(btn(label, 'chip-btn' + (b.stroke === k ? ' on' : ''), () => setB({ stroke: k }))));
+  const tags = document.getElementById('trTagChips');
+  tags.innerHTML = '';
+  shortcuts.tags.concat(shortcuts.intervals).forEach((t) => tags.appendChild(btn(t, 'chip-btn round' + (b.tags.indexOf(t) !== -1 ? ' soft' : ''), () => setB({ tags: toggleTag(b.tags, t) }))));
+
+  const draft = document.getElementById('trDraft');
+  if (document.activeElement !== draft) draft.value = tr.draft;
+  draft.classList.toggle('err', !!tr.err);
+
+  const add = document.getElementById('trAddBtn');
+  const label = document.getElementById('trAddLabel');
+  if (keys) {
+    const ok = okDist(b.dist);
+    add.disabled = !ok;
+    label.textContent = ok
+      ? 'Dodaj ' + (b.reps > 1 ? b.reps + ' × ' : '') + b.dist + ' ' + b.stroke + (b.tags.length ? ' · ' + b.tags.join(' ') : '') + '  =  ' + fmtInt(b.reps * b.dist) + ' m'
+      : (b.dist ? b.dist + ' m ne gre v ' + tr.pool + ' m bazen' : 'Izberi razdaljo');
+  } else {
+    const pv = textPreview();
+    add.disabled = !pv || pv.bad;
+    label.textContent = !pv ? 'Napiši set' : pv.bad ? 'Začni s številko, npr. 4x100 ali 400'
+      : pv.list.length > 1 ? 'Dodaj ' + pv.list.length + ' sete  =  ' + fmtInt(pv.m) + ' m'
+      : 'Dodaj ' + (pv.list[0].reps > 1 ? pv.list[0].reps + ' × ' : '') + pv.list[0].dist + ' ' + pv.list[0].stroke + '  =  ' + fmtInt(pv.m) + ' m';
+  }
+  renderTrHint();
+}
+
+function addFromInput() {
+  if (tr.mode === 'keys') {
+    const b = tr.b;
+    if (!okDist(b.dist)) return;
+    // the chosen buttons stay selected for the next set
+    changeSets(tr.sets.concat(withId({ reps: b.reps, dist: b.dist, stroke: b.stroke, tags: b.tags.slice(), note: '' })), { err: '' });
+  } else {
+    const pv = textPreview();
+    if (!pv) return;
+    if (pv.bad) { tr.err = 'Začni s številko, npr. 4x100 ali 400'; renderTrInput(); return; }
+    changeSets(tr.sets.concat(pv.list.map(withId)), { draft: '', err: '' });
+    document.getElementById('trDraft').value = '';
+    renderTrInput();
+  }
+}
+
+function appendSets(list, msg) {
+  if (!list.length) return;
+  changeSets(tr.sets.concat(list.map(withId)));
+  if (msg) flash(msg);
+}
+
+/** Load a saved workout into the editor (edit = same id, otherwise a new copy for today). */
+function loadWorkout(w, asEdit) {
+  if (tr.sets.length) tr.undo = tr.undo.concat([cloneJson(tr.sets)]).slice(-20);
+  tr.sets = (w.lines || []).map(lineToSet).map(withId);
+  tr.editId = asEdit ? w.id : null;
+  tr.title = asEdit ? (w.title || '') : (w.title || '');
+  tr.date = asEdit ? w.date : localDay(new Date());
+  tr.pool = w.pool || tr.pool;
+  tr.kind = 'swim';
+  tr.open = null;
+  tr.justSaved = false;
+  saveDraft();
+  setTab('trening');
+  flash(asEdit ? 'Uredi in tapni Shrani' : 'Podvojeno — uredi in shrani');
+}
+
+function saveTraining() {
+  if (!tr.sets.length) return;
+  const existing = tr.editId ? sessions.find((w) => w.id === tr.editId) : null;
+  const lines = tr.sets.map((s) => s.legacy
+    ? { text: s.text, meters: s.meters }
+    : { text: setText(s), meters: s.reps * s.dist, reps: s.reps, dist: s.dist, stroke: s.stroke, tags: s.tags.slice(), note: s.note || '' });
+  const workout = Object.assign({}, existing || {}, {
+    id: existing ? existing.id : 'w-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+    date: tr.date || localDay(new Date()),
+    title: tr.title.trim() || suggestTitle(tr.date),
+    lines: lines,
+    totalMeters: lines.reduce((a, l) => a + l.meters, 0),
+    createdAt: existing ? existing.createdAt : Date.now(),
+    pool: tr.pool,
+    kind: 'swim'
+  });
   try {
-    sessions.unshift(data);
-    sessions.sort((a,b) => b.date.localeCompare(a.date) || (b.createdAt||0)-(a.createdAt||0));
+    sessions = existing ? sessions.map((w) => (w.id === workout.id ? workout : w)) : [workout].concat(sessions);
+    sortSessions();
     persistSessions();
-    renderHistory();
-    currentLines = [];
-    sessTitle.value = '';
-    lineText.value = '';
-    renderLines();
   } catch (err) {
     showError('shranjevanje treninga ni uspelo (' + (err.message || err) + ')');
+    return;
   }
+  const keep = { pool: tr.pool, b: tr.b, mode: tr.mode };
+  tr = Object.assign(freshTraining(), keep, { justSaved: true });
+  saveDraft();
+  renderHistory();
+  renderToday();
+  renderTraining();
+  flash(driveAccessToken ? 'Shranjeno in sinhronizirano z Drive' : 'Shranjeno');
+  setTimeout(() => { tr.justSaved = false; renderTraining(); }, 2500);
+}
+
+// ---------- training: wiring ----------
+document.getElementById('trTitle').addEventListener('input', (e) => { tr.title = e.target.value; tr.justSaved = false; saveDraft(); });
+document.getElementById('trDate').addEventListener('change', (e) => { tr.date = e.target.value || localDay(new Date()); saveDraft(); renderTraining(); });
+document.getElementById('trSaveBtn').addEventListener('click', saveTraining);
+document.querySelectorAll('#trKinds [data-kind]').forEach((b) => b.addEventListener('click', () => { tr.kind = b.dataset.kind; saveDraft(); renderTraining(); }));
+document.getElementById('trBackToSwim').addEventListener('click', () => { tr.kind = 'swim'; saveDraft(); renderTraining(); });
+document.querySelectorAll('#trModes [data-mode-key]').forEach((b) => b.addEventListener('click', () => { tr.mode = b.dataset.modeKey; tr.err = ''; saveDraft(); renderTrInput(); }));
+document.getElementById('trAddBtn').addEventListener('click', addFromInput);
+const trDraft = document.getElementById('trDraft');
+trDraft.addEventListener('input', () => { tr.draft = trDraft.value; tr.err = ''; renderTrInput(); });
+trDraft.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addFromInput(); } });
+document.getElementById('trRepeat').addEventListener('click', () => { const l = tr.sets[tr.sets.length - 1]; if (l) changeSets(tr.sets.concat(withId(l))); });
+document.getElementById('trUndo').addEventListener('click', () => {
+  if (!tr.undo.length) return;
+  tr.sets = tr.undo[tr.undo.length - 1];
+  tr.undo = tr.undo.slice(0, -1);
+  tr.open = null;
+  saveDraft();
+  renderTraining();
+});
+document.getElementById('trCopyPrev').addEventListener('click', () => {
+  const prev = sessions.find((w) => w.id !== tr.editId && (w.lines || []).length);
+  if (!prev) { flash('Še ni prejšnjega treninga'); return; }
+  const d = dayDate(prev.date);
+  appendSets((prev.lines || []).map(lineToSet), 'Dodan trening od ' + WEEKDAY_SHORT[d.getDay()].toLowerCase() + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '.');
+});
+document.getElementById('trCancelEdit').addEventListener('click', () => {
+  const keep = { pool: tr.pool, b: tr.b, mode: tr.mode };
+  tr = Object.assign(freshTraining(), keep);
+  saveDraft();
+  renderTraining();
 });
 
-// ---------- history ----------
+// ---------- sheets: Predloge, Uredi bližnjice ----------
+function openSheet(id) { document.getElementById(id).hidden = false; }
+function closeSheets() { document.querySelectorAll('.sheet-backdrop').forEach((el) => { el.hidden = true; }); }
+document.querySelectorAll('.sheet-backdrop').forEach((bd) => bd.addEventListener('click', (e) => {
+  if (e.target === bd || e.target.closest('[data-close-sheet]')) { closeSheets(); renderTraining(); }
+}));
+
+function renderTemplates() {
+  const list = document.getElementById('tplList');
+  list.innerHTML = '';
+  if (!templates.length) list.innerHTML = '<div class="muted-sm">Ni shranjenih predlog.</div>';
+  templates.forEach((t, ti) => {
+    const row = document.createElement('div');
+    row.className = 'tpl-row';
+    const pick = document.createElement('button');
+    pick.type = 'button';
+    pick.className = 'tpl-pick';
+    const tot = t.sets.reduce((a, s) => a + s.reps * s.dist, 0);
+    pick.innerHTML = '<span class="n"><b>' + escapeHtml(t.name) + '</b><span>' + escapeHtml(t.sets.map((s) => (s.reps > 1 ? s.reps + '×' : '') + s.dist + ' ' + s.stroke).join(' + ')) + '</span></span><span class="m">' + fmtInt(tot) + '</span>';
+    pick.addEventListener('click', () => { closeSheets(); appendSets(t.sets, 'Dodana predloga: ' + t.name); });
+    const del = btn('✕', 'tpl-del', null, { 'aria-label': 'Izbriši predlogo ' + t.name });
+    del.addEventListener('click', () => armedDelete(del, () => { templates.splice(ti, 1); persistTemplates(); renderTemplates(); }));
+    row.appendChild(pick); row.appendChild(del);
+    list.appendChild(row);
+  });
+  document.getElementById('tplSaveBtn').disabled = !tr.sets.some((s) => !s.legacy);
+}
+document.getElementById('trTemplatesBtn').addEventListener('click', () => { renderTemplates(); openSheet('tplSheet'); });
+document.getElementById('tplSaveBtn').addEventListener('click', () => {
+  const sets = tr.sets.filter((s) => !s.legacy).map((s) => ({ reps: s.reps, dist: s.dist, stroke: s.stroke, tags: s.tags.slice(), note: s.note || '' }));
+  if (!sets.length) return;
+  templates.push({ name: tr.title.trim() || suggestTitle(tr.date), sets: sets });
+  persistTemplates();
+  renderTemplates();
+  flash('Shranjeno kot predloga');
+});
+
+const SC_GROUPS = [['reps', 'Ponovitve', 'npr. 5', 'numeric'], ['dists', 'Razdalje (m)', 'npr. 250', 'numeric'], ['tags', 'Oznake', 'npr. pull buoy', 'text'], ['intervals', 'Intervali', 'npr. 1:15', 'text']];
+function addShortcut(key, raw, showErr) {
+  raw = String(raw || '').trim();
+  if (!raw) return false;
+  let val = raw;
+  if (key === 'reps') { val = parseInt(raw, 10); if (!(val >= 1 && val <= 99)) return showErr('Vpiši število od 1 do 99'); }
+  if (key === 'dists') { val = parseInt(raw, 10); if (!(val >= 25 && val <= 5000) || val % 25 !== 0) return showErr('Razdalja mora biti deljiva s 25 (25–5000)'); }
+  if (key === 'intervals') { const m = raw.replace(/^na\s*/i, '').match(/^(\d{1,2})[:.](\d{2})$/); if (!m) return showErr('Oblika m:ss, npr. 1:15'); val = 'na ' + (+m[1]) + ':' + m[2]; }
+  if (key === 'tags' && raw.length > 14) return showErr('Največ 14 znakov');
+  if (shortcuts[key].indexOf(val) !== -1) return showErr('Ta gumb že obstaja');
+  let list = shortcuts[key].concat(val);
+  if (key === 'reps' || key === 'dists') list = list.sort((a, b) => a - b);
+  shortcuts[key] = list;
+  persistShortcuts();
+  return true;
+}
+function renderShortcutEditor() {
+  const wrap = document.getElementById('scGroups');
+  wrap.innerHTML = '';
+  SC_GROUPS.forEach(([key, title, ph, im]) => {
+    const g = document.createElement('section');
+    g.className = 'sc-group';
+    const numeric = key === 'reps' || key === 'dists';
+    g.innerHTML = '<div class="h"><b>' + title + '</b><span>' + shortcuts[key].length + ' gumbov</span></div>';
+    const items = document.createElement('div');
+    items.className = 'chip-wrap';
+    shortcuts[key].forEach((v, i) => {
+      const it = document.createElement('div');
+      it.className = 'sc-item';
+      if (!numeric && i > 0) it.appendChild(btn('‹', 'l', () => { const a = shortcuts[key].slice(); a[i] = a[i - 1]; a[i - 1] = v; shortcuts[key] = a; persistShortcuts(); renderShortcutEditor(); }, { 'aria-label': 'Premakni ' + v + ' levo' }));
+      const lab = document.createElement('span'); lab.textContent = String(v); it.appendChild(lab);
+      it.appendChild(btn('×', 'x', () => { shortcuts[key] = shortcuts[key].filter((x) => x !== v); persistShortcuts(); renderShortcutEditor(); }, { 'aria-label': 'Odstrani ' + v }));
+      items.appendChild(it);
+    });
+    g.appendChild(items);
+    const add = document.createElement('div');
+    add.className = 'sc-add';
+    const inp = document.createElement('input');
+    inp.inputMode = im; inp.placeholder = ph; inp.setAttribute('aria-label', title + ': nov gumb'); inp.autocomplete = 'off';
+    const err = document.createElement('span'); err.className = 'sc-err';
+    const showErr = (msg) => { err.textContent = msg; inp.classList.add('err'); return false; };
+    const doAdd = () => { if (addShortcut(key, inp.value, showErr)) renderShortcutEditor(); };
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doAdd(); } });
+    inp.addEventListener('input', () => { err.textContent = ''; inp.classList.remove('err'); });
+    add.appendChild(inp);
+    add.appendChild(btn('Dodaj', 'add-btn', doAdd));
+    g.appendChild(add);
+    g.appendChild(err);
+    wrap.appendChild(g);
+  });
+}
+document.getElementById('trEditShortcuts').addEventListener('click', () => { renderShortcutEditor(); openSheet('scSheet'); });
+document.getElementById('scReset').addEventListener('click', (e) => armedDelete(e.currentTarget, () => {
+  shortcuts = defaultShortcuts();
+  persistShortcuts();
+  renderShortcutEditor();
+}));
+
+// ============================================================
+// ZGODOVINA
+// ============================================================
+const LS_HIST_FILTER = 'kilometrina.historyFilter';
+const HIST_FILTERS = [['week', 'Teden'], ['month', 'Mesec'], ['year', 'Leto'], ['all', 'Vse']];
+let histFilter = lsGet(LS_HIST_FILTER, 'month');
+let histOpen = null;
+
+function periodStart(filter) {
+  const today = localDay(new Date());
+  if (filter === 'week') return mondayOf(today);
+  if (filter === 'month') return today.slice(0, 8) + '01';
+  if (filter === 'year') return today.slice(0, 5) + '01-01';
+  return '0000-00-00';
+}
+function workoutSearchText(w) {
+  return [w.title].concat((w.lines || []).map((l) => l.text)).join(' ').toLowerCase();
+}
+function workoutDesc(w) {
+  const sets = (w.lines || []).map(lineToSet);
+  const strokes = [], tags = [];
+  sets.forEach((s) => {
+    if (s.legacy) return;
+    if (strokes.indexOf(s.stroke) === -1) strokes.push(s.stroke);
+    s.tags.filter((t) => !isInterval(t)).forEach((t) => { if (tags.indexOf(t) === -1) tags.push(t); });
+  });
+  return [setsWord(sets.length)].concat(strokes.length ? [strokes.join(', ')] : []).concat(tags.length ? [tags.slice(0, 3).join(', ')] : []).join(' · ');
+}
+
 function renderHistory() {
-  const wrap = document.getElementById('historyList');
-  if (!sessions.length) {
-    wrap.innerHTML = '<div class="empty">Še ni shranjenih treningov.</div>';
-  } else {
-    wrap.innerHTML = sessions.map(s => `
-      <div class="history-item">
-        <div class="history-head" data-id="${s.id}">
-          <div>
-            <div class="title">${escapeHtml(s.title)}</div>
-            <div class="date">${s.date}</div>
-          </div>
-          <div class="km">${(s.totalMeters/1000).toFixed(1)} km</div>
-        </div>
-        <div class="history-lines" id="hl-${s.id}">
-          ${(s.lines||[]).map(l => `<div class="hl"><span>${escapeHtml(l.text)}</span><span class="m">${l.meters} m</span></div>`).join('')}
-          ${ouraBadgesHtml(s.date)}
-          <div class="history-actions">
-            <button class="del-sess" data-id="${s.id}">Izbriši trening</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
-    wrap.querySelectorAll('.history-head').forEach(h => {
-      h.addEventListener('click', () => {
-        document.getElementById('hl-' + h.dataset.id).classList.toggle('open');
-      });
-    });
-    wrap.querySelectorAll('.del-sess').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (btn.dataset.armed !== 'true') {
-          btn.dataset.armed = 'true';
-          const original = btn.textContent;
-          btn.textContent = 'Res izbriši?';
-          setTimeout(() => { btn.dataset.armed = 'false'; btn.textContent = original; }, 3000);
-          return;
-        }
-        sessions = sessions.filter(s => s.id !== btn.dataset.id);
-        persistSessions();
-        renderHistory();
-      });
-    });
+  const filters = document.getElementById('histFilters');
+  filters.innerHTML = '';
+  HIST_FILTERS.forEach(([k, label]) => filters.appendChild(btn(label, '', () => { histFilter = k; lsSet(LS_HIST_FILTER, k); renderHistory(); }, { 'aria-pressed': histFilter === k ? 'true' : 'false' })));
+
+  const from = periodStart(histFilter);
+  const inPeriod = sessions.filter((w) => w.date >= from);
+  const km = inPeriod.reduce((a, w) => a + (w.totalMeters || 0), 0);
+  document.getElementById('histKm').textContent = fmtKm(km);
+  document.getElementById('histKmLbl').textContent = { week: 'km ta teden', month: 'km ta mesec', year: 'km to leto', all: 'km skupaj' }[histFilter];
+  document.getElementById('histCount').textContent = inPeriod.length;
+  document.getElementById('histAvg').textContent = inPeriod.length ? fmtKm(km / inPeriod.length) : '—';
+
+  // last 12 weeks, current one highlighted
+  const thisMonday = mondayOf(localDay(new Date()));
+  const weeks = [];
+  for (let i = 11; i >= 0; i--) {
+    const start = addDays(thisMonday, -7 * i);
+    const end = addDays(start, 7);
+    weeks.push({ start: start, m: sessions.filter((w) => w.date >= start && w.date < end).reduce((a, w) => a + (w.totalMeters || 0), 0) });
   }
-  renderStats();
+  const max = Math.max(1, ...weeks.map((w) => w.m));
+  document.getElementById('histChart').innerHTML = weeks.map((w, i) =>
+    '<div class="' + (i === 11 ? 'now' : '') + '" style="height:' + Math.max(2, Math.round(w.m / max * 100)) + '%" title="' + fmtKm(w.m) + ' km"></div>').join('');
+  const month = (key) => dayDate(key).toLocaleDateString('sl-SI', { month: 'short' }).replace('.', '');
+  document.getElementById('histChartLabels').innerHTML = '<span>' + month(weeks[0].start) + '</span><span>' + month(weeks[6].start)
+    + '</span><span class="now">ta teden ' + fmtKm(weeks[11].m) + '</span>';
+
+  const q = document.getElementById('histSearch').value.trim().toLowerCase();
+  const shown = inPeriod.filter((w) => !q || workoutSearchText(w).indexOf(q) !== -1);
+  const wrap = document.getElementById('historyList');
+  if (!sessions.length) { wrap.innerHTML = '<div class="empty-card">Še ni shranjenih treningov.</div>'; return; }
+  if (!shown.length) { wrap.innerHTML = '<div class="empty-card">Ni treningov za ta izbor.</div>'; return; }
+
+  const groups = [];
+  shown.forEach((w) => {
+    const wk = mondayOf(w.date);
+    let g = groups[groups.length - 1];
+    if (!g || g.wk !== wk) { g = { wk: wk, list: [] }; groups.push(g); }
+    g.list.push(w);
+  });
+  const lastMonday = addDays(thisMonday, -7);
+  wrap.innerHTML = '';
+  groups.forEach((g) => {
+    const sum = sessions.filter((w) => mondayOf(w.date) === g.wk).reduce((a, w) => a + (w.totalMeters || 0), 0);
+    const d1 = dayDate(g.wk), d2 = dayDate(addDays(g.wk, 6));
+    const name = g.wk === thisMonday ? 'Ta teden' : g.wk === lastMonday ? 'Prejšnji teden'
+      : d1.getDate() + '. ' + (d1.getMonth() + 1) + '. – ' + d2.getDate() + '. ' + (d2.getMonth() + 1) + '.';
+    const h = document.createElement('h2');
+    h.className = 'hist-week';
+    h.textContent = name + ' · ' + fmtKm(sum) + ' km';
+    wrap.appendChild(h);
+    g.list.forEach((w) => wrap.appendChild(historyItem(w)));
+  });
 }
 
-function renderStats() {
-  document.getElementById('statSessions').textContent = sessions.length;
-  const totalM = sessions.reduce((s, x) => s + (x.totalMeters||0), 0);
-  document.getElementById('statTotalKm').textContent = (totalM/1000).toFixed(1);
-  document.getElementById('statAvgKm').textContent = sessions.length ? (totalM/1000/sessions.length).toFixed(1) : '—';
-
-  const now = new Date();
-  const day = (now.getDay() + 6) % 7;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - day);
-  monday.setHours(0,0,0,0);
-  const weekM = sessions.reduce((s, x) => {
-    const d = new Date(x.date + 'T00:00:00');
-    return d >= monday ? s + (x.totalMeters||0) : s;
-  }, 0);
-  document.getElementById('statWeekKm').textContent = (weekM/1000).toFixed(1);
+function historyItem(w) {
+  const open = histOpen === w.id;
+  const d = dayDate(w.date);
+  const item = document.createElement('div');
+  item.className = 'hist-item' + (open ? ' open' : '');
+  const head = document.createElement('button');
+  head.type = 'button';
+  head.className = 'hist-head';
+  head.setAttribute('aria-expanded', open ? 'true' : 'false');
+  head.innerHTML = '<span class="hist-day"><span>' + WEEKDAY_SHORT[d.getDay()] + '</span><b>' + d.getDate() + '</b></span>'
+    + '<span class="hist-mid"><b>' + escapeHtml(w.title || 'Trening') + '</b><span>' + escapeHtml(workoutDesc(w) + (w.pool ? ' · bazen ' + w.pool + ' m' : '')) + '</span></span>'
+    + '<span class="hist-km">' + fmtKm(w.totalMeters || 0) + '</span>';
+  head.addEventListener('click', () => { histOpen = open ? null : w.id; renderHistory(); });
+  item.appendChild(head);
+  if (open) {
+    const body = document.createElement('div');
+    body.className = 'hist-body';
+    body.innerHTML = (w.lines || []).map((l) => '<div class="hl"><span>' + escapeHtml(l.text) + '</span><span class="m">' + fmtInt(l.meters) + ' m</span></div>').join('')
+      + ouraBadgesHtml(w.date);
+    const acts = document.createElement('div');
+    acts.className = 'hist-actions';
+    acts.appendChild(btn('Uredi', 'e', () => loadWorkout(w, true)));
+    acts.appendChild(btn('Podvoji', 'c', () => loadWorkout(w, false)));
+    const del = btn('Izbriši', 'x', null);
+    del.addEventListener('click', () => armedDelete(del, () => {
+      sessions = sessions.filter((x) => x.id !== w.id);
+      if (tr.editId === w.id) tr.editId = null;
+      persistSessions();
+      renderHistory();
+      renderToday();
+    }));
+    acts.appendChild(del);
+    body.appendChild(acts);
+    item.appendChild(body);
+  }
+  return item;
 }
+document.getElementById('histSearch').addEventListener('input', renderHistory);
+
+// ============================================================
+// DANES
+// ============================================================
+const LS_WEEK_GOAL = 'kilometrina.weekGoal';
+let weekGoalKm = Number(lsGet(LS_WEEK_GOAL, 30)) || 30;
+function persistWeekGoal() { lsSet(LS_WEEK_GOAL, weekGoalKm); scheduleDriveSync(); }
+
+const metersOn = (key) => sessions.filter((w) => w.date === key).reduce((a, w) => a + (w.totalMeters || 0), 0);
+
+/** Warm-up (leading raz./ogr. sets), cool-down (trailing ones) and the main part, in meters. */
+function workoutParts(w) {
+  const sets = (w.lines || []).map((l) => ({ m: l.meters || 0, easy: /\b(raz|ogr|iztek)/i.test(l.text || '') }));
+  let a = 0, b = sets.length;
+  while (a < b && sets[a].easy) a++;
+  while (b > a && sets[b - 1].easy) b--;
+  const sum = (list) => list.reduce((x, s) => x + s.m, 0);
+  return { warm: sum(sets.slice(0, a)), main: sum(sets.slice(a, b)), cool: sum(sets.slice(b)) };
+}
+
+function renderToday() {
+  const today = localDay(new Date());
+  const lbl = new Date().toLocaleDateString('sl-SI', { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('todayLabel').textContent = lbl.charAt(0).toUpperCase() + lbl.slice(1);
+
+  // last 7 days vs the 7 before
+  const days = [];
+  for (let i = 6; i >= 0; i--) days.push(addDays(today, -i));
+  const inRange = (from, to) => sessions.filter((w) => w.date >= from && w.date <= to);
+  const cur = inRange(days[0], today);
+  const prev = inRange(addDays(today, -13), addDays(today, -7));
+  const curM = cur.reduce((a, w) => a + (w.totalMeters || 0), 0);
+  const prevM = prev.reduce((a, w) => a + (w.totalMeters || 0), 0);
+  document.getElementById('weekKm').textContent = fmtKm(curM);
+  document.getElementById('weekCount').textContent = plural(cur.length, 'trening', 'treninga', 'treningi', 'treningov');
+  document.getElementById('weekGoalBtn').textContent = 'cilj ' + fmtKm(weekGoalKm * 1000, weekGoalKm % 1 ? 1 : 0) + ' km';
+  const delta = curM - prevM;
+  document.getElementById('weekDelta').textContent = (delta > 0 ? '+' : delta < 0 ? '−' : '±') + fmtKm(Math.abs(delta)) + ' km';
+  document.getElementById('weekProgress').style.width = Math.min(100, Math.round(curM / (weekGoalKm * 1000) * 100)) + '%';
+  const perDay = days.map(metersOn);
+  const max = Math.max(1, ...perDay);
+  document.getElementById('weekBars').innerHTML = days.map((k, i) => {
+    const m = perDay[i];
+    return '<div class="col' + (k === today ? ' today' : '') + '"><span class="v">' + (m ? fmtKm(m) : '—') + '</span>'
+      + '<div class="b' + (m ? '' : ' zero') + '" style="height:' + (m ? Math.max(8, Math.round(m / max * 96)) : 4) + 'px"></div>'
+      + '<span class="l">' + WEEKDAY_LETTER[dayDate(k).getDay()] + '</span></div>';
+  }).join('');
+
+  // Oura strip: newest day we have
+  const ouraKey = Object.keys(ouraDays).sort().pop();
+  const strip = document.getElementById('todayOura');
+  if (ouraKey && document.body.dataset.tab === 'danes') {
+    const o = ouraDays[ouraKey];
+    const num = (v) => (v == null ? '—' : v);
+    strip.hidden = false;
+    strip.setAttribute('aria-label', 'Oura: pripravljenost ' + num(o.readiness_score) + ', spanje ' + num(o.sleep_score));
+    strip.innerHTML = '<span><span class="k">Pripravljenost</span><span class="v">' + num(o.readiness_score) + '</span></span>'
+      + '<span><span class="k">Spanje</span><span class="v">' + num(o.sleep_score) + '</span></span>'
+      + '<span><span class="k">Utrip noč</span><span class="v">' + num(o.avg_hr_overnight) + '<small> / ' + num(o.lowest_hr_overnight) + '</small></span></span>';
+  } else strip.hidden = true;
+
+  // today's training
+  const list = document.getElementById('todayWorkouts');
+  const todays = sessions.filter((w) => w.date === today);
+  list.innerHTML = '';
+  if (!todays.length) {
+    list.innerHTML = '<div class="empty-card">Danes še ni treninga.</div>';
+  }
+  todays.forEach((w) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'today-card';
+    const p = workoutParts(w);
+    const tot = Math.max(1, p.warm + p.main + p.cool);
+    const time = w.createdAt ? new Date(w.createdAt).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }) + ' · ' : '';
+    const seg = (m, color) => (m ? '<span style="width:' + (m / tot * 100) + '%;background:' + color + '"></span>' : '');
+    const leg = (m, color, name) => (m ? '<span><i style="background:' + color + '"></i>' + name + ' ' + fmtInt(m) + '</span>' : '');
+    card.innerHTML = '<div class="row"><div><div class="t">' + escapeHtml(w.title || 'Trening') + '</div><div class="s">' + time
+      + setsWord((w.lines || []).length) + (w.pool ? ' · bazen ' + w.pool + ' m' : '') + '</div></div><span class="km">' + fmtKm(w.totalMeters || 0) + ' km</span></div>'
+      + '<div class="seg-bar">' + seg(p.warm, '#7FB7D6') + seg(p.main, '#4FE3C8') + seg(p.cool, '#5D7A8F') + '</div>'
+      + '<div class="seg-legend">' + leg(p.warm, '#7FB7D6', 'Ogrevanje') + leg(p.main, '#4FE3C8', 'Glavni') + leg(p.cool, '#5D7A8F', 'Iztek') + '</div>';
+    card.addEventListener('click', () => { histOpen = w.id; setTab('zgodovina'); renderHistory(); });
+    list.appendChild(card);
+  });
+
+  // food today (meals + drinks)
+  const dm = meals.filter((m) => m.date === today);
+  const kcal = dm.reduce((a, m) => a + (m.calories || 0), 0) + drinks.filter((x) => x.date === today).reduce((a, x) => a + (x.kcal || 0), 0);
+  const g = (k) => dm.reduce((a, m) => a + (m[k] || 0), 0);
+  document.getElementById('todayFood').innerHTML = '<span class="k food">Prehrana</span>'
+    + '<span class="v"><strong>' + fmtInt(kcal) + '</strong><span>kcal danes</span></span>'
+    + '<span class="macro-lines"><div>Beljakovine <b>' + g('protein') + ' g</b></div><div>OH <b>' + g('carbs') + ' g</b></div><div>Maščobe <b>' + g('fat') + ' g</b></div></span>';
+
+  // weight: latest + 7-day trend
+  const wt = document.getElementById('todayWeight');
+  if (!weights.length) {
+    wt.innerHTML = '<span class="k health">Telesna masa</span><span class="s">Še ni vpisa — tapni za vnos.</span>';
+  } else {
+    const last = weights[weights.length - 1];
+    const since = addDays(today, -7);
+    const recent = weights.filter((w) => w.date >= since);
+    const pts = (recent.length >= 2 ? recent : weights.slice(-7));
+    const base = weights.filter((w) => w.date <= since).pop() || pts[0];
+    const change = Math.round((last.kg - base.kg) * 10) / 10;
+    const lo = Math.min(...pts.map((p) => p.kg)), hi = Math.max(...pts.map((p) => p.kg));
+    const poly = pts.map((p, i) => (pts.length === 1 ? 70 : Math.round(i / (pts.length - 1) * 140)) + ',' + (hi === lo ? 17 : Math.round(4 + (hi - p.kg) / (hi - lo) * 26))).join(' ');
+    wt.innerHTML = '<span class="k health">Telesna masa</span>'
+      + '<span class="v"><strong>' + fmtKg(last.kg) + '</strong><span>kg</span></span>'
+      + '<svg width="100%" height="34" viewBox="0 0 140 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + poly + '" fill="none" stroke="#A89CFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      + '<span class="s">' + (base === last ? shortDay(last.date) : (change > 0 ? '+' : change < 0 ? '−' : '±') + fmtKg(Math.abs(change)) + ' kg v 7 dneh') + '</span>';
+  }
+}
+
+document.getElementById('weekGoalBtn').addEventListener('click', () => {
+  const f = document.getElementById('weekGoalForm');
+  f.hidden = !f.hidden;
+  if (!f.hidden) { const i = document.getElementById('weekGoalInput'); i.value = String(weekGoalKm).replace('.', ','); i.focus(); }
+});
+document.getElementById('weekGoalForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const v = Number(String(document.getElementById('weekGoalInput').value).replace(',', '.'));
+  if (!(v > 0 && v < 1000)) return;
+  weekGoalKm = Math.round(v * 10) / 10;
+  persistWeekGoal();
+  document.getElementById('weekGoalForm').hidden = true;
+  renderToday();
+});
 
 document.getElementById('exportBtn').addEventListener('click', async () => {
   const header = ['date','title','total_km','line_text','line_meters'];
@@ -2660,19 +3625,13 @@ function csvEsc(s) {
 
 // ---------- init ----------
 function init() {
-  renderChips();
-  renderLines();
-  const statusLine = document.getElementById('statusLine');
-  if (typeof Storage !== 'undefined') {
-    statusLine.textContent = 'podatki se shranjujejo v ta brskalnik';
-  } else {
-    statusLine.textContent = 'shranjevanje ni na voljo v tem brskalniku';
-  }
+  if (!lsGet(LS_SHORTCUTS, null)) lsSet(LS_SHORTCUTS, shortcuts); // keep the migrated quick words
   renderHistory();
   initDrive();
   initOura();
   initFood();
   renderWeights();
+  setTab(initialTab());
 }
 
 init();

@@ -284,6 +284,27 @@ V Drive varnostni kopiji sta nova ključa `weights` (`{date, kg}`) in `drinks`
 (`{date, time, name, ml, kcal}`) ter seznam `drinkTypes`; v `kilometrina.xlsx` zavihka
 *Telesna masa* in *Pijača*, v *Dnevnem pregledu* pa stolpca Masa in Tekočina.
 
+## 9. Prenova (faza 1): zavihki, Danes, plavalni trening, zgodovina
+
+Spodaj je stalna vrstica z zavihki:
+
+- **Danes** — zadnjih 7 dni (km, stolpci po dnevih, napredek do tedenskega cilja — tapni *cilj*, da ga
+  spremeniš), Oura trak, današnji trening (ogrevanje / glavni / iztek), prehrana in masa danes. Gumb **+**
+  odpre Trening.
+- **Trening** — *Plavanje | Fitnes* (fitnes pride v 3. fazi), bazen 25 / 50 m. Seti z gumbi (ponovitve →
+  razdalja → slog → oznake/interval → Dodaj) ali s tipkanjem (`8x100 p tempo na 1:45`, več setov loči s `;`).
+  Tap na set ga odpre za urejanje. Bližnjice: *Ponovi zadnji*, *Predloge*, *Kot prejšnji*, *Razveljavi*;
+  svinčnik ureja gumbe. Nedokončan trening ostane shranjen na napravi, dokler ga ne shraniš.
+- **Zgodovina** — iskanje, Teden / Mesec / Leto / Vse, graf zadnjih 12 tednov, seznam po tednih;
+  tap odpre podrobnosti z gumbi *Uredi*, *Podvoji*, *Izbriši* (dvojni tap). Izvoz CSV je zgoraj desno.
+- **Prehrana** — kot prej (prenova v 2. fazi).
+- **Zdravje** — Oura, telesna masa, povezave (Google Drive) in AI geslo.
+
+Stari treningi ostanejo nespremenjeni: set je še vedno `{ text, meters }`, novi seti imajo poleg tega
+`{ reps, dist, stroke, tags, note }`, trening pa `pool` (dolžina bazena). Stare vrstice brez sloga se pri
+urejanju pokažejo kot besedilo (lahko jih pretvoriš v set). Nekdanje besede »Hitro vstavi« so zdaj med
+oznakami. V Drive kopiji so novi ključi `shortcuts`, `templates` in `weekGoal`.
+
 ## Ko boš želel dodati novo funkcijo
 
 Vrni se v ta pogovor s Claude in povej, kaj bi rad spremenil ali dodal. Ko bom
