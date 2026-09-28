@@ -12,7 +12,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Kilometrina">
 <meta name="mobile-web-app-capable" content="yes">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- fonts load without blocking the first paint; text shows in the system font until they arrive -->
@@ -1557,6 +1556,18 @@ function initDrive() {
     }
   });
   setDriveStatus('ni povezano');
+}
+
+/** Google sign-in is only needed for the Drive button — fetch it once the page is shown, so it doesn't compete with the first paint. */
+function loadGoogleScriptLater() {
+  const go = () => {
+    const tag = document.createElement('script');
+    tag.src = 'https://accounts.google.com/gsi/client';
+    tag.async = true;
+    document.head.appendChild(tag);
+    initDrive();
+  };
+  if (document.readyState === 'complete') setTimeout(go, 0); else window.addEventListener('load', go, { once: true });
 }
 
 function reloadGoogleScript() {
@@ -6495,7 +6506,7 @@ function csvEsc(s) {
 function init() {
   if (!lsGet(LS_SHORTCUTS, null)) lsSet(LS_SHORTCUTS, shortcuts); // keep the migrated quick words
   renderHistory();
-  initDrive();
+  loadGoogleScriptLater();
   initOura();
   initFood();
   renderWeights();
