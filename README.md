@@ -392,6 +392,12 @@ worker) in varni robovi za iPhone z zarezo (`viewport-fit=cover`, `env(safe-area
 - **Dopolnila** — v *Moja dopolnila* *Uredi ime, vrednosti in sestavine*; dopolnilo ima lahko kcal in
   makrohranila na odmerek (npr. proteinski napitek), ki se prištejejo dnevu. Preimenovanje preimenuje tudi
   pretekle vnose.
+- **Stari vnosi po jedeh** — v *Dodaj hrano → Že jedel* je kartica *Stari vnosi*: *Razdeli stare vnose na
+  jedi (AI)* pošlje imena in vrednosti starih obrokov (Worker, pot `/split-meals`, isto preverjanje) in
+  pokaže predogled (npr. »Losos z rižem → Losos 500 + Riž 320«). *Uporabi razdelitev* vsak tak obrok
+  zamenja z vnosom na jed; skupne kcal in makri vsakega obroka ostanejo enaki, slika ostane pri prvi jedi,
+  ostanki ostanejo ostanki. *Razveljavi razdelitev* vrne prejšnje stanje (kopija je samo na tej napravi).
+  Obrok lahko razdeliš tudi ročno: tapni ga na Prehrani → *+ Razdeli: dodaj jed*.
 - Google prijava še vedno velja približno 1 uro (namenoma).
 
 ## Ko boš želel dodati novo funkcijo

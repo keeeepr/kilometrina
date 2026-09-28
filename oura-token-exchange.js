@@ -404,6 +404,58 @@ async function readSupplement(request, env, origin) {
   }, 200, origin);
 }
 
+// ---------- POST /split-meals: old combined meal names → separate dishes ----------
+
+const SPLIT_SYSTEM_PROMPT = `You tidy up a Slovenian food diary. Each entry is one logged meal: a name (as the user or an earlier estimate wrote it) and its total kcal and macros. Some names cover several separate dishes (e.g. "Losos z rižem", "Pražen riž in jota", "Kosilo: juha + zrezek + solata"); others are one dish (e.g. "Ovseni kosmiči z borovnicami", "Jota", "Banana").
+
+For every entry return its dishes as the user would write them in a food diary, in Slovenian (e.g. "Losos", "Riž"). Keep one prepared dish as one dish — never break it into raw ingredients; toppings, sauces and drinks that belong to a dish stay with it. If the entry is one dish, return exactly one dish with the entry's own name and totals.
+Split the entry's totals between the dishes realistically (kcal, protein_g, carbs_g, fat_g), so that each macro adds up to the entry's total.`;
+
+const SPLIT_SCHEMA = {
+  type: 'object',
+  properties: {
+    entries: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          index: { type: 'integer' },
+          dishes: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: { name: { type: 'string' }, kcal: { type: 'number' }, protein_g: { type: 'number' }, carbs_g: { type: 'number' }, fat_g: { type: 'number' } },
+              required: ['name', 'kcal', 'protein_g', 'carbs_g', 'fat_g'],
+              additionalProperties: false
+            }
+          }
+        },
+        required: ['index', 'dishes'],
+        additionalProperties: false
+      }
+    }
+  },
+  required: ['entries'],
+  additionalProperties: false
+};
+
+async function splitMeals(request, env, origin) {
+  const denied = await aiAccessError(request, env, origin);
+  if (denied) return denied;
+  let body;
+  try { body = await request.json(); }
+  catch (e) { return jsonResponse({ error: 'invalid_json' }, 400, origin); }
+  const meals = (Array.isArray(body.meals) ? body.meals : []).slice(0, 60).map((m, i) => ({
+    index: i, name: String(m.name || '').slice(0, 80),
+    kcal: Number(m.calories) || 0, protein_g: Number(m.protein) || 0, carbs_g: Number(m.carbs) || 0, fat_g: Number(m.fat) || 0
+  }));
+  if (!meals.length) return jsonResponse({ error: 'missing_parameters', error_description: 'Ni obrokov.' }, 400, origin);
+  const result = await askClaudeJson(env, origin, SPLIT_SYSTEM_PROMPT, SPLIT_SCHEMA,
+    [{ type: 'text', text: 'Entries:\n' + JSON.stringify(meals) }], { maxTokens: 12000, effort: 'low', timeout: 120000 });
+  if (result.error) return result.error;
+  return jsonResponse(result.data, 200, origin);
+}
+
 // ---------- POST /fitness: a coach's monthly programme → structured JSON ----------
 
 const MAX_FITNESS_FILES = 6;
@@ -539,6 +591,9 @@ export default {
     }
     if (request.method === 'POST' && url.pathname.replace(/\/$/, '') === '/supplement') {
       return readSupplement(request, env, origin);
+    }
+    if (request.method === 'POST' && url.pathname.replace(/\/$/, '') === '/split-meals') {
+      return splitMeals(request, env, origin);
     }
     if (request.method === 'POST' && url.pathname.replace(/\/$/, '') === '/fitness') {
       return readFitnessProgram(request, env, origin);

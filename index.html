@@ -808,6 +808,11 @@
   .dish-chip span { color: var(--food); font-weight: 700; margin-left: 4px; }
   .dish-total { font-size: 13px; font-weight: 700; color: #FFD19A; }
   .edit-form { display: flex; flex-direction: column; gap: 8px; }
+  .old-split { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 16px; background: #1A1710; border: 1px solid #4A3B22; }
+  .old-split > b { font-size: 15px; color: #FFE3C4; }
+  .old-row { display: flex; flex-direction: column; gap: 1px; padding: 6px 0; border-top: 1px solid #2E2616; }
+  .old-row span { font-size: 14px; font-weight: 700; }
+  .old-row small { font-size: 12px; color: #FFD19A; }
   .edit-form input { width: 100%; min-width: 0; }
 
   /* Makro cilji */
@@ -3388,7 +3393,7 @@ function foodResultCard(edit) {
   card.innerHTML = '<div class="result-top"><b>' + (edit ? 'Uredi jed' : r.ai ? 'Ocena AI' : 'Ročni vnos') + '</b><span style="color:' + (r.conf === 'high' ? '#7FF0DB' : '#FFD19A') + '">'
     + (r.ai && confName ? 'zanesljivost: ' + confName : r.ai ? 'AI' : 'brez AI') + '</span></div>'
     + (r.notes ? '<span class="vn-hint">' + escapeHtml(r.notes) + '</span>' : '')
-    + (!edit ? '<span class="cap">' + (r.dishes.length > 1 ? 'Jedi — vsaka se shrani posebej' : 'Jed') + '</span>' : '');
+    + (!edit || r.dishes.length > 1 ? '<span class="cap">' + (r.dishes.length > 1 ? 'Jedi — vsaka se shrani posebej' : 'Jed') + '</span>' : '');
   r.dishes.forEach((d, i) => {
     const dc = document.createElement('div');
     dc.className = 'dish-card';
@@ -3398,7 +3403,7 @@ function foodResultCard(edit) {
     name.value = d.name || ''; name.placeholder = 'ime jedi, npr. Pražen riž'; name.maxLength = 60; name.setAttribute('aria-label', 'Ime jedi');
     name.addEventListener('input', () => { d.name = name.value; renderVnosPrimary(true); });
     top.appendChild(name);
-    if (!edit && r.dishes.length > 1) top.appendChild(btn('✕', 'dish-x', () => { r.dishes.splice(i, 1); renderVnos(); }, { 'aria-label': 'Odstrani ' + (d.name || 'jed') }));
+    if (r.dishes.length > 1) top.appendChild(btn('✕', 'dish-x', () => { r.dishes.splice(i, 1); renderVnos(); }, { 'aria-label': 'Odstrani ' + (d.name || 'jed') }));
     dc.appendChild(top);
     const grid = document.createElement('div');
     grid.className = 'macro-grid';
@@ -3417,6 +3422,20 @@ function foodResultCard(edit) {
     dc.appendChild(grid);
     card.appendChild(dc);
   });
+  if (edit) {
+    // an old combined meal can be split by hand: the first dish keeps this entry, the others become new ones
+    const acts = document.createElement('div');
+    acts.className = 'dish-acts';
+    acts.appendChild(btn('+ Razdeli: dodaj jed', '', () => { r.dishes.push({ name: '', calories: 0, protein: 0, carbs: 0, fat: 0 }); renderVnos(); }));
+    card.appendChild(acts);
+    if (r.dishes.length > 1) {
+      const t0 = baseScaled(dishesTotal(r.dishes), vn.portion);
+      const h = document.createElement('span');
+      h.className = 'vn-hint';
+      h.textContent = 'Vpiši vrednosti vsake jedi; skupaj zdaj ' + fmtInt(t0.calories) + ' kcal. Prva jed ostane ta vnos, ostale se dodajo kot novi vnosi.';
+      card.appendChild(h);
+    }
+  }
   if (!edit) {
     const acts = document.createElement('div');
     acts.className = 'dish-acts';
@@ -3557,11 +3576,126 @@ function renderVnosHist(body, food) {
   hint.className = 'vn-hint';
   hint.textContent = food ? 'Tapni jed, izberi količino in dodaj — brez AI, brez kode.' : 'Tapni dopolnilo, izberi kdaj in zabeleži — brez AI.';
   body.appendChild(hint);
+  if (food) body.appendChild(oldMealsTool());
   const list = document.createElement('div');
   list.className = 'stack';
   list.id = 'vnHistList';
   body.appendChild(list);
   renderVnosHistList(food);
+}
+
+// ---------- old entries saved as one meal → separate dishes (AI, with preview and undo) ----------
+const LS_MEALS_BEFORE_SPLIT = 'kilometrina.mealsBeforeDishSplit'; // undo copy, this device only
+let oldSplit = null; // {busy, error, preview: [{name, count, dishes}], unchanged}
+const oldMealGroups = () => {
+  const g = {};
+  meals.filter((m) => !m.dishChecked).forEach((m) => {
+    const k = dishKey(m.name);
+    (g[k] = g[k] || { name: m.name, list: [] }).list.push(m);
+  });
+  return Object.values(g);
+};
+
+function oldMealsTool() {
+  const box = document.createElement('section');
+  box.className = 'old-split';
+  const undo = lsGet(LS_MEALS_BEFORE_SPLIT, null);
+  if (undo && !oldSplit) {
+    box.innerHTML = '<b>Stari vnosi so razdeljeni na jedi.</b><span class="vn-hint">Če ti razdelitev ni všeč, jo lahko razveljaviš (kopija je na tej napravi).</span>';
+    const acts = document.createElement('div');
+    acts.className = 'dish-acts';
+    acts.appendChild(btn('Razveljavi razdelitev', '', () => {
+      meals = undo; persistMeals();
+      try { localStorage.removeItem(LS_MEALS_BEFORE_SPLIT); } catch (e) {}
+      toast('Razdelitev razveljavljena'); renderVnos();
+    }));
+    acts.appendChild(btn('V redu, obdrži', '', () => { try { localStorage.removeItem(LS_MEALS_BEFORE_SPLIT); } catch (e) {} renderVnos(); }));
+    box.appendChild(acts);
+    return box;
+  }
+  const groups = oldMealGroups();
+  if (!groups.length && !oldSplit) return document.createElement('span');
+  if (oldSplit && oldSplit.preview) {
+    box.innerHTML = '<b>Predogled razdelitve</b>' + (oldSplit.preview.length
+      ? oldSplit.preview.map((x) => '<span class="old-row"><span>' + escapeHtml(x.name) + (x.count > 1 ? ' (' + x.count + '×)' : '') + '</span><small>→ '
+        + x.dishes.map((d) => escapeHtml(d.name) + ' ' + fmtInt(d.kcal)).join(' + ') + '</small></span>').join('')
+      : '<span class="vn-hint">Vsi stari vnosi so že ena jed — ni kaj razdeliti.</span>')
+      + (oldSplit.unchanged ? '<span class="vn-hint">' + oldSplit.unchanged + ' vnosov je že ena jed in ostane nespremenjenih. Skupne kalorije in makri vsakega obroka ostanejo enaki.</span>' : '');
+    const acts = document.createElement('div');
+    acts.className = 'dish-acts';
+    acts.appendChild(btn('Prekliči', '', () => { oldSplit = null; renderVnos(); }));
+    acts.appendChild(btn(oldSplit.preview.length ? 'Uporabi razdelitev' : 'V redu', '', applyOldSplit));
+    box.appendChild(acts);
+    return box;
+  }
+  const n = groups.reduce((a, g) => a + g.list.length, 0);
+  box.innerHTML = '<b>Stari vnosi</b><span class="vn-hint">' + n + ' vnosov je shranjenih pred ločevanjem po jedeh. AI lahko obroke, ki so bili več jedi skupaj (npr. »Losos z rižem«), razdeli na posamezne jedi — skupne vrednosti ostanejo enake, pred uporabo vidiš predogled.</span>'
+    + (oldSplit && oldSplit.error ? '<div class="err-card">' + escapeHtml(oldSplit.error) + '</div>' : '');
+  const go = btn(oldSplit && oldSplit.busy ? 'AI razvršča …' : 'Razdeli stare vnose na jedi (AI)', 'big-food-btn', runOldSplit, { disabled: !!(oldSplit && oldSplit.busy) });
+  box.appendChild(go);
+  return box;
+}
+
+async function runOldSplit() {
+  if (!driveAccessToken || !savedPasscode()) { openGate(runOldSplit); return; }
+  const groups = oldMealGroups();
+  oldSplit = { busy: true };
+  renderVnos();
+  try {
+    const answers = [];
+    for (let i = 0; i < groups.length; i += 60) {
+      const batch = groups.slice(i, i + 60);
+      // one example per name, for one portion
+      const payload = batch.map((g) => { const m = g.list[g.list.length - 1]; const p = m.portion || 1;
+        return { name: g.name, calories: m.calories / p, protein: m.protein / p, carbs: m.carbs / p, fat: m.fat / p }; });
+      const data = await aiRequest('/split-meals', { meals: payload });
+      (data.entries || []).forEach((e) => { if (batch[e.index]) answers.push({ g: batch[e.index], dishes: e.dishes || [] }); });
+    }
+    const preview = answers.filter((a) => a.dishes.length > 1).map((a) => ({
+      name: a.g.name, count: a.g.list.length,
+      dishes: a.dishes.map((d) => ({ name: capFirst(String(d.name || '').trim()), kcal: d.kcal || 0, protein: d.protein_g || 0, carbs: d.carbs_g || 0, fat: d.fat_g || 0 }))
+    }));
+    oldSplit = { preview: preview, unchanged: groups.reduce((a, g) => a + g.list.length, 0) - preview.reduce((a, x) => a + x.count, 0) };
+  } catch (e) {
+    if (e.code === 'bad_passcode') { oldSplit = null; openGate(runOldSplit, 'Napačna koda. Poskusi znova.'); renderVnos(); return; }
+    oldSplit = { error: 'Razvrščanje ni uspelo: ' + (e.message || e) };
+  }
+  renderVnos();
+}
+
+/** Replace every old combined meal by one meal per dish; each macro still adds up to the original. */
+function applyOldSplit() {
+  const plan = {};
+  (oldSplit.preview || []).forEach((x) => { plan[dishKey(x.name)] = x.dishes; });
+  if (Object.keys(plan).length) lsSet(LS_MEALS_BEFORE_SPLIT, cloneJsonSafe(meals));
+  const out = [];
+  meals.forEach((m) => {
+    const dishes = !m.dishChecked && plan[dishKey(m.name)];
+    if (!dishes) { out.push(Object.assign(m, { dishChecked: true })); return; }
+    const parts = dishes.map((d) => ({ name: d.name }));
+    [['calories', 'kcal'], ['protein', 'protein'], ['carbs', 'carbs'], ['fat', 'fat']].forEach(([k, dk]) => {
+      const sum = dishes.reduce((a, d) => a + (d[dk] || 0), 0);
+      let left = m[k] || 0;
+      dishes.forEach((d, i) => {
+        const v = i === dishes.length - 1 ? left : Math.round((m[k] || 0) * (sum ? (d[dk] || 0) / sum : 1 / dishes.length));
+        parts[i][k] = Math.max(0, v);
+        left -= v;
+      });
+    });
+    parts.forEach((pt, i) => {
+      // the first dish keeps the entry's id (and its photo)
+      const nm = Object.assign({}, m, pt, { id: i === 0 ? m.id : newId('m'), time: m.time + i, dishChecked: true });
+      if (i > 0) { nm.hasPhoto = false; delete nm.photoDriveId; }
+      if (m.split) nm.split = { groupId: m.split.groupId + '|' + i, share: m.split.share };
+      out.push(nm);
+    });
+  });
+  meals = out.sort((x, y) => x.date.localeCompare(y.date) || x.time - y.time);
+  persistMeals();
+  const n = (oldSplit.preview || []).reduce((a, x) => a + x.count, 0);
+  oldSplit = null;
+  toast(n ? 'Razdeljenih ' + n + ' starih vnosov' : 'Stari vnosi pregledani');
+  renderVnos();
 }
 
 function renderVnosHistList(food) {
@@ -3779,7 +3913,7 @@ function renderVnosPrimary(food) {
       const ds = usableDishes(r.dishes);
       const kc = baseScaled(dishesTotal(ds), vn.portion).calories;
       primary.disabled = !ds.length;
-      primary.textContent = vn.editId ? 'Shrani spremembe · ' + fmtInt(kc) + ' kcal'
+      primary.textContent = vn.editId ? (ds.length > 1 ? 'Shrani ' + ds.length + ' jedi · ' : 'Shrani spremembe · ') + fmtInt(kc) + ' kcal'
         : vn.split ? 'Shrani · ' + splitLabel(kc) : 'Shrani v ' + mealTypeLabel(vn.type) + (ds.length > 1 ? ' · ' + ds.length + ' jedi' : '') + ' · ' + fmtInt(kc) + ' kcal';
     } else {
       primary.textContent = 'Zabeleži dopolnilo';
@@ -3856,6 +3990,7 @@ function saveFood(src) {
   dishes.forEach((d, di) => {
     const total = baseScaled(d, vn.portion);
     const common = {
+      dishChecked: true,
       name: (d.name || '').trim() || mealTypeLabel(vn.type), portion: vn.portion,
       confidence: src.ai && !d.fromLib ? src.conf || null : null, notes: src.ai && !d.fromLib && di === 0 ? src.notes || '' : '',
       source: d.fromLib || src.repeatOf ? 'repeat' : src.ai ? 'ai' : 'manual'
@@ -3906,12 +4041,21 @@ function storeMealPhoto(id, blob) {
 function saveEdit() {
   const m = meals.find((x) => x.id === vn.editId);
   if (!m) return;
-  const d = vn.result.dishes[0];
-  Object.assign(m, baseScaled(d, vn.portion), { name: (d.name || '').trim() || m.name, type: vn.type, portion: vn.portion });
+  const ds = usableDishes(vn.result.dishes);
+  const d = ds[0] || vn.result.dishes[0];
+  Object.assign(m, baseScaled(d, vn.portion), { name: (d.name || '').trim() || m.name, type: vn.type, portion: vn.portion, dishChecked: true });
+  ds.slice(1).forEach((x, i) => {
+    const extra = Object.assign({ id: newId('m'), date: m.date, time: m.time + i + 1, type: vn.type, hasPhoto: false, portion: vn.portion,
+      name: (x.name || '').trim() || mealTypeLabel(vn.type), source: 'manual', confidence: null, notes: '', dishChecked: true }, baseScaled(x, vn.portion));
+    if (m.split) extra.split = { groupId: m.split.groupId + '|' + (i + 1), share: m.split.share };
+    if (m.pending) extra.pending = true;
+    meals.push(extra);
+  });
+  if (ds.length > 1) meals.sort((x, y) => x.date.localeCompare(y.date) || x.time - y.time);
   if (vn.photoRemoved && m.hasPhoto && !vn.photo) { photoDelete(m.id); delete photoUrls[m.id]; m.hasPhoto = false; driveDeletePhoto(m.photoDriveId); delete m.photoDriveId; }
   persistMeals();
   if (vn.photo) storeMealPhoto(m.id, vn.photo.keepBlob);
-  toast('Obrok posodobljen');
+  toast(ds.length > 1 ? 'Obrok razdeljen na ' + ds.length + ' jedi' : 'Obrok posodobljen');
   showFoodView('main');
 }
 
