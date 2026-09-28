@@ -1,4 +1,4 @@
-const CACHE = 'kilometrina-v4';
+const CACHE = 'kilometrina-v5';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -24,22 +24,48 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Network-first for the app's own files (so you always get the latest version
-// when online), falling back to the cache when offline.
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return; // let Google/font requests pass through untouched
+// Tell the app that a newer version has been downloaded (it offers "Osveži").
+// A page that opens before the download finishes gets the broadcast; one that
+// is still starting up asks with 'kilometrina-hello' and gets the answer then.
+let updateWaiting = false;
+function announceUpdate() {
+  updateWaiting = true;
+  self.clients.matchAll({ type: 'window' }).then((list) => list.forEach((c) => c.postMessage({ type: 'kilometrina-update' })));
+}
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'kilometrina-hello' && updateWaiting && event.source) event.source.postMessage({ type: 'kilometrina-update' });
+});
 
-  event.respondWith(
-    // no-cache: always ask GitHub Pages for a fresh copy instead of using the
-    // browser's HTTP cache (Pages lets it keep files for 10 minutes).
-    fetch(event.request, { cache: 'no-cache' })
-      .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(event.request, copy));
-        return res;
-      })
-      .catch(() => caches.match(event.request))
-  );
+// Stale-while-revalidate for the app's own files: open instantly from the
+// cache, fetch a fresh copy in the background for next time. no-cache makes
+// that fetch ask GitHub Pages instead of the browser's 10-minute HTTP cache.
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return; // let Google requests pass through untouched
+  const page = req.mode === 'navigate';
+  // every navigation (also ?code=… from the Oura login) is the same app page
+  const key = page ? self.registration.scope : req;
+
+  if (page) updateWaiting = false; // a fresh page load; only this load's check counts
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    const cached = await cache.match(key, { ignoreSearch: page });
+    // read the cached page now — once it is handed to the browser it can't be cloned any more
+    const before = page && cached ? cached.clone().text() : null;
+    const fresh = fetch(req, { cache: 'no-cache' }).then(async (res) => {
+      if (res && res.ok && res.type === 'basic') {
+        const after = before ? res.clone().text() : null;
+        await cache.put(key, res.clone());
+        if (before && (await before) !== (await after)) announceUpdate();
+      }
+      return res;
+    });
+    if (cached) {
+      event.waitUntil(fresh.catch(() => {}));
+      return cached;
+    }
+    return fresh.catch(() => cache.match(key, { ignoreSearch: true }));
+  })());
 });

@@ -45,6 +45,8 @@
   body[data-tab="prehrana"] { --teal: #FFB45E; --on-teal: #2E1A04; }
   body[data-tab="zdravje"] { --teal: #A89CFF; --on-teal: #17123A; }
   [hidden] { display: none !important; }
+  .update-bar { position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + var(--safe-b) + 10px); z-index: 60; max-width: 616px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 10px 10px 16px; border-radius: 14px; background: var(--panel-2); border: 1px solid var(--line); color: var(--text); font-size: 14px; font-weight: 600; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35); }
+  .update-bar button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--teal); color: var(--on-teal); font-size: 14px; font-weight: 800; cursor: pointer; }
   * { box-sizing: border-box; }
   html { scroll-padding-top: env(safe-area-inset-top, 0px); }
   html, body {
@@ -6508,6 +6510,23 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('service-worker.js').catch((e) => console.error(e));
   });
+  // The app opens from the cache; when the service worker has fetched a newer version, offer to switch.
+  navigator.serviceWorker.addEventListener('message', (e) => {
+    if (!e.data || e.data.type !== 'kilometrina-update' || document.getElementById('updateBar')) return;
+    const bar = document.createElement('div');
+    bar.id = 'updateBar';
+    bar.className = 'update-bar';
+    bar.setAttribute('role', 'status');
+    bar.innerHTML = '<span>Na voljo je nova različica</span>';
+    const go = document.createElement('button');
+    go.type = 'button';
+    go.textContent = 'Osveži';
+    go.addEventListener('click', () => location.reload());
+    bar.appendChild(go);
+    document.body.appendChild(bar);
+  });
+  navigator.serviceWorker.startMessages();
+  if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({ type: 'kilometrina-hello' });
 }
 </script>
 </body>

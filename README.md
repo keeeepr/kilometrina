@@ -7,6 +7,7 @@ aplikacijo, z varnostnim kopiranjem podatkov v tvoj Google Drive.
 Datoteke:
 - `index.html` — sama aplikacija
 - `manifest.json`, `service-worker.js` — naredita jo namestljivo in delujočo brez interneta
+  (aplikacija se odpre takoj iz predpomnilnika; novo različico prenese v ozadju in ponudi gumb *Osveži*)
 - `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` — ikona aplikacije
 - `oura-token-exchange.js`, `wrangler.toml`, `package.json` — Cloudflare Worker za prijavo in
   branje podatkov iz Oure (razdelek 5) ter AI oceno obrokov (razdelek 7). Teče na Cloudflare,
