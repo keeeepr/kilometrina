@@ -356,6 +356,21 @@ Podatki: `kilometrina.fitnessPrograms` in `kilometrina.fitnessLog` (v Drive kopi
 `fitnessLog`), v xlsx zavihka *Fitnes dnevnik* in *Fitnes program*, v *Dnevnem pregledu* stolpec *Fitnes*.
 Današnje kljukice pred potrditvijo so samo na napravi (`kilometrina.fitnessDraft`).
 
+## 12. Prenova (faza 4): zdravje in zaključek
+
+- **Zdravje** — zgoraj noč, na katero se nanašajo Oura podatki, in gumb za osvežitev. Obroči za
+  pripravljenost, spanje in aktivnost; spanje s fazami (globoko / REM / lahko), učinkovitostjo, dihanjem
+  in temperaturo; utrip čez noč (povprečje / najnižji) in HRV s trendom 14 dni. Celotna tabela 7 dni je
+  pod *Oura · zadnjih 7 dni*.
+- **Telesna masa** — graf 30 dni s spremembo, −/+ 0,1 kg in *Shrani* (za danes); drug dan in vse
+  meritve pod *Drug dan in vse meritve*.
+- **Povezave** — Oura (prijava, osveži, odjava), Google Drive (prijava, sinhroniziraj, obnovi, **odjava**)
+  in AI geslo; pika pove stanje (zelena = povezano, rumena = delno / v teku).
+
+Preverjeno na koncu: prazna aplikacija (vsi zasloni brez napak), obnova iz stare Drive kopije (pred
+prenovo — stare »hitro vstavi« besede se pri tem dodajo med oznake), delovanje brez interneta (service
+worker) in varni robovi za iPhone z zarezo (`viewport-fit=cover`, `env(safe-area-inset-*)`).
+
 ## Ko boš želel dodati novo funkcijo
 
 Vrni se v ta pogovor s Claude in povej, kaj bi rad spremenil ali dodal. Ko bom

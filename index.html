@@ -1007,6 +1007,53 @@
   .today-card.fitc .km { color: var(--health); }
   .hist-km.fitk { color: var(--health); }
 
+  /* ================= Prenova faza 4: Zdravje ================= */
+  .oura-rings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .ring-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px; border-radius: 20px; background: #16152B; border: 1px solid #2B2850; min-width: 0; }
+  .ring-tile .rw { position: relative; width: 68px; height: 68px; }
+  .ring-tile .rw b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 800; }
+  .ring-tile span { font-size: 12px; font-weight: 600; color: #C9C2FF; text-align: center; }
+  .sleep-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 22px; background: var(--panel); border: 1px solid var(--line); }
+  .sleep-card .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .sleep-card h2 { margin: 0; font-size: 18px; font-weight: 700; }
+  .sleep-card .top b { font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 800; }
+  .stage-bar { display: flex; gap: 3px; height: 14px; }
+  .stage-bar div { border-radius: 5px; }
+  .kv3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 12px; color: var(--text-dim); }
+  .kv3 > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .kv3 i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
+  .kv3 b { font-size: 14px; font-weight: 700; color: var(--text); }
+  .kv3.sep { padding-top: 12px; border-top: 1px solid var(--line); }
+  .kv3.sep b { font-size: 15px; }
+  .hr-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .hr-tile { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 20px; background: var(--panel); border: 1px solid var(--line); min-width: 0; }
+  .hr-tile > span { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+  .hr-tile b { font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 800; }
+  .hr-tile b small { font-family: 'Figtree', sans-serif; font-size: 14px; font-weight: 600; color: var(--text-dim); }
+  .oura-more { margin: 10px 0 14px; }
+  .weight-card { display: flex; flex-direction: column; gap: 12px; }
+  .weight-card .sec-head h2 { font-size: 18px; }
+  .weight-step { display: flex; gap: 8px; align-items: center; }
+  .kg-step { flex: 1; display: flex; align-items: center; justify-content: space-between; min-height: 48px; border-radius: 14px; background: var(--field); border: 1px solid var(--field-line); }
+  .kg-step button { width: 52px; height: 48px; border: 0; background: transparent; font-size: 20px; cursor: pointer; }
+  .kg-step span { font-size: 20px; font-weight: 800; }
+  .kg-step span small { font-family: 'Figtree', sans-serif; font-size: 13px; font-weight: 600; color: var(--text-dim); }
+  .weight-card .weight-latest { margin: 0; }
+  .more.inner { background: var(--field); }
+  .more.inner .weight-row { margin-top: 4px; }
+  .conn-card { display: flex; flex-direction: column; border-radius: 22px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+  .conn-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .conn-row:last-child { border-bottom: 0; }
+  .conn-row .dot { width: 10px; height: 10px; flex-shrink: 0; border-radius: 999px; background: #3A4F63; }
+  .conn-row .dot.on { background: var(--swim); }
+  .conn-row .dot.warn { background: var(--amber); }
+  .conn-row .n { flex: 1; min-width: 140px; display: flex; flex-direction: column; }
+  .conn-row .n b { font-size: 15px; }
+  .conn-row .n .drive-status { font-size: 12px; }
+  .conn-row .acts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .conn-row .acts .export-btn { min-height: 40px; font-size: 13px; padding: 0 12px; }
+  .conn-row .ai-pass-form { width: 100%; margin-top: 0; }
+
   @media (max-width: 640px) {
     .meta-row { grid-template-columns: 1fr; }
     .compose-row { grid-template-columns: 1fr; }
@@ -1236,66 +1283,78 @@
   </section>
   <div data-tab="prehrana" data-food-view="cilji" hidden id="goalBody" class="stack"></div>
 
-  <header class="screen-head" data-tab="zdravje" hidden><h1>Zdravje</h1></header>
-
-  <section data-tab="zdravje" hidden class="panel drive-panel">
-    <div class="drive-row">
-      <div>
-        <h2 style="margin:0 0 4px;">Oura Ring</h2>
-        <div class="drive-status" id="ouraStatus">ni povezano</div>
-      </div>
-      <div class="drive-actions">
-        <button type="button" class="export-btn" id="ouraSignInBtn">Prijava v Oura</button>
-        <button type="button" class="export-btn" id="ouraSyncBtn" style="display:none;">Osveži zdaj</button>
-        <button type="button" class="export-btn" id="ouraSignOutBtn" style="display:none;">Odjava</button>
-      </div>
+  <header class="screen-head" data-tab="zdravje" hidden>
+    <div>
+      <div class="eyebrow" id="healthEyebrow">Oura</div>
+      <h1>Zdravje</h1>
     </div>
-    <div class="oura-table" id="ouraTable"></div>
-  </section>
+    <button type="button" class="icon-btn big" id="healthRefresh" aria-label="Osveži podatke Oura"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B5ACFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/></svg></button>
+  </header>
 
-  <section data-tab="zdravje" hidden class="panel">
-    <h2>Telesna masa</h2>
-    <div class="weight-row">
-      <div class="field"><label for="weightDate">Datum</label><input type="date" id="weightDate"></div>
-      <div class="field"><label for="weightKg">Masa (kg)</label><input type="text" id="weightKg" inputmode="decimal" autocomplete="off" placeholder="npr. 72,4"></div>
-      <button type="button" class="add-btn" id="weightSaveBtn">Shrani maso</button>
+  <div data-tab="zdravje" hidden id="healthOura" class="stack"></div>
+  <details data-tab="zdravje" hidden class="more oura-more">
+    <summary>Oura · zadnjih 7 dni</summary>
+    <div class="oura-table" id="ouraTable"></div>
+  </details>
+
+  <section data-tab="zdravje" hidden class="card weight-card" aria-label="Telesna masa">
+    <div class="sec-head"><h2>Telesna masa</h2><span id="weightTrend"></span></div>
+    <div id="weightChart"></div>
+    <div class="weight-step">
+      <div class="kg-step">
+        <button type="button" id="kgDec" aria-label="Zmanjšaj za 0,1 kg">−</button>
+        <span class="d" id="kgVal"></span>
+        <button type="button" id="kgInc" aria-label="Povečaj za 0,1 kg">+</button>
+      </div>
+      <button type="button" class="primary-btn" id="kgSave">Shrani</button>
     </div>
     <div class="weight-latest" id="weightLatest"></div>
-    <div id="weightList"></div>
+    <details class="more inner">
+      <summary>Drug dan in vse meritve</summary>
+      <div class="weight-row">
+        <div class="field"><label for="weightDate">Datum</label><input type="date" id="weightDate"></div>
+        <div class="field"><label for="weightKg">Masa (kg)</label><input type="text" id="weightKg" inputmode="decimal" autocomplete="off" placeholder="npr. 72,4"></div>
+        <button type="button" class="add-btn" id="weightSaveBtn">Shrani maso</button>
+      </div>
+      <div class="weight-latest" id="weightLatest"></div>
+      <div id="weightList"></div>
+    </details>
   </section>
 
   <h2 class="group-title" data-tab="zdravje" hidden>Povezave</h2>
-
-  <section data-tab="zdravje" hidden class="panel drive-panel">
-    <div class="drive-row">
-      <div>
-        <h2 style="margin:0 0 4px;">Google Drive varnostna kopija</h2>
-        <div class="drive-status" id="driveStatus">ni povezano</div>
-      </div>
-      <div class="drive-actions">
-        <button type="button" class="export-btn" id="driveSignInBtn">Prijava v Google</button>
-        <button type="button" class="export-btn" id="driveSyncBtn" style="display:none;">Sinhroniziraj zdaj</button>
-        <button type="button" class="export-btn" id="driveRestoreBtn" style="display:none;">Obnovi iz Drive</button>
+  <section data-tab="zdravje" hidden class="conn-card" aria-label="Povezave">
+    <div class="conn-row">
+      <span class="dot" id="ouraDot"></span>
+      <div class="n"><b>Oura Ring</b><span class="drive-status" id="ouraStatus">ni povezano</span></div>
+      <div class="acts">
+        <button type="button" class="export-btn" id="ouraSignInBtn">Prijava</button>
+        <button type="button" class="export-btn" id="ouraSyncBtn" style="display:none;">Osveži</button>
+        <button type="button" class="export-btn" id="ouraSignOutBtn" style="display:none;">Odjava</button>
       </div>
     </div>
-  </section>
-
-  <section data-tab="zdravje" hidden class="panel drive-panel">
-    <div class="drive-row">
-      <div>
-        <h2 style="margin:0 0 4px;">AI analiza</h2>
-        <div class="drive-status" id="aiAccessStatus"></div>
+    <div class="conn-row">
+      <span class="dot" id="driveDot"></span>
+      <div class="n"><b>Google Drive</b><span class="drive-status" id="driveStatus">ni povezano</span></div>
+      <div class="acts">
+        <button type="button" class="export-btn" id="driveSignInBtn">Prijava</button>
+        <button type="button" class="export-btn" id="driveSyncBtn" style="display:none;">Sinhroniziraj</button>
+        <button type="button" class="export-btn" id="driveRestoreBtn" style="display:none;">Obnovi</button>
+        <button type="button" class="export-btn" id="driveSignOutBtn" style="display:none;">Odjava</button>
       </div>
-      <div class="drive-actions">
+    </div>
+    <div class="conn-row">
+      <span class="dot" id="aiDot"></span>
+      <div class="n"><b>AI analiza</b><span class="drive-status" id="aiAccessStatus"></span></div>
+      <div class="acts">
         <button type="button" class="export-btn" id="aiPassEditBtn">Vpiši geslo</button>
         <button type="button" class="export-btn" id="aiPassForgetBtn">Pozabi geslo</button>
       </div>
+      <form class="ai-pass-form" id="aiPassForm" autocomplete="off" hidden>
+        <input type="password" id="aiPassInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AI geslo (APP_PASSCODE)" aria-label="AI geslo">
+        <label class="check"><input type="checkbox" id="aiPassShow"> Pokaži geslo</label>
+        <button type="submit" class="add-btn">Shrani geslo</button>
+      </form>
     </div>
-    <form class="ai-pass-form" id="aiPassForm" autocomplete="off" hidden>
-      <input type="password" id="aiPassInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AI geslo (APP_PASSCODE)" aria-label="AI geslo">
-      <label class="check"><input type="checkbox" id="aiPassShow"> Pokaži geslo</label>
-      <button type="submit" class="add-btn">Shrani geslo</button>
-    </form>
   </section>
 </div>
 
@@ -1413,6 +1472,8 @@ function setDriveStatus(text, cls) {
   const el = document.getElementById('driveStatus');
   el.textContent = text;
   el.className = 'drive-status' + (cls ? ' ' + cls : '');
+  const dot = document.getElementById('driveDot');
+  if (dot) dot.className = 'dot' + (cls === 'ok' ? ' on' : cls === 'syncing' ? ' warn' : '');
   const chip = document.getElementById('todayDriveBtn');
   if (chip) {
     chip.className = 'pill-btn' + (cls ? ' ' + cls : '');
@@ -1476,6 +1537,7 @@ function onDriveSignedIn() {
   document.getElementById('driveSignInBtn').style.display = 'none';
   document.getElementById('driveSyncBtn').style.display = '';
   document.getElementById('driveRestoreBtn').style.display = '';
+  document.getElementById('driveSignOutBtn').style.display = '';
   setDriveStatus('povezano', 'ok');
   scheduleDriveSync();
   renderAiAccess();
@@ -1488,9 +1550,16 @@ function onDriveSignedOut(message) {
   document.getElementById('driveSignInBtn').style.display = '';
   document.getElementById('driveSyncBtn').style.display = 'none';
   document.getElementById('driveRestoreBtn').style.display = 'none';
+  document.getElementById('driveSignOutBtn').style.display = 'none';
   setDriveStatus(message);
   renderAiAccess();
 }
+
+document.getElementById('driveSignOutBtn').addEventListener('click', () => {
+  // Data on the phone and in Drive stays; only this session's access ends.
+  try { if (driveAccessToken && window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(driveAccessToken, () => {}); } catch (e) {}
+  onDriveSignedOut('odjavljeno — podatki ostanejo na telefonu in v Drive');
+});
 
 document.getElementById('driveSignInBtn').addEventListener('click', () => {
   if (!driveTokenClient) return;
@@ -1839,6 +1908,7 @@ document.getElementById('driveRestoreBtn').addEventListener('click', async () =>
     if (Array.isArray(data.workouts)) { sessions = data.workouts; persistSessions(); renderHistory(); }
     if (Array.isArray(data.words)) { quickWords = data.words; persistWords(); }
     if (data.shortcuts && Array.isArray(data.shortcuts.tags)) { shortcuts = data.shortcuts; persistShortcuts(); }
+    else if (Array.isArray(data.words)) { mergeWordsIntoTags(data.words); persistShortcuts(); } // backup from before the redesign
     if (Array.isArray(data.templates)) { templates = data.templates; persistTemplates(); }
     if (Number(data.weekGoal) > 0) { weekGoalKm = Number(data.weekGoal); persistWeekGoal(); }
     if (Array.isArray(data.fitnessPrograms)) { fitnessPrograms = data.fitnessPrograms; persistFitPrograms(); }
@@ -1904,6 +1974,7 @@ function setOuraStatus(text, cls) {
   const el = document.getElementById('ouraStatus');
   el.textContent = text;
   el.className = 'drive-status' + (cls ? ' ' + cls : '');
+  document.getElementById('ouraDot').className = 'dot' + (ouraTokens ? (cls === 'syncing' ? ' warn' : ' on') : '');
 }
 
 function showOuraButtons(signedIn) {
@@ -2158,6 +2229,7 @@ function ouraScoreClass(v) {
 }
 
 function renderOuraSummary() {
+  if (typeof renderHealth === 'function' && document.body.dataset.tab === 'zdravje') renderHealth();
   const wrap = document.getElementById('ouraTable');
   const rows = lastOuraDays().filter((d) => ouraDays[d]);
   const latest = Object.keys(ouraDays).sort().pop();
@@ -2351,6 +2423,7 @@ function renderAiAccess(message) {
     status.textContent = 'pripravljeno';
     status.className = 'drive-status ok';
   }
+  document.getElementById('aiDot').className = 'dot' + (signedIn && hasCode ? ' on' : hasCode || signedIn ? ' warn' : '');
 }
 
 function showPassForm() {
@@ -3882,6 +3955,7 @@ weightKg.addEventListener('keydown', (e) => {
 });
 
 function renderWeights() {
+  renderWeightChart();
   const latest = document.getElementById('weightLatest');
   const list = document.getElementById('weightList');
   if (!weights.length) {
@@ -3905,6 +3979,50 @@ function renderWeights() {
     renderWeights();
   })));
 }
+// ---------- Zdravje: graf 30 dni in −/+ 0,1 kg ----------
+let kgDraft = null; // value shown in the stepper until saved
+function stepperKg() {
+  if (kgDraft != null) return kgDraft;
+  if (weights.length) return weights[weights.length - 1].kg;
+  return typeof goals !== 'undefined' ? goals.massFallback : 70;
+}
+function renderWeightChart() {
+  const today = localDay(new Date());
+  const since = (() => { const d = new Date(); d.setDate(d.getDate() - 30); return localDay(d); })();
+  const pts = weights.filter((w) => w.date >= since);
+  const chart = document.getElementById('weightChart');
+  const trend = document.getElementById('weightTrend');
+  document.getElementById('kgVal').innerHTML = fmtKg(stepperKg()) + ' <small>kg</small>';
+  if (pts.length < 2) {
+    chart.innerHTML = '<div class="muted-sm">' + (weights.length ? 'Graf se pokaže, ko imaš v zadnjih 30 dneh vsaj dve meritvi.' : 'Še ni meritev — nastavi maso spodaj in tapni Shrani.') + '</div>';
+    trend.textContent = '';
+    return;
+  }
+  const t0 = new Date(since + 'T00:00:00').getTime(), t1 = new Date(today + 'T00:00:00').getTime();
+  const lo = Math.min(...pts.map((w) => w.kg)) - 0.3, hi = Math.max(...pts.map((w) => w.kg)) + 0.3;
+  const x = (w) => Math.round((new Date(w.date + 'T00:00:00').getTime() - t0) / Math.max(1, t1 - t0) * 312 + 4);
+  const y = (w) => Math.round(8 + (hi - w.kg) / (hi - lo) * 64);
+  const last = pts[pts.length - 1];
+  chart.innerHTML = '<svg width="100%" height="80" viewBox="0 0 320 80" preserveAspectRatio="none" aria-label="Telesna masa, zadnjih 30 dni">'
+    + '<line x1="0" y1="20" x2="320" y2="20" stroke="#1C2E3F" stroke-width="1"/><line x1="0" y1="50" x2="320" y2="50" stroke="#1C2E3F" stroke-width="1"/>'
+    + '<polyline points="' + pts.map((w) => x(w) + ',' + y(w)).join(' ') + '" fill="none" stroke="#A89CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>'
+    + '<circle cx="' + x(last) + '" cy="' + y(last) + '" r="4" fill="#A89CFF"/></svg>';
+  const change = Math.round((last.kg - pts[0].kg) * 10) / 10;
+  trend.textContent = '30 dni · ' + (change > 0 ? '+' : change < 0 ? '−' : '±') + fmtKg(Math.abs(change)) + ' kg';
+}
+document.getElementById('kgDec').addEventListener('click', () => { kgDraft = Math.round((stepperKg() - 0.1) * 10) / 10; renderWeightChart(); });
+document.getElementById('kgInc').addEventListener('click', () => { kgDraft = Math.round((stepperKg() + 0.1) * 10) / 10; renderWeightChart(); });
+document.getElementById('kgSave').addEventListener('click', () => {
+  const kg = Math.round(stepperKg() * 10) / 10;
+  if (!(kg >= 20 && kg <= 300)) return;
+  const date = localDay(new Date());
+  weights = weights.filter((w) => w.date !== date).concat({ date: date, kg: kg, time: Date.now() });
+  weights.sort((a, b) => a.date.localeCompare(b.date));
+  kgDraft = null;
+  persistWeights();
+  renderWeights();
+  if (typeof toast === 'function') toast('Shranjeno: ' + fmtKg(kg) + ' kg (danes)');
+});
 // ============================================================
 
 let quickWords = lsGet(LS_WORDS, [...DEFAULT_WORDS]); // kept and synced; its words live on as training tags
@@ -3962,6 +4080,7 @@ function setTab(tab) {
   lsSet(LS_TAB, tab);
   if (tab === 'prehrana') showFoodView(foodView);
   if (tab === 'danes') renderToday();
+  if (tab === 'zdravje') renderHealth();
   if (tab === 'trening') renderTraining();
   window.scrollTo(0, 0);
 }
@@ -4010,13 +4129,17 @@ const cloneJson = (x) => JSON.parse(JSON.stringify(x));
 /** First run after the redesign: the old quick words become tags (strokes have their own buttons). */
 function defaultShortcuts() {
   const sc = cloneJson(DEFAULT_SHORTCUTS);
-  quickWords.forEach((w) => {
+  addWordsAsTags(sc, quickWords);
+  return sc;
+}
+function addWordsAsTags(sc, words) {
+  (words || []).forEach((w) => {
     const word = String(w).trim();
     if (!word || word === 'na' || word === '+' || STROKE_WORDS.indexOf(word.toLowerCase()) !== -1) return;
     if (!sc.tags.some((t) => t.toLowerCase() === word.toLowerCase())) sc.tags.push(word);
   });
-  return sc;
 }
+function mergeWordsIntoTags(words) { addWordsAsTags(shortcuts, words); }
 let shortcuts = lsGet(LS_SHORTCUTS, null) || defaultShortcuts();
 let templates = lsGet(LS_TEMPLATES, null) || cloneJson(DEFAULT_TEMPLATES);
 function persistShortcuts() { lsSet(LS_SHORTCUTS, shortcuts); scheduleDriveSync(); }
@@ -5176,6 +5299,60 @@ async function runFitImport() {
   imp.analyzing = false;
   renderFitImport();
 }
+
+// ============================================================
+// ZDRAVJE — Oura (obroči, spanje, utrip, HRV)
+// ============================================================
+function scoreRing(value, label) {
+  const len = 2 * Math.PI * 28;
+  const p = value == null ? 0 : Math.min(1, value / 100);
+  return '<div class="ring-tile"><div class="rw"><svg width="68" height="68" viewBox="0 0 68 68" aria-hidden="true"><circle cx="34" cy="34" r="28" fill="none" stroke="#2B2850" stroke-width="7"/>'
+    + (p ? '<circle cx="34" cy="34" r="28" fill="none" stroke="#A89CFF" stroke-width="7" stroke-linecap="round" stroke-dasharray="' + (len * p).toFixed(1) + ' ' + len.toFixed(1) + '" transform="rotate(-90 34 34)"/>' : '')
+    + '</svg><b>' + (value == null ? '—' : value) + '</b></div><span>' + label + '</span></div>';
+}
+function sparkline(values) {
+  const v = values.filter((x) => x != null);
+  if (v.length < 2) return '<div class="muted-sm" style="height:36px;">premalo podatkov za graf</div>';
+  const lo = Math.min(...v), hi = Math.max(...v);
+  const pts = values.map((x) => (x == null ? null : x)).map((x, idx) => (x == null ? null : Math.round(idx / (values.length - 1) * 140) + ',' + (hi === lo ? 18 : Math.round(4 + (hi - x) / (hi - lo) * 28)))).filter(Boolean);
+  return '<svg width="100%" height="36" viewBox="0 0 140 36" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts.join(' ') + '" fill="none" stroke="#A89CFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>';
+}
+const hm = (min) => (min == null ? '—' : Math.floor(min / 60) + ' h ' + String(min % 60).padStart(2, '0'));
+
+function renderHealth() {
+  const box = document.getElementById('healthOura');
+  const keys = Object.keys(ouraDays).sort();
+  const latest = keys[keys.length - 1];
+  const eyebrow = document.getElementById('healthEyebrow');
+  renderWeightChart();
+  if (!latest) {
+    eyebrow.textContent = ouraTokens ? 'Oura · nalagam …' : 'Oura ni povezan';
+    box.innerHTML = '<div class="empty-card">' + (ouraTokens ? 'Oura podatki se še nalagajo — tapni osveži zgoraj desno.' : 'Poveži Oura Ring spodaj pod <b>Povezave</b>, da tu vidiš spanje, pripravljenost, utrip in HRV.') + '</div>';
+    return;
+  }
+  const o = ouraDays[latest];
+  eyebrow.textContent = 'Oura · noč na ' + shortDay(latest);
+  const total = o.total_sleep_duration_min;
+  const st = [['Globoko', o.deep_sleep_min, '#6E5FE0'], ['REM', o.rem_sleep_min, '#A89CFF'], ['Lahko', o.light_sleep_min, '#3A3A6A']];
+  const stSum = st.reduce((a, x) => a + (x[1] || 0), 0);
+  const last14 = [];
+  for (let i = 13; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); last14.push(ouraDays[localDay(d)] || {}); }
+  const temp = o.temperature_deviation;
+  box.innerHTML = '<section class="oura-rings">' + scoreRing(o.readiness_score, 'Pripravljenost') + scoreRing(o.sleep_score, 'Spanje') + scoreRing(o.activity_score, 'Aktivnost') + '</section>'
+    + '<section class="sleep-card" aria-label="Spanje"><div class="top"><h2 class="d">Spanje</h2><b>' + (total == null ? '—' : Math.floor(total / 60) + ' h ' + (total % 60) + ' min') + '</b></div>'
+    + (stSum ? '<div class="stage-bar">' + st.map((x) => (x[1] ? '<div style="width:' + (x[1] / stSum * 100).toFixed(1) + '%;background:' + x[2] + '"></div>' : '')).join('') + '</div>' : '')
+    + '<div class="kv3">' + st.map((x) => '<div><span><i style="background:' + x[2] + '"></i>' + x[0] + '</span><b>' + hm(x[1]) + '</b></div>').join('') + '</div>'
+    + '<div class="kv3 sep"><div><span>Učinkovitost</span><b>' + (o.sleep_efficiency == null ? '—' : o.sleep_efficiency + ' %') + '</b></div>'
+    + '<div><span>Dihanje</span><b>' + (o.respiratory_rate == null ? '—' : String(o.respiratory_rate).replace('.', ',') + ' / min') + '</b></div>'
+    + '<div><span>Temperatura</span><b>' + (temp == null ? '—' : (temp > 0 ? '+' : temp < 0 ? '−' : '±') + Math.abs(temp).toLocaleString('sl-SI', { maximumFractionDigits: 2 }) + ' °C') + '</b></div></div></section>'
+    + '<section class="hr-grid"><div class="hr-tile"><span>Utrip čez noč · 14 dni</span><b>' + (o.avg_hr_overnight == null ? '—' : o.avg_hr_overnight) + ' <small>/ ' + (o.lowest_hr_overnight == null ? '—' : o.lowest_hr_overnight) + ' najn.</small></b>'
+    + sparkline(last14.map((x) => x.avg_hr_overnight)) + '</div>'
+    + '<div class="hr-tile"><span>HRV · 14 dni</span><b>' + (o.avg_hrv_overnight == null ? '—' : o.avg_hrv_overnight) + ' <small>ms</small></b>' + sparkline(last14.map((x) => x.avg_hrv_overnight)) + '</div></section>';
+}
+document.getElementById('healthRefresh').addEventListener('click', () => {
+  if (ouraTokens) ouraSyncNow(true);
+  else document.querySelector('.conn-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
 
 // ============================================================
 // ZGODOVINA
