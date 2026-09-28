@@ -386,12 +386,14 @@ worker) in varni robovi za iPhone z zarezo (`viewport-fit=cover`, `env(safe-area
 - **Vsaka jed posebej** — AI (ali ročni vnos) vrne jedi na krožniku kot ločene jedi (npr. »Pražen riž«,
   »Jota«); vsaka se shrani kot svoj vnos. *Združi v eno jed* jih po potrebi združi, *+ Dodaj jed* doda novo.
 - **Moje jedi** — vse, kar si že jedel. Med pisanjem se pod poljem pokažejo ujemajoče jedi — tap jo doda
-  z isto količino kot zadnjič, brez AI. V *Že jedel* pri jedi *Uredi ime in vrednosti* spremeni ime in
-  kcal/B/OH/M za 1 porcijo (velja za naslednje vnose) ali jo odstrani s seznama.
-  Spremembe so v `kilometrina.dishes` (v Drive kopiji `dishes`).
-- **Dopolnila** — v *Moja dopolnila* *Uredi ime, vrednosti in sestavine*; dopolnilo ima lahko kcal in
-  makrohranila na odmerek (npr. proteinski napitek), ki se prištejejo dnevu. Preimenovanje preimenuje tudi
-  pretekle vnose.
+  z isto količino kot zadnjič, brez AI. V *Že jedel* svinčnik ✎ desno od jedi odpre urejanje: novo ime
+  se zapiše tudi v vse že shranjene obroke s to jedjo, kcal/B/OH/M za 1 porcijo veljajo za naslednje
+  vnose; jed lahko tudi odstraniš s seznama. Spremembe so v `kilometrina.dishes` (v Drive kopiji `dishes`).
+  Pri urejanju posameznega obroka (tap na Prehrani) kljukica *Preimenuj povsod* novo ime zapiše tudi v
+  prejšnje vnose z istim imenom.
+- **Dopolnila** — na Prehrani ✎ pri zabeleženem dopolnilu (ali čip *✎ Uredi*) odpre urejanje imena,
+  vrednosti in sestavin; enako svinčnik v *Moja dopolnila*. Dopolnilo ima lahko kcal in makrohranila na
+  odmerek (npr. proteinski napitek), ki se prištejejo dnevu. Preimenovanje preimenuje tudi pretekle vnose.
 - **Stari vnosi po jedeh** — v *Dodaj hrano → Že jedel* je kartica *Stari vnosi*: *Razdeli stare vnose na
   jedi (AI)* pošlje imena in vrednosti starih obrokov (Worker, pot `/split-meals`, isto preverjanje) in
   pokaže predogled (npr. »Losos z rižem → Losos 500 + Riž 320«). *Uporabi razdelitev* vsak tak obrok

@@ -695,6 +695,9 @@
   .supp-chip { min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid #2A3F53; background: transparent; color: var(--text-soft); font-size: 13px; font-weight: 600; cursor: pointer; }
   .supp-chip[aria-pressed="true"] { border-color: #6A5230; background: #2A2418; color: #FFD19A; font-weight: 700; }
   .supp-chip.add { border-style: dashed; border-color: #3A4F63; color: var(--food); font-weight: 700; }
+  .supp-chip.edit { color: var(--text-dim); }
+  .rename-all { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--text-soft); line-height: 1.4; cursor: pointer; }
+  .rename-all input { width: 20px; height: 20px; min-height: 0; flex: none; margin: 0; accent-color: var(--food); }
   .fab-food {
     position: fixed; right: max(20px, calc(50% - 300px)); bottom: calc(var(--nav-h) + var(--safe-b) + 16px); z-index: 15;
     min-height: 56px; padding: 0 20px 0 16px; border-radius: 18px; border: 0; cursor: pointer;
@@ -781,7 +784,10 @@
   .vn-note { text-align: center; font-size: 12px; color: var(--text-dim); }
   .hist-food { border-radius: 16px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
   .hist-food.open { background: #161F28; border-color: #4A3B22; }
-  .hist-food > button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 0; background: transparent; text-align: left; cursor: pointer; }
+  .hist-food .hf-row { display: flex; align-items: center; }
+  .hist-food .hf-edit { flex: none; width: 44px; height: 44px; margin-right: 8px; display: flex; align-items: center; justify-content: center; border-radius: 12px; border: 1px solid #2A3F53; background: transparent; color: var(--text-soft); cursor: pointer; }
+  .hist-food .hf-edit[aria-pressed="true"] { border-color: var(--food); color: var(--food); }
+  .hist-food .hf-head { flex: 1; min-width: 0; width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 0; background: transparent; text-align: left; cursor: pointer; }
   .hist-food .n { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
   .hist-food .n b { font-size: 15px; }
   .hist-food .n span { font-size: 12px; color: var(--text-dim); }
@@ -2996,6 +3002,7 @@ function renderSuppMain(day) {
     }, { 'aria-pressed': on ? 'true' : 'false', title: ingredientsText(item.ingredients) || item.name }));
   });
   wrap.appendChild(btn('+ Novo / slikaj etiketo', 'supp-chip add', () => openVnos({ kind: 'dopolnilo' })));
+  if (supplementList.length) wrap.appendChild(btn('✎ Uredi', 'supp-chip edit', () => openVnos({ kind: 'dopolnilo', tab: 'zgod' }), { 'aria-label': 'Uredi dopolnila' }));
   document.getElementById('suppSummary').textContent = supplementList.length ? takenNames.size + ' / ' + supplementList.length : '';
 
   const daySupps = supplements.filter((x) => x.date === day).sort((a, b) => a.time - b.time);
@@ -3011,6 +3018,7 @@ function renderSuppMain(day) {
         <span class="servings" title="${escapeHtml(x.serving ? 'odmerek: ' + x.serving : 'število odmerkov')}">
           <button type="button" data-sstep="-1" data-sid="${x.id}" aria-label="Manj">−</button>×${fmtAmount(x.servings || 1)}<button type="button" data-sstep="1" data-sid="${x.id}" aria-label="Več">+</button>
         </span>
+        <button type="button" data-sedit="${x.id}" aria-label="Uredi ${escapeHtml(x.name)}">✎</button>
         <button type="button" class="danger" data-sdel="${x.id}" aria-label="Izbriši vnos">✕</button>
       </div>
     </div>`).join('') + (totals.length ? `
@@ -3022,6 +3030,18 @@ function renderSuppMain(day) {
     x.servings = Math.max(0.5, (x.servings || 1) + step * Number(b.dataset.sstep));
     persistSupps();
     renderFood();
+  }));
+  log.querySelectorAll('[data-sedit]').forEach((b) => b.addEventListener('click', () => {
+    const x = supplements.find((e) => e.id === b.dataset.sedit);
+    if (!x) return;
+    // an entry whose supplement was removed from the list comes back to it, so it can be edited
+    if (!supplementList.some((s) => s.name === x.name)) {
+      supplementList.push({ name: x.name, brand: '', serving: x.serving || '', ingredients: x.ingredients || [],
+        calories: x.calories || 0, protein: x.protein || 0, carbs: x.carbs || 0, fat: x.fat || 0 });
+      persistSupps();
+    }
+    const key = x.name.toLowerCase();
+    openVnos({ kind: 'dopolnilo', tab: 'zgod', pick: key, editSupp: key });
   }));
   log.querySelectorAll('[data-sdel]').forEach((b) => b.addEventListener('click', () => armedDelete(b, () => {
     supplements = supplements.filter((x) => x.id !== b.dataset.sdel);
@@ -3294,6 +3314,22 @@ function renderVnosNew(body, food) {
     body.appendChild(e);
   }
   if (vn.result) body.appendChild(food ? foodResultCard(edit) : suppResultCard());
+  if (edit && food && vn.result) {
+    const others = meals.filter((x) => x !== edit && dishKey(x.name) === dishKey(edit.name)).length;
+    if (others) {
+      const lab = document.createElement('label');
+      lab.className = 'rename-all';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = vn.renameAll !== false;
+      cb.addEventListener('change', () => { vn.renameAll = cb.checked; });
+      lab.appendChild(cb);
+      const t = document.createElement('span');
+      t.textContent = 'Preimenuj povsod — novo ime zapiši tudi v prejšnje vnose »' + edit.name + '« (še ' + others + '×).';
+      lab.appendChild(t);
+      body.appendChild(lab);
+    }
+  }
   if (!vn.result && !vn.analyzing) body.appendChild(btn('Vpiši ročno, brez AI', 'link-plain', () => {
     const first = vn.text.split(/,|\n/)[0].trim();
     const typed = vn.text.split(/,|\n/).map((x) => x.trim()).filter(Boolean);
@@ -3718,6 +3754,7 @@ function renderVnosHistList(food) {
     item.className = 'hist-food' + (open ? ' open' : '');
     const head = document.createElement('button');
     head.type = 'button';
+    head.className = 'hf-head';
     head.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (food) {
       const d = x.d;
@@ -3733,10 +3770,23 @@ function renderVnosHistList(food) {
     head.addEventListener('click', () => {
       vn.pick = open ? null : x.key;
       vn.editDish = null;
+      vn.editSupp = null;
       if (food && !open) { vn.portion = x.d.portion || 1; vn.split = false; vn.splitType = null; }
       renderVnosHistList(food);
     });
-    item.appendChild(head);
+    const editing = open && (food ? vn.editDish : vn.editSupp) === x.key;
+    const pen = btn('', 'hf-edit', () => {
+      vn.pick = editing ? null : x.key;
+      vn.editDish = food && !editing ? x.key : null;
+      vn.editSupp = !food && !editing ? x.key : null;
+      renderVnosHistList(food);
+    }, { 'aria-label': 'Uredi ime in vrednosti: ' + (food ? x.d.name : x.s.name), 'aria-pressed': editing ? 'true' : 'false' });
+    pen.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
+    const row = document.createElement('div');
+    row.className = 'hf-row';
+    row.appendChild(head);
+    row.appendChild(pen);
+    item.appendChild(row);
     if (open) {
       const b = document.createElement('div');
       b.className = 'body';
@@ -3826,7 +3876,7 @@ function dishEditor(d) {
   wrap.appendChild(form.el);
   const note = document.createElement('span');
   note.className = 'vn-hint';
-  note.textContent = 'Velja za naslednje vnose. Že shranjeni obroki ostanejo, kot so bili (vsakega lahko urediš posebej s tapom na Prehrani).';
+  note.textContent = 'Novo ime se zapiše tudi v vse že shranjene obroke s to jedjo. Kalorije in makri veljajo za naslednje vnose (posamezen obrok urediš s tapom na Prehrani).';
   wrap.appendChild(note);
   const acts = document.createElement('div');
   acts.className = 'gate-btns';
@@ -3835,6 +3885,11 @@ function dishEditor(d) {
     const v = form.read();
     if (!v.name) return;
     const newKey = dishKey(v.name);
+    if (v.name !== d.name) {
+      let n = 0;
+      meals.forEach((m) => { if (resolveDish(dishKey(m.name)).key === d.key) { m.name = v.name; n++; } });
+      if (n) persistMeals();
+    }
     if (newKey !== d.key) {
       if (dishLib[newKey] && dishLib[newKey].hidden) delete dishLib[newKey];
       dishLib[d.key] = { renamedTo: newKey };
@@ -4043,6 +4098,14 @@ function saveEdit() {
   if (!m) return;
   const ds = usableDishes(vn.result.dishes);
   const d = ds[0] || vn.result.dishes[0];
+  const oldName = m.name, newName = (d.name || '').trim();
+  if (newName && newName !== oldName && vn.renameAll !== false) {
+    const oldKey = dishKey(oldName), newKey = dishKey(newName);
+    meals.forEach((x) => { if (x !== m && dishKey(x.name) === oldKey) x.name = newName; });
+    const o = dishLib[oldKey];
+    if (o && o.name && oldKey !== newKey) { dishLib[newKey] = Object.assign({}, o, { name: newName }); dishLib[oldKey] = { renamedTo: newKey }; persistDishes(); }
+    else if (o && o.name) { o.name = newName; persistDishes(); }
+  }
   Object.assign(m, baseScaled(d, vn.portion), { name: (d.name || '').trim() || m.name, type: vn.type, portion: vn.portion, dishChecked: true });
   ds.slice(1).forEach((x, i) => {
     const extra = Object.assign({ id: newId('m'), date: m.date, time: m.time + i + 1, type: vn.type, hasPhoto: false, portion: vn.portion,
