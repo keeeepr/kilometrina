@@ -393,6 +393,8 @@ worker) in varni robovi za iPhone z zarezo (`viewport-fit=cover`, `env(safe-area
   premakneš gumbe za slog (npr. »prosto«); tipkan set jih prepozna po imenu.
 - **Vsaka jed posebej** — AI (ali ročni vnos) vrne jedi na krožniku kot ločene jedi (npr. »Pražen riž«,
   »Jota«); vsaka se shrani kot svoj vnos. *Združi v eno jed* jih po potrebi združi, *+ Dodaj jed* doda novo.
+- **Spet isto?** — pod vsakim obrokom na Prehrani so gumbi z jedmi, ki jih pri tem obroku najpogosteje ješ:
+  en tap jed doda z enako količino kot zadnjič (tap na obvestilo razveljavi), *Vse jedi ›* odpre knjižnico.
 - **Knjižnica jedi (Moje jedi)** — vse, kar si kdaj jedel, po abecedi (A–Ž, s črkami kot naslovi): na Prehrani
   gumb *Knjižnica jedi* ali *Dodaj hrano → Že jedel*. Med pisanjem se pod poljem pokažejo ujemajoče jedi — tap jo
   doda z isto količino kot zadnjič, brez AI. Svinčnik ✎ desno od jedi odpre urejanje: ime (zapiše se tudi v vse

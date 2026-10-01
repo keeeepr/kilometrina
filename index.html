@@ -851,6 +851,8 @@
   .dish-chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .dish-chip { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid #4A3B22; background: #1A1710; color: #FFE3C4; font-size: 13px; font-weight: 600; cursor: pointer; }
   .dish-chip span { color: var(--food); font-weight: 700; margin-left: 4px; }
+  .dish-chip.more { background: transparent; border-style: dashed; color: var(--food); font-weight: 700; }
+  .quick-dishes { display: flex; flex-direction: column; gap: 6px; margin: 2px 0 4px; }
   .dish-total { font-size: 13px; font-weight: 700; color: #FFD19A; }
   .edit-form { display: flex; flex-direction: column; gap: 8px; }
   .old-split { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 16px; background: #1A1710; border: 1px solid #4A3B22; }
@@ -2815,6 +2817,7 @@ function pastMeals() {
 let toastTimer = null;
 function toast(msg) {
   const el = document.getElementById('toast');
+  el.onclick = null; // an undo belongs only to the message it came with
   el.textContent = msg;
   el.hidden = false;
   clearTimeout(toastTimer);
@@ -3022,6 +3025,14 @@ function renderMealGroups(day) {
   const wrap = document.getElementById('foodMeals');
   wrap.innerHTML = '';
   const dayMeals = meals.filter((m) => m.date === day).sort((a, b) => a.time - b.time);
+  const lib = libDishes();
+  // how often each dish was eaten at each meal (zajtrk, kosilo …), for the one-tap buttons
+  const byType = {};
+  eatenMeals().forEach((m) => {
+    const k = resolveDish(dishKey(m.name)).key;
+    const t = byType[m.type] || (byType[m.type] = {});
+    t[k] = (t[k] || 0) + 1;
+  });
   MEAL_ORDER.forEach((type) => {
     const list = dayMeals.filter((m) => m.type === type);
     const eaten = list.filter((m) => !m.pending);
@@ -3030,9 +3041,55 @@ function renderMealGroups(day) {
     g.className = 'meal-group';
     g.innerHTML = '<div class="sec-head"><h2>' + mealTypeLabel(type) + '</h2><span>' + (kcal ? fmtInt(kcal) + ' kcal' : list.length ? 'ostanki čakajo' : '') + '</span></div>';
     list.forEach((m) => g.appendChild(m.pending ? leftoverCard(m) : mealRow(m, dayMeals)));
+    const quick = quickDishRow(type, lib, byType);
+    if (quick) g.appendChild(quick);
     g.appendChild(btn('+ Dodaj k ' + (type === 'prigrizek' ? 'prigrizku' : type === 'vecerja' ? 'večerji' : type === 'kosilo' ? 'kosilu' : 'zajtrku'), 'add-dashed', () => openVnos({ kind: 'hrana', type: type })));
     wrap.appendChild(g);
   });
+}
+
+/** One-tap buttons under a meal: the dishes most often eaten at this meal, added with last time's amount. */
+function quickDishRow(type, lib, byType) {
+  if (!lib.length) return null;
+  const counts = byType[type] || {};
+  const top = lib.filter((d) => counts[d.key]).sort((a, b) => counts[b.key] - counts[a.key] || b.count - a.count).slice(0, 4);
+  if (top.length < 2) lib.filter((d) => top.indexOf(d) === -1).slice(0, 4 - top.length).forEach((d) => top.push(d));
+  const row = document.createElement('div');
+  row.className = 'quick-dishes';
+  row.innerHTML = '<span class="cap">Spet isto? Tapni in je dodano</span>';
+  const chips = document.createElement('div');
+  chips.className = 'dish-chips';
+  top.forEach((d) => {
+    const v = baseScaled(d.base, d.portion || 1);
+    const b = btn('', 'dish-chip', () => quickAddDish(d, type), { 'aria-label': 'Dodaj ' + d.name + ' v ' + mealTypeLabel(type) });
+    b.innerHTML = escapeHtml(d.name) + ' <span>' + (d.grams ? fmtInt(d.grams * (d.portion || 1)) + ' g · ' : '') + fmtInt(v.calories) + '</span>';
+    chips.appendChild(b);
+  });
+  chips.appendChild(btn('Vse jedi ›', 'dish-chip more', () => openVnos({ kind: 'hrana', tab: 'zgod', type: type })));
+  row.appendChild(chips);
+  return row;
+}
+
+/** Log a library dish straight away (same amount as last time); the toast offers undo. */
+function quickAddDish(d, type) {
+  const p = d.portion || 1;
+  const m = Object.assign({ id: newId('m'), date: foodDate.value || localDay(new Date()), time: Date.now(), type: type, hasPhoto: false,
+    dishChecked: true, name: d.name, portion: p, confidence: null, notes: '', source: 'repeat' },
+    baseScaled(d.base, p), d.grams ? { grams: Math.round(d.grams * p) } : {});
+  meals.push(m);
+  meals.sort((x, y) => x.date.localeCompare(y.date) || x.time - y.time);
+  persistMeals();
+  renderFood();
+  toast('Dodano v ' + mealTypeLabel(type) + ': ' + d.name + (m.grams ? ' · ' + fmtInt(m.grams) + ' g' : '') + ' · ' + fmtInt(m.calories) + ' kcal — tapni tukaj za razveljavitev');
+  const t = document.getElementById('toast');
+  const undo = () => {
+    meals = meals.filter((x) => x.id !== m.id);
+    persistMeals();
+    renderFood();
+    toast('Razveljavljeno');
+  };
+  t.onclick = () => { t.onclick = null; undo(); };
+  setTimeout(() => { if (t.onclick && t.textContent.indexOf(d.name) !== -1) t.onclick = null; }, 3600);
 }
 
 function mealRow(m, dayMeals) {
