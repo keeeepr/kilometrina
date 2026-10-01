@@ -401,7 +401,9 @@ worker) in varni robovi za iPhone z zarezo (`viewport-fit=cover`, `env(safe-area
   že shranjene obroke), vrednosti in **način merjenja**: *Porcija* (×½, ×1, ×2), *Grami porcije* (»1 porcija =
   60 g«) ali *Na 100 g* (z embalaže). Pri jedeh v gramih namesto porcij vtipkaš maso (ali −10/+10), kcal in makri
   se preračunajo, naslednjič je privzeta zadnja masa. Masa se lahko vpiše tudi pri novem vnosu in pri urejanju
-  obroka (tap na Prehrani). Obrok ima polje `grams`, v Excelu je stolpec *Masa (g)*. Spremembe jedi so v
+  obroka (tap na Prehrani). Obrok ima polje `grams`, v Excelu je stolpec *Masa (g)*. AI ob oceni vrne tudi maso
+  vsake jedi (`grams`), zato je *Masa* že izpolnjena — sprememba (npr. 50 → 60 g) preračuna kcal in makre. Pri jedeh
+  brez mase vrstica *Velja za … g · Potrdi* najprej določi, za koliko gramov veljajo vrednosti (predlog iz opombe AI). Spremembe jedi so v
   `kilometrina.dishes` (`{name, calories, protein, carbs, fat, grams?, unit?}`, v Drive kopiji `dishes`).
 - **Dopolnila** — na Prehrani ✎ pri zabeleženem dopolnilu (ali čip *✎ Uredi*) odpre urejanje imena,
   vrednosti in sestavin; enako svinčnik v *Moja dopolnila*. Dopolnilo ima lahko kcal in makrohranila na

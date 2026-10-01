@@ -135,9 +135,10 @@ Identify what is there, judge the portion size from the visual cues (plate, cutl
 - name: a short title, at most 4 words, naming the main dish only (e.g. "Losos z rižem", "Ovseni kosmiči z jagodami").
 - calories: total kilocalories, as a whole number.
 - protein_g, carbs_g, fat_g: grams for the whole portion.
+- grams: the estimated weight of the whole portion as eaten, in grams (for drinks: millilitres).
 - confidence: "high" when the food and portion are clear, "low" when you are mostly guessing (hidden ingredients, unclear portion, sauces).
 - notes: one short sentence naming the biggest assumption you made (e.g. "Predpostavljena 1 skodelica kuhanega riža.").
-- items: the separate dishes or foods, as the user would write them in a food diary (at most 8, e.g. "Pražen riž", "Jota", "Kruh", "Solata z olivnim oljem"), each with its own kcal, protein_g, carbs_g and fat_g, named in Slovenian. Keep one prepared dish as one item — do not break it into raw ingredients. A single dish gives a single item. The item values should add up to the totals.
+- items: the separate dishes or foods, as the user would write them in a food diary (at most 8, e.g. "Pražen riž", "Jota", "Kruh", "Solata z olivnim oljem"), each with its own kcal, protein_g, carbs_g, fat_g and grams (its estimated weight as eaten, e.g. 50 for 50 g of oats; for drinks millilitres), named in Slovenian. Keep one prepared dish as one item — do not break it into raw ingredients. A single dish gives a single item. The item values should add up to the totals.
 
 When a description is given, it overrides what the photo suggests (e.g. stated grams, "brez omake"). If several items are present, sum them into one meal. If there is no food or drink, set is_food to false and use 0 and empty strings for the rest.`;
 
@@ -151,6 +152,7 @@ const MEAL_SCHEMA = {
     protein_g: { type: 'number' },
     carbs_g: { type: 'number' },
     fat_g: { type: 'number' },
+    grams: { type: 'number' },
     confidence: { type: 'string', enum: ['low', 'medium', 'high'] },
     notes: { type: 'string' },
     items: {
@@ -162,14 +164,15 @@ const MEAL_SCHEMA = {
           kcal: { type: 'integer' },
           protein_g: { type: 'number' },
           carbs_g: { type: 'number' },
-          fat_g: { type: 'number' }
+          fat_g: { type: 'number' },
+          grams: { type: 'number' }
         },
-        required: ['name', 'kcal', 'protein_g', 'carbs_g', 'fat_g'],
+        required: ['name', 'kcal', 'protein_g', 'carbs_g', 'fat_g', 'grams'],
         additionalProperties: false
       }
     }
   },
-  required: ['is_food', 'name', 'calories', 'protein_g', 'carbs_g', 'fat_g', 'confidence', 'notes', 'items'],
+  required: ['is_food', 'name', 'calories', 'protein_g', 'carbs_g', 'fat_g', 'grams', 'confidence', 'notes', 'items'],
   additionalProperties: false
 };
 
@@ -310,6 +313,7 @@ async function estimateMeal(request, env, origin) {
     protein: wholeNumber(estimate.protein_g),
     carbs: wholeNumber(estimate.carbs_g),
     fat: wholeNumber(estimate.fat_g),
+    grams: wholeNumber(estimate.grams),
     confidence: ['low', 'medium', 'high'].indexOf(estimate.confidence) !== -1 ? estimate.confidence : 'medium',
     notes: String(estimate.notes || '').trim(),
     items: (Array.isArray(estimate.items) ? estimate.items : []).slice(0, 8).map((i) => ({
@@ -317,7 +321,8 @@ async function estimateMeal(request, env, origin) {
       kcal: wholeNumber(i.kcal),
       protein: wholeNumber(i.protein_g),
       carbs: wholeNumber(i.carbs_g),
-      fat: wholeNumber(i.fat_g)
+      fat: wholeNumber(i.fat_g),
+      grams: wholeNumber(i.grams)
     })).filter((i) => i.name)
   }, 200, origin);
 }

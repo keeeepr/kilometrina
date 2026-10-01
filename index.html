@@ -716,6 +716,9 @@
   .grams-row input { width: 84px; min-height: 0; height: 44px; padding: 0 8px; text-align: center; font-size: 17px; font-weight: 700; }
   .grams-row .u { font-size: 14px; color: var(--text-dim); }
   .grams-row .h { flex: 1; min-width: 0; font-size: 12px; color: var(--text-dim); line-height: 1.35; }
+  .grams-row.ref { flex-wrap: wrap; }
+  .grams-row.ref .h { flex-basis: 100%; }
+  .grams-row button.ok { width: auto; padding: 0 14px; border: 0; background: var(--food); color: #2E1A04; font-weight: 800; }
   .unit-seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 3px; border-radius: 12px; background: var(--field); border: 1px solid var(--field-line); }
   .unit-seg button { min-height: 40px; border: 0; border-radius: 9px; background: transparent; color: var(--text-dim); font-size: 13px; font-weight: 700; cursor: pointer; }
   .unit-seg button[aria-pressed="true"] { background: #2A2418; color: var(--food); }
@@ -3626,6 +3629,34 @@ function gramsRow(value, onSet, onLive, hint) {
   return row;
 }
 
+/** "Predpostavljenih 50 g kosmičev" → 50 (the weight an AI note or a name mentions), else 0. */
+function gramsGuess(text) {
+  const m = String(text || '').match(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramov|grama|grame|gramih|ml)(?![a-zčšž])/i);
+  return m ? Math.round(Number(m[1].replace(',', '.'))) : 0;
+}
+
+/** For values without a known weight: "Velja za [50] g · Potrdi". */
+function gramsRefRow(guess, onSet) {
+  const row = document.createElement('div');
+  row.className = 'grams-row ref';
+  row.innerHTML = '<span class="lbl">Velja za</span>';
+  const inp = document.createElement('input');
+  inp.inputMode = 'decimal'; inp.value = guess ? String(guess) : ''; inp.placeholder = 'g'; inp.setAttribute('aria-label', 'Za koliko gramov veljajo te vrednosti');
+  const set = () => { const G = Math.round(Number(String(inp.value).replace(',', '.')) || 0); if (G > 0) onSet(G); else inp.focus(); };
+  inp.addEventListener('focus', () => inp.select());
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') set(); });
+  row.appendChild(inp);
+  const u = document.createElement('span'); u.className = 'u'; u.textContent = 'g';
+  row.appendChild(u);
+  row.appendChild(btn('Potrdi', 'ok', set));
+  const h = document.createElement('span');
+  h.className = 'h';
+  h.textContent = guess ? 'Ocena je bila za ' + guess + ' g — potrdi ali popravi, nato vpiši, koliko si pojedel, in se preračuna.'
+    : 'Za koliko gramov veljajo te vrednosti? Potrdi, nato vpiši, koliko si pojedel, in se preračuna (neobvezno).';
+  row.appendChild(h);
+  return row;
+}
+
 function portionButtons(onPick) {
   const grid = document.createElement('div');
   grid.className = 'portion-grid';
@@ -3707,12 +3738,18 @@ function foodResultCard(edit) {
     });
     dc.appendChild(grid);
     // grams: once known, changing them scales kcal and macros; the first time they only record the weight
-    const g = d.grams ? d.grams * vn.portion : 0;
-    dc.appendChild(gramsRow(g, (G) => {
-      if (d.grams) { const f = G / (d.grams * vn.portion); MACRO_KEYS.forEach((k) => { d[k] = (d[k] || 0) * f; }); }
-      d.grams = G / vn.portion;
-      renderVnos();
-    }, null, d.grams ? '' : 'neobvezno — koliko gramov je bilo; naslednjič jed izbiraš v gramih'));
+    if (d.grams) {
+      dc.appendChild(gramsRow(d.grams * vn.portion, (G) => {
+        const f = G / (d.grams * vn.portion);
+        MACRO_KEYS.forEach((k) => { d[k] = (d[k] || 0) * f; });
+        d.grams = G / vn.portion;
+        renderVnos();
+      }, null, 'spremeni maso — kcal in makri se preračunajo'));
+    } else {
+      // first say which weight the values belong to; only then can a new weight rescale them
+      const guess = gramsGuess(d.name) || (r.dishes.length === 1 ? gramsGuess(r.notes) : 0);
+      dc.appendChild(gramsRefRow(guess, (G) => { d.grams = G / vn.portion; renderVnos(); }));
+    }
     card.appendChild(dc);
   });
   if (edit) {
@@ -4086,6 +4123,18 @@ function renderVnosHistList(food) {
             (G) => { vn.portion = G / d.grams; if (add) add.textContent = label(); }, per100 + ' kcal / 100 g'));
         } else {
           b.appendChild(portionButtons((v) => { vn.portion = v; renderVnosHistList(true); }));
+          const guess = gramsGuess(d.name) || (d.last ? gramsGuess(d.last.notes) : 0);
+          const ref = gramsRefRow(guess, (G) => {
+            // 1 portion (the values above for ×1) weighs G grams — from now on this dish is chosen in grams
+            dishLib[d.key] = Object.assign({ name: d.name }, d.base, { grams: G, unit: 'g' });
+            persistDishes();
+            vn.portion = 1;
+            toast(d.name + ': 1 porcija = ' + G + ' g — zdaj vpišeš, koliko gramov si pojedel');
+            renderVnosHistList(true);
+          });
+          ref.querySelector('.lbl').textContent = '1 porcija';
+          ref.querySelector('.h').textContent = (guess ? 'Ocena je bila za ' + guess + ' g. ' : '') + 'Vpiši, koliko gramov je 1 porcija, in jed izbiraš v gramih.';
+          b.appendChild(ref);
         }
         b.appendChild(splitBox(baseScaled(d.base, vn.portion).calories));
         add = btn(label(), 'big-food-btn', () => {
@@ -4387,8 +4436,9 @@ async function runAnalysis() {
     vn.portion = 1;
     vn.result = food
       ? { ai: true, conf: data.confidence, notes: data.notes,
-          dishes: (data.items && data.items.length ? data.items.map((x) => ({ name: x.name, calories: x.kcal, protein: x.protein, carbs: x.carbs, fat: x.fat }))
-            : [{ name: data.name || '', calories: data.calories, protein: data.protein, carbs: data.carbs, fat: data.fat }]) }
+          // grams = AI's estimate of the weight eaten, so changing it later rescales kcal and macros
+          dishes: (data.items && data.items.length ? data.items.map((x) => Object.assign({ name: x.name, calories: x.kcal, protein: x.protein, carbs: x.carbs, fat: x.fat }, x.grams > 0 ? { grams: x.grams } : {}))
+            : [Object.assign({ name: data.name || '', calories: data.calories, protein: data.protein, carbs: data.carbs, fat: data.fat }, data.grams > 0 ? { grams: data.grams } : {})]) }
       : { ai: true, conf: data.confidence, notes: data.notes, name: data.name || '', brand: data.brand || '', dose: data.serving || '', ingredients: data.ingredients || [], calories: 0, protein: 0, carbs: 0, fat: 0 };
   } catch (e) {
     if (e.code === 'bad_passcode') { vn.analyzing = false; openGate(runAnalysis, 'Napačna koda. Poskusi znova.'); renderVnos(); return; }
