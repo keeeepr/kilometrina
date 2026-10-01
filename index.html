@@ -704,6 +704,21 @@
   .supp-chip[aria-pressed="true"] { border-color: #6A5230; background: #2A2418; color: #FFD19A; font-weight: 700; }
   .supp-chip.add { border-style: dashed; border-color: #3A4F63; color: var(--food); font-weight: 700; }
   .supp-chip.edit { color: var(--text-dim); }
+  .lib-link { display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 10px; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); color: var(--text); text-align: left; cursor: pointer; }
+  .lib-link .ico { width: 36px; height: 36px; flex: none; border-radius: 10px; background: #2A2418; display: flex; align-items: center; justify-content: center; }
+  .lib-link b { flex: 1; font-size: 15px; }
+  .lib-link span { font-size: 13px; color: var(--text-dim); }
+  .lib-letter { margin: 10px 2px 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 800; color: var(--food); }
+  .lib-letter:first-child { margin-top: 0; }
+  .grams-row { display: flex; align-items: center; gap: 8px; }
+  .grams-row .lbl { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); min-width: 44px; }
+  .grams-row button { width: 44px; height: 44px; flex: none; border-radius: 12px; border: 1px solid #2A3F53; background: transparent; color: var(--text); font-size: 15px; font-weight: 700; cursor: pointer; }
+  .grams-row input { width: 84px; min-height: 0; height: 44px; padding: 0 8px; text-align: center; font-size: 17px; font-weight: 700; }
+  .grams-row .u { font-size: 14px; color: var(--text-dim); }
+  .grams-row .h { flex: 1; min-width: 0; font-size: 12px; color: var(--text-dim); line-height: 1.35; }
+  .unit-seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 3px; border-radius: 12px; background: var(--field); border: 1px solid var(--field-line); }
+  .unit-seg button { min-height: 40px; border: 0; border-radius: 9px; background: transparent; color: var(--text-dim); font-size: 13px; font-weight: 700; cursor: pointer; }
+  .unit-seg button[aria-pressed="true"] { background: #2A2418; color: var(--food); }
   .supp-sub { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0 8px; }
   .supp-sub:first-child { margin-top: 0; }
   .supp-cards { display: flex; flex-direction: column; gap: 8px; }
@@ -1259,6 +1274,8 @@
   <div data-tab="prehrana" data-food-view="main" hidden class="day-strip" role="group" aria-label="Izberi dan" id="foodDays"></div>
 
   <button type="button" data-tab="prehrana" data-food-view="main" hidden class="ring-card" id="foodRings" aria-label="Makro cilji in koledar"></button>
+
+  <button type="button" data-tab="prehrana" data-food-view="main" hidden class="lib-link" id="foodLibBtn"><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFB45E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h7"/></svg></span><b>Knjižnica jedi</b><span id="foodLibCount"></span></button>
 
   <div data-tab="prehrana" data-food-view="main" hidden id="foodMeals" class="stack"></div>
 
@@ -1826,8 +1843,8 @@ function xlsxSheets() {
     .concat(Object.keys(ouraDays).sort().map((d) => [d].concat(ouraCols.map((c) => ouraDays[d][c[0]]))));
   const hhmm = hhmmOf;
   const SOURCE_LABEL = { ai: 'AI', repeat: 'ponovljeno', manual: 'ročno' };
-  const food = [['Datum', 'Ura', 'Obrok', 'Ime', 'Količina ×', 'kcal', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Vir', 'Zanesljivost', 'Opomba', 'Del obroka (%)', 'Stanje']]
-    .concat(meals.map((m) => [m.date, hhmm(m.time), mealTypeLabel(m.type), m.name, m.portion || 1, m.calories, m.protein, m.carbs, m.fat,
+  const food = [['Datum', 'Ura', 'Obrok', 'Ime', 'Količina ×', 'Masa (g)', 'kcal', 'Beljakovine (g)', 'OH (g)', 'Maščobe (g)', 'Vir', 'Zanesljivost', 'Opomba', 'Del obroka (%)', 'Stanje']]
+    .concat(meals.map((m) => [m.date, hhmm(m.time), mealTypeLabel(m.type), m.name, m.portion || 1, m.grams || null, m.calories, m.protein, m.carbs, m.fat,
       SOURCE_LABEL[m.source] || 'ročno', m.confidence, m.notes, m.split ? Math.round(m.split.share * 100) : null, m.pending ? 'ostanek, še ni pojeden' : 'pojedeno']));
   const supps = [['Datum', 'Ura', 'Dopolnilo', 'Število odmerkov', 'Odmerek', 'Zaužite sestavine', 'kcal']]
     .concat([...supplements].sort((a, b) => a.date.localeCompare(b.date) || a.time - b.time)
@@ -1871,7 +1888,7 @@ function xlsxSheets() {
     { name: 'Dnevni pregled', rows: daily, widths: [12, 9, 7, 10, 10, 12, 10, 8, 10, 10, 30, 10, 10, 9, 10, 12, 22] },
     { name: 'Treningi', rows: workouts, widths: [12, 24, 8, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9] },
     { name: 'Seti', rows: sets, widths: [12, 22, 12, 5, 80, 9], rowStyles: setStyles },
-    { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 10, 7, 10, 8, 10, 10, 11, 50, 10, 18] },
+    { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 10, 9, 7, 10, 8, 10, 10, 11, 50, 10, 18] },
     { name: 'Dopolnila', rows: supps, widths: [12, 7, 26, 10, 12, 70] },
     { name: 'Pijača', rows: drinkRows, widths: [12, 7, 16, 8, 7] },
     { name: 'Telesna masa', rows: weightRows, widths: [12, 10] },
@@ -2742,7 +2759,8 @@ const mealWord = (key) => mealTypeLabel(key).toLowerCase();
 function wholeMeal(m) {
   const share = m.split && m.split.share > 0 && m.split.share < 1 ? m.split.share : 1;
   if (share === 1) return m;
-  return Object.assign({}, m, { calories: roundDec(m.calories / share), protein: roundDec(m.protein / share), carbs: roundDec(m.carbs / share), fat: roundDec(m.fat / share) });
+  return Object.assign({}, m, { calories: roundDec(m.calories / share), protein: roundDec(m.protein / share), carbs: roundDec(m.carbs / share), fat: roundDec(m.fat / share) },
+    m.grams ? { grams: Math.round(m.grams / share) } : {});
 }
 
 // ---------- Moje jedi: every dish ever eaten, reusable without typing ----------
@@ -2764,15 +2782,20 @@ function libDishes() {
     const r = resolveDish(dishKey(e.last.name));
     if (r.o && r.o.hidden) return;
     const p = e.last.portion || 1;
-    const base = r.o && r.o.name ? { calories: r.o.calories, protein: r.o.protein, carbs: r.o.carbs, fat: r.o.fat }
+    const custom = !!(r.o && r.o.name);
+    const base = custom ? { calories: r.o.calories, protein: r.o.protein, carbs: r.o.carbs, fat: r.o.fat }
       : { calories: e.last.calories / p, protein: e.last.protein / p, carbs: e.last.carbs / p, fat: e.last.fat / p };
+    // grams of `base`: set by hand in the dish editor, else known from how the last meal was weighed
+    const grams = custom ? r.o.grams || 0 : e.last.grams ? e.last.grams / p : 0;
+    // how much was eaten last time, in units of `base` (with grams: last grams ÷ grams of base)
+    const portion = grams ? (e.last.grams ? e.last.grams / grams : 1) : p;
     const d = out[r.key];
-    if (d) { d.count += e.count; if (!d.last || e.last.date > d.last.date) { d.last = e.last; d.portion = p; } }
-    else out[r.key] = { key: r.key, name: r.o && r.o.name ? r.o.name : e.last.name, base: base, count: e.count, last: e.last, portion: p };
+    if (d) { d.count += e.count; if (!d.last || e.last.date > d.last.date) { d.last = e.last; d.portion = portion; } }
+    else out[r.key] = { key: r.key, name: custom ? r.o.name : e.last.name, base: base, grams: grams, unit: custom ? r.o.unit || (grams ? 'g' : 'porcija') : grams ? 'g' : 'porcija', count: e.count, last: e.last, portion: portion };
   });
   Object.keys(dishLib).forEach((k) => {
     const o = dishLib[k];
-    if (o && o.name && !o.hidden && !o.renamedTo && !out[k]) out[k] = { key: k, name: o.name, base: { calories: o.calories, protein: o.protein, carbs: o.carbs, fat: o.fat }, count: 0, last: null, portion: 1 };
+    if (o && o.name && !o.hidden && !o.renamedTo && !out[k]) out[k] = { key: k, name: o.name, base: { calories: o.calories, protein: o.protein, carbs: o.carbs, fat: o.fat }, grams: o.grams || 0, unit: o.unit || (o.grams ? 'g' : 'porcija'), count: 0, last: null, portion: 1 };
   });
   return Object.values(out).sort((a, b) => b.count - a.count || ((b.last && b.last.date) || '').localeCompare((a.last && a.last.date) || ''));
 }
@@ -2942,6 +2965,8 @@ function showFoodView(v) {
 }
 
 function renderFood() {
+  const nLib = libDishes().length;
+  document.getElementById('foodLibCount').textContent = nLib ? plural(nLib, 'jed', 'jedi', 'jedi', 'jedi') + ' A–Ž ›' : 'prazna ›';
   const day = foodDate.value || localDay(new Date());
   const today = localDay(new Date());
   document.getElementById('foodMonth').textContent = dayDate(day).toLocaleDateString('sl-SI', { month: 'long' }) + (day === today ? '' : ' · ' + shortDay(day));
@@ -2982,8 +3007,8 @@ function renderFood() {
 function mealMeta(m) {
   const conf = { high: ['visoka', 'conf-high'], medium: ['srednja', 'conf-mid'], low: ['nizka', 'conf-low'] }[m.confidence];
   const src = m.source === 'ai' && conf ? '<span class="' + conf[1] + '">AI · ' + conf[0] + '</span>'
-    : m.source === 'repeat' ? 'ponovljeno · × ' + fmtAmount(m.portion || 1) : m.source === 'ai' ? 'AI' : 'ročni vnos';
-  return 'B ' + fmt1(m.protein) + ' · OH ' + fmt1(m.carbs) + ' · M ' + fmt1(m.fat) + ' · ' + src;
+    : m.source === 'repeat' ? (m.grams ? 'ponovljeno' : 'ponovljeno · × ' + fmtAmount(m.portion || 1)) : m.source === 'ai' ? 'AI' : 'ročni vnos';
+  return (m.grams ? fmtInt(m.grams) + ' g · ' : '') + 'B ' + fmt1(m.protein) + ' · OH ' + fmt1(m.carbs) + ' · M ' + fmt1(m.fat) + ' · ' + src;
 }
 function mealIcon(m) {
   const ico = document.createElement('div');
@@ -3197,6 +3222,7 @@ function suppCard(x) {
 foodDate.addEventListener('change', () => { if (!foodDate.value) foodDate.value = localDay(new Date()); renderFood(); });
 document.getElementById('foodRings').addEventListener('click', () => { goalTab = 'koledar'; calMonth = null; calSel = foodDate.value; showFoodView('cilji'); });
 document.getElementById('foodFab').addEventListener('click', () => openVnos({ kind: 'hrana' }));
+document.getElementById('foodLibBtn').addEventListener('click', () => openVnos({ kind: 'hrana', tab: 'zgod' }));
 
 // ---------- drinks ----------
 const LS_DRINKS = 'kilometrina.drinks';
@@ -3335,7 +3361,7 @@ function openVnos(opts) {
       vn.type = m.type;
       vn.portion = p;
       vn.result = { ai: m.source === 'ai', conf: m.confidence, notes: m.notes || '',
-        dishes: [{ name: m.name, calories: m.calories / p, protein: m.protein / p, carbs: m.carbs / p, fat: m.fat / p }] };
+        dishes: [Object.assign({ name: m.name, calories: m.calories / p, protein: m.protein / p, carbs: m.carbs / p, fat: m.fat / p }, m.grams ? { grams: m.grams / p } : {})] };
     }
   }
   showFoodView('vnos');
@@ -3358,7 +3384,9 @@ const usableDishes = (dishes) => (dishes || []).filter((d) => (d.name || '').tri
 function addLibDish(d) {
   if (!vn.result) { vn.result = { ai: false, dishes: [] }; vn.portion = 1; }
   const p = (d.portion || 1) / (vn.portion || 1);
-  vn.result.dishes.push({ name: d.name, calories: d.base.calories * p, protein: d.base.protein * p, carbs: d.base.carbs * p, fat: d.base.fat * p, fromLib: true });
+  const x = { name: d.name, calories: d.base.calories * p, protein: d.base.protein * p, carbs: d.base.carbs * p, fat: d.base.fat * p, fromLib: true };
+  if (d.grams) x.grams = d.grams * p; // values and grams are per one vn.portion
+  vn.result.dishes.push(x);
   vn.error = '';
   renderVnos();
 }
@@ -3520,6 +3548,27 @@ function dishSuggestions() {
   return wrap;
 }
 
+/** − [80] g + : how much was eaten, in grams. onLive while typing (no redraw), onSet on +/−/Enter/blur. */
+function gramsRow(value, onSet, onLive, hint) {
+  const row = document.createElement('div');
+  row.className = 'grams-row';
+  row.innerHTML = '<span class="lbl">Masa</span>';
+  const step = value >= 200 ? 25 : 10;
+  const inp = document.createElement('input');
+  inp.inputMode = 'decimal'; inp.value = value ? String(Math.round(value)) : ''; inp.placeholder = 'g'; inp.setAttribute('aria-label', 'Masa v gramih');
+  const read = () => Math.round(Number(String(inp.value).replace(',', '.')) || 0);
+  inp.addEventListener('focus', () => inp.select());
+  inp.addEventListener('input', () => { if (onLive && read() > 0) onLive(read()); });
+  inp.addEventListener('change', () => { if (read() > 0) onSet(read()); else inp.value = value ? String(Math.round(value)) : ''; });
+  row.appendChild(btn('−' + step, '', () => { if (value > step) onSet(Math.round(value) - step); }, { 'aria-label': 'Manj za ' + step + ' g' }));
+  row.appendChild(inp);
+  const u = document.createElement('span'); u.className = 'u'; u.textContent = 'g';
+  row.appendChild(u);
+  row.appendChild(btn('+' + step, '', () => onSet(Math.round(value || 0) + step), { 'aria-label': 'Več za ' + step + ' g' }));
+  if (hint) { const h = document.createElement('span'); h.className = 'h'; h.textContent = hint; row.appendChild(h); }
+  return row;
+}
+
 function portionButtons(onPick) {
   const grid = document.createElement('div');
   grid.className = 'portion-grid';
@@ -3600,6 +3649,13 @@ function foodResultCard(edit) {
       grid.appendChild(f);
     });
     dc.appendChild(grid);
+    // grams: once known, changing them scales kcal and macros; the first time they only record the weight
+    const g = d.grams ? d.grams * vn.portion : 0;
+    dc.appendChild(gramsRow(g, (G) => {
+      if (d.grams) { const f = G / (d.grams * vn.portion); MACRO_KEYS.forEach((k) => { d[k] = (d[k] || 0) * f; }); }
+      d.grams = G / vn.portion;
+      renderVnos();
+    }, null, d.grams ? '' : 'neobvezno — koliko gramov je bilo; naslednjič jed izbiraš v gramih'));
     card.appendChild(dc);
   });
   if (edit) {
@@ -3659,7 +3715,8 @@ function foodResultCard(edit) {
   pc.style.gap = '6px';
   pc.innerHTML = '<span class="cap">Količina' + (r.dishes.length > 1 ? ' (za vse jedi)' : '') + '</span>';
   pc.appendChild(portionButtons((v) => { vn.portion = v; renderVnos(); }));
-  card.appendChild(pc);
+  // dishes measured in grams already have their own amount
+  if (!r.dishes.every((d) => d.grams > 0)) card.appendChild(pc);
   if (!edit) card.appendChild(splitBox(t.calories));
   return card;
 }
@@ -3895,13 +3952,26 @@ function renderVnosHistList(food) {
   const day = foodDate.value || localDay(new Date());
   const lastLabel = (key) => (key === localDay(new Date()) ? 'danes' : WEEKDAY_SHORT[dayDate(key).getDay()].toLowerCase() + ' ' + shortDay(key));
   const src = food
-    ? libDishes().filter((d) => !q || d.name.toLowerCase().indexOf(q) !== -1).slice(0, 60).map((d) => ({ key: d.key, d: d }))
+    ? libDishes().filter((d) => !q || d.name.toLowerCase().indexOf(q) !== -1)
+      .sort((a, b) => a.name.localeCompare(b.name, 'sl', { sensitivity: 'base' })).map((d) => ({ key: d.key, d: d }))
     : supplementList.filter((s) => !q || s.name.toLowerCase().indexOf(q) !== -1).map((s) => ({ key: s.name.toLowerCase(), s: s }));
   if (!src.length) {
     list.innerHTML = '<div class="empty-card">' + (food && !meals.length || !food && !supplementList.length ? 'Tu se bodo pojavili vnosi, ko jih enkrat dodaš.' : 'Ni zadetkov.') + ' Poskusi zavihek <b>Novo</b>.</div>';
     return;
   }
+  let letter = '';
   src.forEach((x) => {
+    if (food) {
+      // A, B, C, Č … as headings (Slovenian order)
+      const l = (x.d.name.trim()[0] || '#').toLocaleUpperCase('sl');
+      if (l.localeCompare(letter, 'sl', { sensitivity: 'base' }) !== 0 || !letter) {
+        letter = l;
+        const h = document.createElement('div');
+        h.className = 'lib-letter';
+        h.textContent = /\p{L}/u.test(l) ? l : '#';
+        list.appendChild(h);
+      }
+    }
     const open = vn.pick === x.key;
     const item = document.createElement('div');
     item.className = 'hist-food' + (open ? ' open' : '');
@@ -3912,7 +3982,7 @@ function renderVnosHistList(food) {
     if (food) {
       const d = x.d;
       const v = baseScaled(d.base, d.portion);
-      head.innerHTML = '<span class="n"><b>' + escapeHtml(d.name) + '</b><span>B ' + fmt1(v.protein) + ' · OH ' + fmt1(v.carbs) + ' · M ' + fmt1(v.fat)
+      head.innerHTML = '<span class="n"><b>' + escapeHtml(d.name) + '</b><span>' + (d.grams ? fmtInt(d.grams * d.portion) + ' g · ' : '') + 'B ' + fmt1(v.protein) + ' · OH ' + fmt1(v.carbs) + ' · M ' + fmt1(v.fat)
         + (d.count ? ' · ' + d.count + '× · nazadnje ' + lastLabel(d.last.date) : ' · shranjena jed') + '</span></span><span class="r">' + fmtInt(v.calories) + '</span>';
     } else {
       const s = x.s;
@@ -3948,13 +4018,24 @@ function renderVnosHistList(food) {
         b.appendChild(dishEditor(x.d));
       } else if (food) {
         const d = x.d;
-        b.appendChild(portionButtons((v) => { vn.portion = v; renderVnosHistList(true); }));
-        const kc = baseScaled(d.base, vn.portion).calories;
-        b.appendChild(splitBox(kc));
-        b.appendChild(btn(vn.split ? 'Dodaj · ' + splitLabel(kc) : 'Dodaj v ' + mealTypeLabel(vn.type) + ' · ' + fmtInt(kc) + ' kcal', 'big-food-btn', () => {
-          saveFood({ dishes: [Object.assign({ name: d.name }, d.base)], ai: false, repeatOf: d.last || true });
-        }));
-        b.appendChild(btn('Uredi ime in vrednosti', 'link-plain', () => { vn.editDish = x.key; renderVnosHistList(true); }));
+        const label = () => {
+          const kc = baseScaled(d.base, vn.portion).calories;
+          return vn.split ? 'Dodaj · ' + splitLabel(kc) : 'Dodaj v ' + mealTypeLabel(vn.type) + ' · ' + (d.grams ? fmtInt(d.grams * vn.portion) + ' g · ' : '') + fmtInt(kc) + ' kcal';
+        };
+        let add = null;
+        if (d.grams) {
+          const per100 = Math.round(d.base.calories / d.grams * 100);
+          b.appendChild(gramsRow(d.grams * vn.portion, (G) => { vn.portion = G / d.grams; renderVnosHistList(true); },
+            (G) => { vn.portion = G / d.grams; if (add) add.textContent = label(); }, per100 + ' kcal / 100 g'));
+        } else {
+          b.appendChild(portionButtons((v) => { vn.portion = v; renderVnosHistList(true); }));
+        }
+        b.appendChild(splitBox(baseScaled(d.base, vn.portion).calories));
+        add = btn(label(), 'big-food-btn', () => {
+          saveFood({ dishes: [Object.assign({ name: d.name }, d.base, d.grams ? { grams: d.grams } : {})], ai: false, repeatOf: d.last || true });
+        });
+        b.appendChild(add);
+        b.appendChild(btn(d.grams ? 'Uredi ime, vrednosti in grame' : 'Uredi ime in vrednosti · nastavi grame', 'link-plain', () => { vn.editDish = x.key; renderVnosHistList(true); }));
       } else if (vn.editSupp === x.key) {
         b.appendChild(suppEditor(x.s));
       } else {
@@ -4037,18 +4118,78 @@ function dishEditor(d) {
   const wrap = document.createElement('div');
   wrap.className = 'stack';
   wrap.style.gap = '8px';
-  const form = valuesForm('Za 1 porcijo', Object.assign({ name: d.name }, d.base), false);
-  wrap.appendChild(form.el);
-  const note = document.createElement('span');
-  note.className = 'vn-hint';
-  note.textContent = 'Novo ime se zapiše tudi v vse že shranjene obroke s to jedjo. Kalorije in makri veljajo za naslednje vnose (posamezen obrok urediš s tapom na Prehrani).';
-  wrap.appendChild(note);
+  // what the values are for: one portion, one portion of X grams, or 100 g (from the package)
+  let unit = d.unit === '100' || d.unit === 'g' ? d.unit : 'porcija';
+  let st = { name: d.name, base: Object.assign({}, d.base), grams: d.grams || 0 };
+  const seg = document.createElement('div');
+  seg.className = 'unit-seg';
+  seg.setAttribute('role', 'group');
+  seg.setAttribute('aria-label', 'Kako merim to jed');
+  const holder = document.createElement('div');
+  holder.className = 'stack';
+  holder.style.gap = '8px';
+  let form = null, gramsInp = null;
+  const readForm = () => {
+    const v = form.read();
+    st.name = v.name || st.name;
+    const g = gramsInp ? Number(String(gramsInp.value).replace(',', '.')) || 0 : 0;
+    if (unit === '100') {
+      if (MACRO_KEYS.some((k) => v[k])) { st.base = { calories: v.calories, protein: v.protein, carbs: v.carbs, fat: v.fat }; st.grams = 100; }
+    } else {
+      st.base = { calories: v.calories, protein: v.protein, carbs: v.carbs, fat: v.fat };
+      if (unit === 'g') st.grams = g;
+    }
+    return v;
+  };
+  const draw = () => {
+    seg.innerHTML = '';
+    [['porcija', 'Porcija'], ['g', 'Grami porcije'], ['100', 'Na 100 g']].forEach(([k, l]) => seg.appendChild(btn(l, '', () => {
+      if (k === unit) return;
+      readForm();
+      unit = k;
+      draw();
+    }, { 'aria-pressed': unit === k ? 'true' : 'false' })));
+    holder.innerHTML = '';
+    // values shown for the chosen unit (per 100 g only when the grams are known)
+    const shown = unit === '100'
+      ? (st.grams ? Object.fromEntries(MACRO_KEYS.map((k) => [k, (st.base[k] || 0) * 100 / st.grams])) : {})
+      : st.base;
+    form = valuesForm(unit === '100' ? 'Na 100 g (z embalaže)' : 'Za 1 porcijo', Object.assign({ name: st.name }, shown), false);
+    holder.appendChild(form.el);
+    gramsInp = null;
+    if (unit === 'g') {
+      const row = document.createElement('label');
+      row.className = 'grams-row';
+      row.innerHTML = '<span class="lbl">1 porcija</span>';
+      gramsInp = document.createElement('input');
+      gramsInp.inputMode = 'decimal'; gramsInp.value = st.grams ? String(Math.round(st.grams)) : ''; gramsInp.placeholder = 'npr. 60';
+      gramsInp.setAttribute('aria-label', 'Grami ene porcije');
+      row.appendChild(gramsInp);
+      const u = document.createElement('span'); u.className = 'u'; u.textContent = 'g';
+      row.appendChild(u);
+      holder.appendChild(row);
+    }
+    const hint = document.createElement('span');
+    hint.className = 'vn-hint';
+    hint.textContent = (unit === 'porcija' ? 'Količino izbiraš kot ×½, ×1, ×2 porcije.'
+      : unit === 'g' ? 'Vpiši, koliko gramov je ena porcija s temi vrednostmi. Ob dodajanju vtipkaš grame, kcal in makri se preračunajo.'
+      : 'Vpiši vrednosti na 100 g (npr. z embalaže). Ob dodajanju vtipkaš grame, kcal in makri se preračunajo.')
+      + ' Novo ime se zapiše tudi v vse že shranjene obroke s to jedjo; vrednosti veljajo za naslednje vnose.';
+    holder.appendChild(hint);
+  };
+  wrap.appendChild(seg);
+  wrap.appendChild(holder);
+  draw();
   const acts = document.createElement('div');
   acts.className = 'gate-btns';
   acts.appendChild(btn('Prekliči', '', () => { vn.editDish = null; renderVnosHistList(true); }));
   acts.appendChild(btn('Shrani jed', 'go', () => {
-    const v = form.read();
+    const v = readForm();
     if (!v.name) return;
+    if (unit !== 'porcija' && !(st.grams > 0)) {
+      toast(unit === 'g' ? 'Vpiši, koliko gramov je ena porcija' : 'Vpiši vrednosti na 100 g');
+      return;
+    }
     const newKey = dishKey(v.name);
     if (v.name !== d.name) {
       let n = 0;
@@ -4061,10 +4202,15 @@ function dishEditor(d) {
       // meals that already pointed here by an older name follow along
       Object.keys(dishLib).forEach((k) => { if (dishLib[k] && dishLib[k].renamedTo === d.key) dishLib[k] = { renamedTo: newKey }; });
     }
-    dishLib[newKey] = { name: v.name, calories: v.calories, protein: v.protein, carbs: v.carbs, fat: v.fat };
+    const o = Object.assign({ name: v.name }, st.base);
+    if (unit !== 'porcija') { o.grams = st.grams; o.unit = unit; }
+    dishLib[newKey] = o;
     persistDishes();
     vn.editDish = null; vn.pick = newKey;
-    toast('Jed posodobljena: ' + v.name);
+    vn.portion = 1;
+    const fresh = libDishes().find((x) => x.key === newKey);
+    if (fresh) vn.portion = fresh.portion || 1;
+    toast('Jed posodobljena: ' + v.name + (unit === 'porcija' ? '' : ' · v gramih'));
     renderVnosHistList(true);
   }));
   wrap.appendChild(acts);
@@ -4209,6 +4355,7 @@ function saveFood(src) {
   let first = null, kcalA = 0, kcalB = 0, n = 0;
   dishes.forEach((d, di) => {
     const total = baseScaled(d, vn.portion);
+    if (d.grams) total.grams = Math.round(d.grams * vn.portion);
     const common = {
       dishChecked: true,
       name: (d.name || '').trim() || mealTypeLabel(vn.type), portion: vn.portion,
@@ -4218,7 +4365,8 @@ function saveFood(src) {
     if (vn.split) {
       const groupId = newId('g');
       const a = vn.splitPct / 100;
-      const part = (share) => ({ calories: roundDec(total.calories * share), protein: roundDec(total.protein * share), carbs: roundDec(total.carbs * share), fat: roundDec(total.fat * share) });
+      const part = (share) => Object.assign({ calories: roundDec(total.calories * share), protein: roundDec(total.protein * share), carbs: roundDec(total.carbs * share), fat: roundDec(total.fat * share) },
+        total.grams ? { grams: Math.round(total.grams * share) } : {});
       const mA = Object.assign({ id: newId('m'), date: day, time: now + di * 2, type: vn.type, hasPhoto: false, split: { groupId: groupId, share: a } }, common, part(a));
       const mB = Object.assign({ id: newId('m'), date: day, time: now + di * 2 + 1, type: splitOther(), hasPhoto: false, split: { groupId: groupId, share: 1 - a } }, common, part(1 - a));
       if (vn.later) mB.pending = true;
@@ -4272,9 +4420,11 @@ function saveEdit() {
     else if (o && o.name) { o.name = newName; persistDishes(); }
   }
   Object.assign(m, baseScaled(d, vn.portion), { name: (d.name || '').trim() || m.name, type: vn.type, portion: vn.portion, dishChecked: true });
+  if (d.grams) m.grams = Math.round(d.grams * vn.portion); else delete m.grams;
   ds.slice(1).forEach((x, i) => {
     const extra = Object.assign({ id: newId('m'), date: m.date, time: m.time + i + 1, type: vn.type, hasPhoto: false, portion: vn.portion,
-      name: (x.name || '').trim() || mealTypeLabel(vn.type), source: 'manual', confidence: null, notes: '', dishChecked: true }, baseScaled(x, vn.portion));
+      name: (x.name || '').trim() || mealTypeLabel(vn.type), source: 'manual', confidence: null, notes: '', dishChecked: true }, baseScaled(x, vn.portion),
+      x.grams ? { grams: Math.round(x.grams * vn.portion) } : {});
     if (m.split) extra.split = { groupId: m.split.groupId + '|' + (i + 1), share: m.split.share };
     if (m.pending) extra.pending = true;
     meals.push(extra);

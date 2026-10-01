@@ -393,12 +393,14 @@ worker) in varni robovi za iPhone z zarezo (`viewport-fit=cover`, `env(safe-area
   premakneš gumbe za slog (npr. »prosto«); tipkan set jih prepozna po imenu.
 - **Vsaka jed posebej** — AI (ali ročni vnos) vrne jedi na krožniku kot ločene jedi (npr. »Pražen riž«,
   »Jota«); vsaka se shrani kot svoj vnos. *Združi v eno jed* jih po potrebi združi, *+ Dodaj jed* doda novo.
-- **Moje jedi** — vse, kar si že jedel. Med pisanjem se pod poljem pokažejo ujemajoče jedi — tap jo doda
-  z isto količino kot zadnjič, brez AI. V *Že jedel* svinčnik ✎ desno od jedi odpre urejanje: novo ime
-  se zapiše tudi v vse že shranjene obroke s to jedjo, kcal/B/OH/M za 1 porcijo veljajo za naslednje
-  vnose; jed lahko tudi odstraniš s seznama. Spremembe so v `kilometrina.dishes` (v Drive kopiji `dishes`).
-  Pri urejanju posameznega obroka (tap na Prehrani) kljukica *Preimenuj povsod* novo ime zapiše tudi v
-  prejšnje vnose z istim imenom.
+- **Knjižnica jedi (Moje jedi)** — vse, kar si kdaj jedel, po abecedi (A–Ž, s črkami kot naslovi): na Prehrani
+  gumb *Knjižnica jedi* ali *Dodaj hrano → Že jedel*. Med pisanjem se pod poljem pokažejo ujemajoče jedi — tap jo
+  doda z isto količino kot zadnjič, brez AI. Svinčnik ✎ desno od jedi odpre urejanje: ime (zapiše se tudi v vse
+  že shranjene obroke), vrednosti in **način merjenja**: *Porcija* (×½, ×1, ×2), *Grami porcije* (»1 porcija =
+  60 g«) ali *Na 100 g* (z embalaže). Pri jedeh v gramih namesto porcij vtipkaš maso (ali −10/+10), kcal in makri
+  se preračunajo, naslednjič je privzeta zadnja masa. Masa se lahko vpiše tudi pri novem vnosu in pri urejanju
+  obroka (tap na Prehrani). Obrok ima polje `grams`, v Excelu je stolpec *Masa (g)*. Spremembe jedi so v
+  `kilometrina.dishes` (`{name, calories, protein, carbs, fat, grams?, unit?}`, v Drive kopiji `dishes`).
 - **Dopolnila** — na Prehrani ✎ pri zabeleženem dopolnilu (ali čip *✎ Uredi*) odpre urejanje imena,
   vrednosti in sestavin; enako svinčnik v *Moja dopolnila*. Dopolnilo ima lahko kcal in makrohranila na
   odmerek (npr. proteinski napitek), ki se prištejejo dnevu. Preimenovanje preimenuje tudi pretekle vnose.
