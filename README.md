@@ -296,6 +296,9 @@ Spodaj je stalna vrstica z zavihki:
   odpre Trening.
 - **Trening** — *Plavanje | Fitnes* (fitnes pride v 3. fazi), bazen 25 / 50 m. Seti z gumbi (ponovitve →
   razdalja → slog → oznake/interval → Dodaj) ali s tipkanjem (`8x100 p tempo na 1:45`, več setov loči s `;`).
+  *Ne spomnim se vseh setov*: vpišeš sete, ki se jih spomniš, in okvirno kilometrino celega treninga (km ali m,
+  ali gumbi 2–7 km). Trening se shrani kot nepopoln (`incomplete`, `approxMeters`, `setsMeters`), `totalMeters` je
+  ocena (nikoli manj od zapisanih setov); v zgodovini »≈« in vrstica *Nezapisani seti (ocena)*, enako v Excelu in CSV.
   Pri gumbih ni nič izbrano vnaprej — *Dodaj* se odklene, ko izbereš ponovitve, razdaljo in slog (ponoven tap
   izbiro prekliče), po dodajanju se izbira počisti. Tap na set ga odpre za urejanje. Bližnjici: *Ponovi zadnji*,
   *Razveljavi*; *Skrij* (desno zgoraj v vnosnem delu) skrije gumbe in zapre tipkovnico, *+ Dodaj set* jih vrne;

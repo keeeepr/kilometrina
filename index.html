@@ -551,6 +551,23 @@
     background: #0E1A25; border-top: 1px solid var(--line);
   }
   .tr-input-head { display: flex; align-items: center; gap: 8px; }
+  .approx-card { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; padding: 12px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); }
+  .approx-card.on { border-color: #2F6D66; background: #0F2328; }
+  .approx-toggle { display: flex; align-items: center; gap: 12px; width: 100%; padding: 0; border: 0; background: transparent; color: var(--text); text-align: left; cursor: pointer; }
+  .approx-toggle .box { width: 24px; height: 24px; flex: none; border-radius: 7px; border: 2px solid #3A4F63; display: flex; align-items: center; justify-content: center; }
+  .approx-card.on .approx-toggle .box { border-color: var(--teal); background: var(--teal); }
+  .approx-toggle .t { display: flex; flex-direction: column; gap: 2px; }
+  .approx-toggle .t b { font-size: 15px; }
+  .approx-toggle .t span { font-size: 12px; color: var(--text-dim); }
+  .approx-row { display: flex; align-items: center; gap: 8px; }
+  .approx-row input { width: 110px; min-height: 0; height: 46px; text-align: center; font-size: 18px; font-weight: 700; }
+  .approx-row .u { font-size: 14px; color: var(--text-dim); }
+  .approx-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .approx-chips button { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid #2A3F53; background: transparent; color: var(--text-soft); font-size: 13px; font-weight: 700; cursor: pointer; }
+  .approx-chips button[aria-pressed="true"] { border-color: var(--teal); color: var(--teal); }
+  .approx-note { font-size: 12.5px; color: var(--text-dim); line-height: 1.45; }
+  .approx-note b { color: var(--text); }
+  .tag-approx { color: #FFD19A; }
   .tr-hide { width: auto; padding: 0 10px; gap: 4px; font-size: 13px; font-weight: 700; }
   .tr-show { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 14px; border: 1px dashed #2A4A55; background: transparent; color: var(--teal); font-size: 15px; font-weight: 700; cursor: pointer; }
   .tr-input.collapsed { padding-top: 8px; padding-bottom: 8px; }
@@ -1222,6 +1239,7 @@
       <button type="button" class="sc-btn accent" id="trRepeat"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5"/></svg>Ponovi zadnji</button>
       <button type="button" class="sc-btn warn" id="trUndo" hidden>Razveljavi</button>
     </div>
+    <div class="approx-card" id="trApprox"></div>
     <div class="set-list" id="trSets"></div>
 
     <div class="tr-input" id="trInput">
@@ -1816,11 +1834,12 @@ function xlsxSheets() {
   const workouts = [[
     'Datum', 'Naslov', 'Bazen', 'Metri', 'Km', 'Število setov',
     'Ocena spanja', 'Pripravljenost', 'Spanje (min)', 'HRV (ms)',
-    'Utrip noč povp.', 'Utrip noč najn.', 'Mirovni utrip'
+    'Utrip noč povp.', 'Utrip noč najn.', 'Mirovni utrip', 'Nepopoln (okvirno)'
   ]].concat(byDate.map((s) => [
     s.date, s.title, poolLabel(s.pool), s.totalMeters, s.totalMeters / 1000, (s.lines || []).length,
     o(s.date).sleep_score, o(s.date).readiness_score, o(s.date).total_sleep_duration_min, o(s.date).avg_hrv_overnight,
-    o(s.date).avg_hr_overnight, o(s.date).lowest_hr_overnight, o(s.date).resting_heart_rate
+    o(s.date).avg_hr_overnight, o(s.date).lowest_hr_overnight, o(s.date).resting_heart_rate,
+    s.incomplete ? 'da — zapisano ' + fmtInt(s.setsMeters || 0) + ' m, okvirno ' + fmtInt(s.totalMeters || 0) + ' m' : null
   ]));
   // one block per workout: coloured title row, numbered sets, bold total, empty row
   const sets = [['Datum', 'Trening', 'Bazen', 'Št.', 'Set', 'Metri']];
@@ -1830,10 +1849,12 @@ function xlsxSheets() {
     const km = (s.totalMeters || 0) / 1000;
     setStyles[sets.length] = 2;
     sets.push([s.date, s.title, poolLabel(s.pool), null,
-      WEEKDAY_SHORT[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear() + ' — ' + (s.title || 'Trening') + ' · bazen ' + poolLabel(s.pool) + ' · ' + setsWord((s.lines || []).length), null]);
+      WEEKDAY_SHORT[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear() + ' — ' + (s.title || 'Trening') + ' · bazen ' + poolLabel(s.pool) + ' · ' + setsWord((s.lines || []).length) + (s.incomplete ? ' · nepopoln' : ''), null]);
     (s.lines || []).forEach((l, i) => sets.push([s.date, s.title, poolLabel(s.pool), i + 1, l.text, l.meters]));
+    const rest = s.incomplete ? (s.totalMeters || 0) - (s.lines || []).reduce((a, l) => a + (l.meters || 0), 0) : 0;
+    if (rest > 0) sets.push([s.date, s.title, poolLabel(s.pool), null, 'Nezapisani seti (ocena)', rest]);
     setStyles[sets.length] = 3;
-    sets.push([s.date, s.title, poolLabel(s.pool), null, 'Skupaj: ' + fmtInt(s.totalMeters || 0) + ' m = ' + km.toLocaleString('sl-SI', { maximumFractionDigits: 2 }) + ' km', s.totalMeters || 0]);
+    sets.push([s.date, s.title, poolLabel(s.pool), null, 'Skupaj: ' + (s.incomplete ? '≈ ' : '') + fmtInt(s.totalMeters || 0) + ' m = ' + km.toLocaleString('sl-SI', { maximumFractionDigits: 2 }) + ' km', s.totalMeters || 0]);
     sets.push([]);
   });
   const ouraCols = [
@@ -1891,7 +1912,7 @@ function xlsxSheets() {
   }
   return [
     { name: 'Dnevni pregled', rows: daily, widths: [12, 9, 7, 10, 10, 12, 10, 8, 10, 10, 30, 10, 10, 9, 10, 12, 22] },
-    { name: 'Treningi', rows: workouts, widths: [12, 24, 8, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9] },
+    { name: 'Treningi', rows: workouts, widths: [12, 24, 8, 9, 8, 9, 9, 9, 9, 9, 9, 9, 9, 34] },
     { name: 'Seti', rows: sets, widths: [12, 22, 12, 5, 80, 9], rowStyles: setStyles },
     { name: 'Prehrana', rows: food, widths: [12, 7, 10, 26, 10, 9, 7, 10, 8, 10, 10, 11, 50, 10, 18] },
     { name: 'Dopolnila', rows: supps, widths: [12, 7, 26, 10, 12, 70] },
@@ -5247,6 +5268,8 @@ function freshTraining() {
     editId: null, title: '', date: localDay(new Date()), pool: defaultPool(), kind: 'swim',
     sets: [], open: null, mode: 'keys', draft: '',
     b: emptyBuilder(),
+    // "I don't remember every set": the sets written down plus a rough total for the whole session
+    incomplete: false, approx: 0,
     undo: [], toast: '', err: '', justSaved: false
   };
 }
@@ -5258,8 +5281,8 @@ let tr = freshTraining();
   tr.sets = tr.sets.map(withId);
 })();
 function saveDraft() {
-  const keep = { editId: tr.editId, title: tr.title, date: tr.date, pool: tr.pool, kind: tr.kind, mode: tr.mode, sets: tr.sets };
-  if (!tr.sets.length && !tr.title && !tr.editId) { try { localStorage.removeItem(LS_TR_DRAFT); } catch (e) {} return; }
+  const keep = { editId: tr.editId, title: tr.title, date: tr.date, pool: tr.pool, kind: tr.kind, mode: tr.mode, sets: tr.sets, incomplete: tr.incomplete, approx: tr.approx };
+  if (!tr.sets.length && !tr.title && !tr.editId && !tr.incomplete) { try { localStorage.removeItem(LS_TR_DRAFT); } catch (e) {} return; }
   try { localStorage.setItem(LS_TR_DRAFT, JSON.stringify(keep)); } catch (e) {}
 }
 
@@ -5298,16 +5321,67 @@ function toggleTag(list, t) {
   return list.filter((x) => !(isInterval(t) && isInterval(x))).concat(t);
 }
 
+/** "4,5" or "4,5 km" → 4500 m, "3200" → 3200 m. */
+function parseDistance(raw) {
+  const t = String(raw || '').trim().toLowerCase().replace(',', '.');
+  const n = Number(t.replace(/\s*(km|m)$/, ''));
+  if (!(n > 0)) return 0;
+  return Math.round(/km$/.test(t) || n < 50 ? n * 1000 : n);
+}
+/** Total of a session being written: the rough total when sets are missing, never less than the sets written. */
+function trTotalMeters() {
+  const sets = tr.sets.reduce((a, s) => a + setMeters(s), 0);
+  return tr.incomplete && tr.approx > sets ? tr.approx : sets;
+}
+
+function renderApprox() {
+  const card = document.getElementById('trApprox');
+  const sets = tr.sets.reduce((a, s) => a + setMeters(s), 0);
+  card.className = 'approx-card' + (tr.incomplete ? ' on' : '');
+  card.innerHTML = '';
+  const tog = btn('', 'approx-toggle', () => { tr.incomplete = !tr.incomplete; tr.justSaved = false; saveDraft(); renderTraining(); }, { 'aria-pressed': tr.incomplete ? 'true' : 'false' });
+  tog.innerHTML = '<span class="box">' + (tr.incomplete ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#06231E" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>' : '') + '</span>'
+    + '<span class="t"><b>Ne spomnim se vseh setov</b><span>vpiši, kar se spomniš, in okvirno kilometrino celega treninga</span></span>';
+  card.appendChild(tog);
+  if (!tr.incomplete) return;
+  const row = document.createElement('label');
+  row.className = 'approx-row';
+  row.innerHTML = '<span class="cap" style="flex:1;">Okvirno skupaj</span>';
+  const inp = document.createElement('input');
+  inp.inputMode = 'decimal'; inp.placeholder = 'npr. 4,5'; inp.setAttribute('aria-label', 'Okvirna skupna razdalja v km ali m');
+  inp.value = tr.approx ? fmtKm(tr.approx, tr.approx % 100 ? 2 : 1) : '';
+  const setApprox = (m) => { tr.approx = m; tr.justSaved = false; saveDraft(); renderTraining(); };
+  inp.addEventListener('focus', () => inp.select());
+  inp.addEventListener('change', () => setApprox(parseDistance(inp.value)));
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') inp.blur(); });
+  row.appendChild(inp);
+  const u = document.createElement('span'); u.className = 'u'; u.textContent = 'km';
+  row.appendChild(u);
+  card.appendChild(row);
+  const chips = document.createElement('div');
+  chips.className = 'approx-chips';
+  [2000, 3000, 4000, 5000, 6000, 7000].forEach((m) => chips.appendChild(btn(fmtKm(m, 0) + ' km', '', () => setApprox(m), { 'aria-pressed': tr.approx === m ? 'true' : 'false' })));
+  card.appendChild(chips);
+  const note = document.createElement('div');
+  note.className = 'approx-note';
+  note.innerHTML = !tr.approx ? 'Vpiši okvirno razdaljo (km ali m). Šteje se v tedenske kilometre in Excel.'
+    : tr.approx < sets ? 'Zapisani seti so že ' + fmtInt(sets) + ' m — šteje se <b>' + fmtInt(sets) + ' m</b>.'
+    : 'Zapisano ' + fmtInt(sets) + ' m · nezapisano še ≈ ' + fmtInt(tr.approx - sets) + ' m · skupaj <b>≈ ' + fmtInt(tr.approx) + ' m</b>';
+  card.appendChild(note);
+}
+
 function renderTraining() {
-  const total = tr.sets.reduce((a, s) => a + setMeters(s), 0);
+  const total = trTotalMeters();
   const title = document.getElementById('trTitle');
   if (document.activeElement !== title) title.value = tr.title;
   title.placeholder = suggestTitle(tr.date);
   document.getElementById('trDate').value = tr.date;
-  document.getElementById('trTotal').textContent = fmtInt(total) + ' m';
-  document.getElementById('trSummary').textContent = setsWord(tr.sets.length) + ' · ' + plural(Math.round(total / tr.pool), 'dolžina', 'dolžini', 'dolžine', 'dolžin');
+  const approx = tr.incomplete && tr.approx > 0;
+  const estimated = approx && tr.approx > tr.sets.reduce((a, s) => a + setMeters(s), 0);
+  document.getElementById('trTotal').textContent = (estimated ? '≈ ' : '') + fmtInt(total) + ' m';
+  document.getElementById('trSummary').textContent = setsWord(tr.sets.length) + (approx ? ' · nepopoln' : ' · ' + plural(Math.round(total / tr.pool), 'dolžina', 'dolžini', 'dolžine', 'dolžin'));
   const save = document.getElementById('trSaveBtn');
-  save.disabled = !tr.sets.length && !tr.justSaved;
+  save.disabled = !tr.sets.length && !approx && !tr.justSaved;
   save.textContent = tr.justSaved ? 'Shranjeno ✓' : 'Shrani';
   save.classList.toggle('done', tr.justSaved);
   document.getElementById('trEditing').hidden = !tr.editId || tr.kind === 'fitness';
@@ -5327,6 +5401,7 @@ function renderTraining() {
 
   document.getElementById('trRepeat').disabled = !tr.sets.length;
   document.getElementById('trUndo').hidden = !tr.undo.length;
+  renderApprox();
   renderSetList();
   renderTrInput();
 }
@@ -5335,7 +5410,8 @@ function renderSetList() {
   const list = document.getElementById('trSets');
   list.innerHTML = '';
   if (!tr.sets.length) {
-    list.innerHTML = '<div class="empty-card">Še ni setov.<br>Spodaj tapni ponovitve, razdaljo in slog ali preklopi na <b>Tipkaj</b>.</div>';
+    list.innerHTML = tr.incomplete ? '<div class="empty-card">Vpiši sete, ki se jih spomniš — ali pa samo okvirno kilometrino zgoraj.</div>'
+      : '<div class="empty-card">Še ni setov.<br>Spodaj tapni ponovitve, razdaljo in slog ali preklopi na <b>Tipkaj</b>.</div>';
     return;
   }
   tr.sets.forEach((s, i) => {
@@ -5521,6 +5597,8 @@ function loadWorkout(w, asEdit) {
   tr.title = asEdit ? (w.title || '') : (w.title || '');
   tr.date = asEdit ? w.date : localDay(new Date());
   tr.pool = w.pool || tr.pool;
+  tr.incomplete = !!w.incomplete;
+  tr.approx = w.approxMeters || 0;
   tr.kind = 'swim';
   tr.open = null;
   tr.justSaved = false;
@@ -5530,7 +5608,8 @@ function loadWorkout(w, asEdit) {
 }
 
 function saveTraining() {
-  if (!tr.sets.length) return;
+  const approx = tr.incomplete && tr.approx > 0;
+  if (!tr.sets.length && !approx) return;
   const existing = tr.editId ? sessions.find((w) => w.id === tr.editId) : null;
   const lines = tr.sets.map((s) => s.legacy
     ? { text: s.text, meters: s.meters }
@@ -5540,7 +5619,11 @@ function saveTraining() {
     date: tr.date || localDay(new Date()),
     title: tr.title.trim() || suggestTitle(tr.date),
     lines: lines,
-    totalMeters: lines.reduce((a, l) => a + l.meters, 0),
+    totalMeters: Math.max(lines.reduce((a, l) => a + l.meters, 0), approx ? tr.approx : 0),
+    // incomplete: not every set was written down; approxMeters is the rough total, setsMeters what the sets add up to
+    incomplete: approx || undefined,
+    approxMeters: approx ? tr.approx : undefined,
+    setsMeters: approx ? lines.reduce((a, l) => a + l.meters, 0) : undefined,
     createdAt: existing ? existing.createdAt : Date.now(),
     pool: tr.pool,
     kind: 'swim'
@@ -6535,14 +6618,16 @@ function historyItem(w) {
   head.className = 'hist-head';
   head.setAttribute('aria-expanded', open ? 'true' : 'false');
   head.innerHTML = '<span class="hist-day"><span>' + WEEKDAY_SHORT[d.getDay()] + '</span><b>' + d.getDate() + '</b></span>'
-    + '<span class="hist-mid"><b>' + escapeHtml(w.title || 'Trening') + '</b><span>' + escapeHtml(workoutDesc(w) + (w.pool ? ' · bazen ' + w.pool + ' m' : '')) + '</span></span>'
-    + '<span class="hist-km">' + fmtKm(w.totalMeters || 0) + '</span>';
+    + '<span class="hist-mid"><b>' + escapeHtml(w.title || 'Trening') + '</b><span>' + (w.incomplete ? '<span class="tag-approx">nepopoln · </span>' : '') + escapeHtml(workoutDesc(w) + (w.pool ? ' · bazen ' + w.pool + ' m' : '')) + '</span></span>'
+    + '<span class="hist-km">' + (w.incomplete ? '≈' : '') + fmtKm(w.totalMeters || 0) + '</span>';
   head.addEventListener('click', () => { histOpen = open ? null : w.id; renderHistory(); });
   item.appendChild(head);
   if (open) {
     const body = document.createElement('div');
     body.className = 'hist-body';
+    const rest = w.incomplete ? (w.totalMeters || 0) - (w.lines || []).reduce((a, l) => a + (l.meters || 0), 0) : 0;
     body.innerHTML = (w.lines || []).map((l) => '<div class="hl"><span>' + escapeHtml(l.text) + '</span><span class="m">' + fmtInt(l.meters) + ' m</span></div>').join('')
+      + (rest > 0 ? '<div class="hl"><span class="tag-approx">Nezapisani seti (ocena)</span><span class="m">≈ ' + fmtInt(rest) + ' m</span></div>' : '')
       + ouraBadgesHtml(w.date);
     const acts = document.createElement('div');
     acts.className = 'hist-actions';
@@ -6653,7 +6738,7 @@ function renderToday() {
     const seg = (m, color) => (m ? '<span style="width:' + (m / tot * 100) + '%;background:' + color + '"></span>' : '');
     const leg = (m, color, name) => (m ? '<span><i style="background:' + color + '"></i>' + name + ' ' + fmtInt(m) + '</span>' : '');
     card.innerHTML = '<div class="row"><div><div class="t">' + escapeHtml(w.title || 'Trening') + '</div><div class="s">' + time
-      + setsWord((w.lines || []).length) + (w.pool ? ' · bazen ' + w.pool + ' m' : '') + '</div></div><span class="km">' + fmtKm(w.totalMeters || 0) + ' km</span></div>'
+      + setsWord((w.lines || []).length) + (w.incomplete ? ' · nepopoln' : '') + (w.pool ? ' · bazen ' + w.pool + ' m' : '') + '</div></div><span class="km">' + (w.incomplete ? '≈ ' : '') + fmtKm(w.totalMeters || 0) + ' km</span></div>'
       + '<div class="seg-bar">' + seg(p.warm, '#7FB7D6') + seg(p.main, '#4FE3C8') + seg(p.cool, '#5D7A8F') + '</div>'
       + '<div class="seg-legend">' + leg(p.warm, '#7FB7D6', 'Ogrevanje') + leg(p.main, '#4FE3C8', 'Glavni') + leg(p.cool, '#5D7A8F', 'Iztek') + '</div>';
     card.addEventListener('click', () => { histOpen = w.id; setTab('zgodovina'); renderHistory(); });
@@ -6720,6 +6805,8 @@ document.getElementById('exportBtn').addEventListener('click', async () => {
           l.meters
         ].join(','));
       });
+      const rest = s.incomplete ? (s.totalMeters || 0) - s.lines.reduce((a, l) => a + (l.meters || 0), 0) : 0;
+      if (rest > 0) rows.push(['', '', '', '', csvEsc('nezapisani seti (ocena)'), rest].join(','));
     }
   });
   const csv = rows.join('\n');
